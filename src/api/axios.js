@@ -1,7 +1,8 @@
 import axios from 'axios'
+import { API_BASE_URL } from '../utils/apiUrl'
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   // Do NOT set a default Content-Type — axios auto-sets it per request:
   // 'application/json' for objects, 'multipart/form-data; boundary=...' for FormData
 })

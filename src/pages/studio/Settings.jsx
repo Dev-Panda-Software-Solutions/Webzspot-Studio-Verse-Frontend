@@ -10,6 +10,7 @@ import GoldInput from '../../components/ui/GoldInput'
 import { getTenantSettings, updateTenant, getTenantById } from '../../api/tenants'
 import { uploadWatermark } from '../../api/media'
 import useAuthStore from '../../stores/authStore'
+import { backendAssetUrl } from '../../utils/apiUrl'
 import toast from 'react-hot-toast'
 
 export default function StudioSettings() {
@@ -176,7 +177,7 @@ export default function StudioSettings() {
                 Current Watermark
               </p>
               <img
-                src={`/${settings.tenant_watermark_path}`}
+                src={backendAssetUrl(settings.tenant_watermark_path)}
                 alt="Watermark preview"
                 className="max-h-16 max-w-32 object-contain opacity-60"
               />

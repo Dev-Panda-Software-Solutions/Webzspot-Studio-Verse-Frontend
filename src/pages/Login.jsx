@@ -16,8 +16,12 @@ export default function Login() {
   const [error, setError] = useState('')
   const formRef = useRef(null)
   const containerRef = useRef(null)
+  const didAnimate = useRef(false)
+  const shakeTween = useRef(null)
 
   useLayoutEffect(() => {
+    if (didAnimate.current) return
+    didAnimate.current = true
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
       tl.from('.auth-logo', { y: -20, opacity: 0, duration: 0.5 })
@@ -29,10 +33,12 @@ export default function Login() {
   }, [])
 
   const shakeForm = () => {
-    gsap.to(formRef.current, {
-      x: [-8, 8, -6, 6, -3, 3, 0],
+    shakeTween.current?.kill()
+    gsap.set(formRef.current, { x: 0 })
+    shakeTween.current = gsap.to(formRef.current, {
+      keyframes: { x: [-8, 8, -6, 6, -3, 3, 0] },
       duration: 0.5,
-      ease: 'power2.inOut'
+      ease: 'none',
     })
   }
 
@@ -112,9 +118,9 @@ export default function Login() {
               />
             </div>
 
-            {error && (
-              <p className="text-sm text-red-400 mb-4 text-center">{error}</p>
-            )}
+            <div className="h-5 mb-4">
+              {error && <p className="text-sm text-red-400 text-center leading-5">{error}</p>}
+            </div>
 
             <div className="auth-btn">
               <GoldButton type="submit" loading={loading} size="lg" className="w-full justify-center">

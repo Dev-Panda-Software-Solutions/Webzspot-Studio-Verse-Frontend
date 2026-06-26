@@ -25,6 +25,7 @@ import { getTenantFavouritesForEvent } from '../../api/favourites'
 import { formatDate } from '../../utils/formatters'
 import useAuthStore from '../../stores/authStore'
 import FavouritesGallery from '../../components/gallery/FavouritesGallery'
+import { backendAssetUrl } from '../../utils/apiUrl'
 import toast from 'react-hot-toast'
 
 const TABS = ['Media', 'Clients', 'Favourites']
@@ -392,7 +393,7 @@ export default function StudioEventDetail() {
   })
 
   const watermarkSrc = settingsData?.data?.tenant_watermark_path
-    ? `/${settingsData.data.tenant_watermark_path}`
+    ? backendAssetUrl(settingsData.data.tenant_watermark_path)
     : null
 
   useLayoutEffect(() => {
@@ -455,7 +456,7 @@ export default function StudioEventDetail() {
           <div className="relative rounded-2xl overflow-hidden mb-6"
             style={{ height: 280, background: 'var(--bg-elevated)' }}>
             {event?.profile_url && (
-              <img src={`/${event.profile_url}`} alt={event.event_name}
+              <img src={backendAssetUrl(event.profile_url)} alt={event.event_name}
                 className="absolute inset-0 w-full h-full object-cover" />
             )}
             {!event?.profile_url && (

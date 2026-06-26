@@ -5,6 +5,7 @@ import WatermarkOverlay from './WatermarkOverlay'
 import FavouriteButton from './FavouriteButton'
 import TenantFavouriteButton from './TenantFavouriteButton'
 import useMediaToken from '../../hooks/useMediaToken'
+import { mediaViewUrl } from '../../utils/apiUrl'
 
 const isVideo = (media) => media?.media_type?.startsWith('video/')
 
@@ -33,7 +34,7 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
   const { ref: inViewRef, inView } = useInView({ triggerOnce: true, rootMargin: '200px' })
   const video = isVideo(media)
   const { token } = useMediaToken(inView ? media.media_id : null)
-  const src = token ? `/api/media/view/${token}` : null
+  const src = token ? mediaViewUrl(token) : null
 
   const hasFav = (showFavourite || showTenantFav) && !video
 
@@ -127,7 +128,7 @@ function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
   const { ref: inViewRef, inView } = useInView({ triggerOnce: true, rootMargin: '200px' })
   const video = isVideo(media)
   const { token } = useMediaToken(inView ? media.media_id : null)
-  const src = token ? `/api/media/view/${token}` : null
+  const src = token ? mediaViewUrl(token) : null
 
   return (
     <div

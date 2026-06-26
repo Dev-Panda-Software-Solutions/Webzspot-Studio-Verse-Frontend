@@ -3,13 +3,14 @@ import { Heart } from 'lucide-react'
 import Drawer from '../ui/Drawer'
 import useGalleryStore from '../../stores/galleryStore'
 import useMediaToken from '../../hooks/useMediaToken'
+import { mediaViewUrl } from '../../utils/apiUrl'
 
 function ThumbImage({ mediaId }) {
   const { token } = useMediaToken(mediaId)
   if (!token) return <div className="skeleton w-20 h-20 rounded-lg flex-shrink-0" />
   return (
     <img
-      src={`/api/media/view/${token}`}
+      src={mediaViewUrl(token)}
       alt=""
       className="w-20 h-20 object-cover rounded-lg flex-shrink-0 no-select"
       draggable={false}

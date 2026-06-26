@@ -10,6 +10,7 @@ import useGalleryStore from '../../stores/galleryStore'
 import useTenantFavouriteStore from '../../stores/tenantFavouriteStore'
 import { addFavourite, removeFavourite, addTenantFavourite, removeTenantFavourite } from '../../api/favourites'
 import useMediaToken from '../../hooks/useMediaToken'
+import { mediaViewUrl } from '../../utils/apiUrl'
 import toast from 'react-hot-toast'
 
 /* ─── Confetti (same as FavouriteButton / TenantFavouriteButton) ─── */
@@ -77,7 +78,7 @@ function LightboxImage({ media, watermarkSrc }) {
 
   useEffect(() => { setLoaded(false) }, [mediaId])
 
-  const src = token ? `/api/media/view/${token}` : null
+  const src = token ? mediaViewUrl(token) : null
 
   return (
     <div className="relative flex items-center justify-center select-none">
@@ -115,7 +116,7 @@ function LightboxVideo({ media, watermarkSrc }) {
     if (videoRef.current) videoRef.current.load()
   }, [token])
 
-  const src = token ? `/api/media/view/${token}` : null
+  const src = token ? mediaViewUrl(token) : null
 
   return (
     <div

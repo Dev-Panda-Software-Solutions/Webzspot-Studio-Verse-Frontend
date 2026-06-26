@@ -15,6 +15,7 @@ import { getTenantSettings } from '../../api/tenants'
 import useAuthStore from '../../stores/authStore'
 import useGalleryStore from '../../stores/galleryStore'
 import { logout } from '../../api/auth'
+import { backendAssetUrl } from '../../utils/apiUrl'
 import toast from 'react-hot-toast'
 
 export default function Gallery() {
@@ -77,7 +78,7 @@ export default function Gallery() {
     enabled: !!tenantId
   })
   const watermarkPath = settingsData?.data?.tenant_watermark_path
-  const watermarkSrc = watermarkPath ? `/${watermarkPath}` : null
+  const watermarkSrc = watermarkPath ? backendAssetUrl(watermarkPath) : null
 
   // Load user favourites for this event
   useQuery({

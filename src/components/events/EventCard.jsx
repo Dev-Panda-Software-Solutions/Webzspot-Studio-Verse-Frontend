@@ -3,6 +3,7 @@ import { gsap } from 'gsap'
 import { Calendar, ArrowRight, Aperture } from 'lucide-react'
 import { formatDate } from '../../utils/formatters'
 import { useShutterNavigate } from '../../context/ShutterContext'
+import { backendAssetUrl } from '../../utils/apiUrl'
 
 /* ─── Rule-of-thirds corner bracket ─── */
 function Bracket({ corner }) {
@@ -124,7 +125,7 @@ export default function EventCard({ event, eventId, isNew = false, onCreate }) {
       {/* Cover */}
       <div className="h-40 relative overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
         {event?.profile_url ? (
-          <img src={`/${event.profile_url}`} alt={event.event_name}
+          <img src={backendAssetUrl(event.profile_url)} alt={event.event_name}
             className="w-full h-full object-cover" />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
