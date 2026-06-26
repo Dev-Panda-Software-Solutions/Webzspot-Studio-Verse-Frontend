@@ -152,6 +152,7 @@ export default function StudioDashboard() {
   const qc = useQueryClient()
   const containerRef = useRef(null)
   const [createOpen, setCreateOpen] = useState(false)
+  const [editingEvent, setEditingEvent] = useState(null)
   const [page, setPage] = useState(1)
 
   const handleArchiveEvent = async (eventId, eventName) => {
@@ -411,7 +412,13 @@ export default function StudioDashboard() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {events.map(item => (
-                <EventCard key={item.event_id} event={item} eventId={item.event_id} onDelete={handleArchiveEvent} />
+                <EventCard
+                  key={item.event_id}
+                  event={item}
+                  eventId={item.event_id}
+                  onEdit={ev => setEditingEvent(ev)}
+                  onDelete={handleArchiveEvent}
+                />
               ))}
               <EventCard isNew onCreate={() => setCreateOpen(true)} />
             </div>
@@ -422,6 +429,12 @@ export default function StudioDashboard() {
           open={createOpen}
           onClose={() => setCreateOpen(false)}
           onCreated={() => { qc.invalidateQueries(['events']); qc.invalidateQueries(['dashboard-analytics']) }}
+        />
+        <CreateEventModal
+          open={!!editingEvent}
+          event={editingEvent}
+          onClose={() => setEditingEvent(null)}
+          onCreated={() => { qc.invalidateQueries(['events']); qc.invalidateQueries(['dashboard-analytics']); setEditingEvent(null) }}
         />
       </div>
     </AppLayout>

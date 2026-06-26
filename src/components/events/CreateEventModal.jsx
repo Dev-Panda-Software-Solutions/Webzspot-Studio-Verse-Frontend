@@ -1,22 +1,59 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 import { UploadCloud, X } from 'lucide-react'
 import Modal from '../ui/Modal'
 import GoldButton from '../ui/GoldButton'
 import GoldInput from '../ui/GoldInput'
-import { createEvent } from '../../api/events'
+import { createEvent, updateEvent } from '../../api/events'
 import { uploadCoverImage } from '../../api/media'
+import { backendAssetUrl } from '../../utils/apiUrl'
 import toast from 'react-hot-toast'
 
-export default function CreateEventModal({ open, onClose, onCreated }) {
-  const [form, setForm] = useState({
-    event_name: '', event_date: '', event_time: '',
-    event_venue: '', event_organizer: '', event_description: '',
-    event_organizer_phone_number: '', event_organizer_email_id: ''
-  })
+const EMPTY = {
+  event_name: '', event_date: '', event_time: '',
+  event_venue: '', event_organizer: '', event_description: '',
+  event_organizer_phone_number: '', event_organizer_email_id: ''
+}
+
+function toDateInput(val) {
+  if (!val) return ''
+  return new Date(val).toISOString().slice(0, 10)
+}
+
+// "14:30:00" → "14:30" or pass-through if already HH:MM
+function toTimeInput(val) {
+  if (!val) return ''
+  return val.slice(0, 5)
+}
+
+export default function CreateEventModal({ open, onClose, onCreated, event: editEvent }) {
+  const isEdit = !!editEvent
+  const [form, setForm] = useState(EMPTY)
   const [coverPreview, setCoverPreview] = useState(null)
   const [coverFile, setCoverFile] = useState(null)
   const [loading, setLoading] = useState(false)
   const imgInputRef = useRef(null)
+
+  // Pre-fill form when opening in edit mode
+  useEffect(() => {
+    if (open && isEdit) {
+      setForm({
+        event_name: editEvent.event_name || '',
+        event_date: toDateInput(editEvent.event_date),
+        event_time: toTimeInput(editEvent.event_time),
+        event_venue: editEvent.event_venue || '',
+        event_organizer: editEvent.event_organizer || '',
+        event_description: editEvent.event_description || '',
+        event_organizer_phone_number: editEvent.event_organizer_phone_number || '',
+        event_organizer_email_id: editEvent.event_organizer_email_id || '',
+      })
+      setCoverPreview(editEvent.profile_url ? backendAssetUrl(editEvent.profile_url) : null)
+      setCoverFile(null)
+    } else if (open && !isEdit) {
+      setForm(EMPTY)
+      setCoverPreview(null)
+      setCoverFile(null)
+    }
+  }, [open, editEvent])
 
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -39,8 +76,7 @@ export default function CreateEventModal({ open, onClose, onCreated }) {
     if (!form.event_description.trim()) { toast.error('Description is required'); return }
     setLoading(true)
     try {
-      // Upload cover image first if provided
-      let profile_url = null
+      let profile_url = undefined
       if (coverFile) {
         const fd = new FormData()
         fd.append('image', coverFile)
@@ -49,28 +85,28 @@ export default function CreateEventModal({ open, onClose, onCreated }) {
       }
 
       const payload = { ...form }
-      if (profile_url) payload.profile_url = profile_url
+      if (profile_url !== undefined) payload.profile_url = profile_url
 
-      const res = await createEvent(payload)
-      toast.success('Event created!')
-      onCreated?.(res.data)
+      let res
+      if (isEdit) {
+        res = await updateEvent(editEvent.event_id, payload)
+        toast.success('Event updated!')
+      } else {
+        res = await createEvent(payload)
+        toast.success('Event created!')
+      }
+
+      onCreated?.(res?.data)
       onClose()
-      setForm({
-        event_name: '', event_date: '', event_time: '',
-        event_venue: '', event_organizer: '', event_description: '',
-        event_organizer_phone_number: '', event_organizer_email_id: ''
-      })
-      setCoverPreview(null)
-      setCoverFile(null)
     } catch (err) {
-      toast.error(typeof err === 'string' ? err : 'Failed to create event')
+      toast.error(typeof err === 'string' ? err : isEdit ? 'Failed to update event' : 'Failed to create event')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Create New Event" size="lg">
+    <Modal open={open} onClose={onClose} title={isEdit ? 'Edit Event' : 'Create New Event'} size="lg">
       <form onSubmit={handleSubmit}>
         {/* Cover image picker */}
         <div className="mb-6">
@@ -135,7 +171,7 @@ export default function CreateEventModal({ open, onClose, onCreated }) {
 
         <div className="flex gap-3 pt-2">
           <GoldButton type="submit" loading={loading} className="flex-1 justify-center">
-            Create Event
+            {isEdit ? 'Save Changes' : 'Create Event'}
           </GoldButton>
           <GoldButton type="button" variant="ghost" onClick={onClose}>Cancel</GoldButton>
         </div>

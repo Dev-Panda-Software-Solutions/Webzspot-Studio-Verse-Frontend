@@ -1,6 +1,6 @@
 import React, { useRef } from 'react'
 import { gsap } from 'gsap'
-import { Calendar, ArrowRight, Aperture, Archive } from 'lucide-react'
+import { Calendar, ArrowRight, Aperture, Archive, Pencil } from 'lucide-react'
 import { formatDate } from '../../utils/formatters'
 import { useShutterNavigate } from '../../context/ShutterContext'
 import { backendAssetUrl } from '../../utils/apiUrl'
@@ -19,7 +19,7 @@ function Bracket({ corner }) {
   )
 }
 
-export default function EventCard({ event, eventId, isNew = false, onCreate, onDelete }) {
+export default function EventCard({ event, eventId, isNew = false, onCreate, onDelete, onEdit }) {
   const shutterNavigate = useShutterNavigate()
   const cardRef = useRef(null)
   const ringRef = useRef(null)
@@ -138,19 +138,34 @@ export default function EventCard({ event, eventId, isNew = false, onCreate, onD
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[rgba(245,158,11,0.08)] to-transparent
           -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
 
-        {/* Archive button — only shows if onDelete is provided */}
-        {onDelete && (
-          <button
-            onClick={e => { e.stopPropagation(); onDelete(resolvedId, event?.event_name) }}
-            title="Archive event"
-            className="absolute top-2 right-2 w-7 h-7 rounded-lg flex items-center justify-center
-              opacity-0 group-hover:opacity-100 transition-opacity z-10"
-            style={{ background: 'rgba(0,0,0,0.55)', color: '#FBBF24', backdropFilter: 'blur(4px)' }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.2)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.55)'}
-          >
-            <Archive size={13} />
-          </button>
+        {/* Action buttons — only show if handlers provided */}
+        {(onEdit || onDelete) && (
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+            {onEdit && (
+              <button
+                onClick={e => { e.stopPropagation(); onEdit(event) }}
+                title="Edit event"
+                className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: 'rgba(0,0,0,0.55)', color: '#93C5FD', backdropFilter: 'blur(4px)' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(59,130,246,0.25)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.55)'}
+              >
+                <Pencil size={12} />
+              </button>
+            )}
+            {onDelete && (
+              <button
+                onClick={e => { e.stopPropagation(); onDelete(resolvedId, event?.event_name) }}
+                title="Archive event"
+                className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: 'rgba(0,0,0,0.55)', color: '#FBBF24', backdropFilter: 'blur(4px)' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.2)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.55)'}
+              >
+                <Archive size={13} />
+              </button>
+            )}
+          </div>
         )}
       </div>
 

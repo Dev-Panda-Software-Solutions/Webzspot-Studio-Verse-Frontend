@@ -1,16 +1,17 @@
 import React, { useState, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, Building2, Trash2, Archive, ChevronDown, ChevronUp } from 'lucide-react'
+import { CalendarDays, Trash2, Archive, ChevronDown, ChevronUp, Pencil } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GlassCard from '../../components/ui/GlassCard'
 import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import Badge from '../../components/ui/Badge'
 import GoldButton from '../../components/ui/GoldButton'
+import CreateEventModal from '../../components/events/CreateEventModal'
 import { getEvents, deleteEvent, hardDeleteEvent } from '../../api/events'
 import { formatDate } from '../../utils/formatters'
 import toast from 'react-hot-toast'
 
-function EventRow({ event, onSoftDelete, onHardDelete }) {
+function EventRow({ event, onEdit, onSoftDelete, onHardDelete }) {
   return (
     <div
       className="flex items-center gap-4 px-5 py-4 border-b group transition-colors"
@@ -39,8 +40,18 @@ function EventRow({ event, onSoftDelete, onHardDelete }) {
 
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
         <button
+          onClick={() => onEdit(event)}
+          title="Edit event"
+          className="p-1.5 rounded transition-colors"
+          style={{ color: 'var(--text-tertiary)' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#93C5FD'}
+          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}
+        >
+          <Pencil size={14} />
+        </button>
+        <button
           onClick={() => onSoftDelete(event.event_id, event.event_name)}
-          title="Archive event (soft delete)"
+          title="Archive event"
           className="p-1.5 rounded transition-colors"
           style={{ color: 'var(--text-tertiary)' }}
           onMouseEnter={e => e.currentTarget.style.color = '#FBBF24'}
@@ -50,7 +61,7 @@ function EventRow({ event, onSoftDelete, onHardDelete }) {
         </button>
         <button
           onClick={() => onHardDelete(event.event_id, event.event_name)}
-          title="Permanently delete event"
+          title="Permanently delete"
           className="p-1.5 rounded transition-colors"
           style={{ color: 'var(--text-tertiary)' }}
           onMouseEnter={e => e.currentTarget.style.color = '#F87171'}
@@ -63,7 +74,7 @@ function EventRow({ event, onSoftDelete, onHardDelete }) {
   )
 }
 
-function StudioGroup({ studio, events, onSoftDelete, onHardDelete }) {
+function StudioGroup({ studio, events, onEdit, onSoftDelete, onHardDelete }) {
   const [open, setOpen] = useState(true)
   return (
     <GlassCard hover={false} className="p-0 overflow-hidden mb-4">
@@ -92,6 +103,7 @@ function StudioGroup({ studio, events, onSoftDelete, onHardDelete }) {
         <EventRow
           key={ev.event_id}
           event={ev}
+          onEdit={onEdit}
           onSoftDelete={onSoftDelete}
           onHardDelete={onHardDelete}
         />
@@ -103,6 +115,7 @@ function StudioGroup({ studio, events, onSoftDelete, onHardDelete }) {
 export default function AdminEvents() {
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
+  const [editingEvent, setEditingEvent] = useState(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-events', page],
@@ -162,6 +175,7 @@ export default function AdminEvents() {
               key={studio}
               studio={studio}
               events={events}
+              onEdit={ev => setEditingEvent(ev)}
               onSoftDelete={handleSoftDelete}
               onHardDelete={handleHardDelete}
             />
@@ -178,6 +192,13 @@ export default function AdminEvents() {
           )}
         </>
       )}
+
+      <CreateEventModal
+        open={!!editingEvent}
+        event={editingEvent}
+        onClose={() => setEditingEvent(null)}
+        onCreated={() => { qc.invalidateQueries(['admin-events']); setEditingEvent(null) }}
+      />
     </AppLayout>
   )
 }
