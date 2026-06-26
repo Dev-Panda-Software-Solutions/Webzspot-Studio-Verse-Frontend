@@ -118,8 +118,12 @@ export default function Login() {
               />
             </div>
 
-            <div className="h-5 mb-4">
-              {error && <p className="text-sm text-red-400 text-center leading-5">{error}</p>}
+            <div className="min-h-[48px] mb-4 flex items-center justify-center">
+              {error && (
+                <p className="text-sm text-red-400 text-center leading-5 px-1 break-words">
+                  {error}
+                </p>
+              )}
             </div>
 
             <div className="auth-btn">
