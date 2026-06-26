@@ -30,6 +30,13 @@ export default function CreateEventModal({ open, onClose, onCreated }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.event_name.trim()) { toast.error('Event name is required'); return }
+    if (!form.event_date) { toast.error('Event date is required'); return }
+    if (!form.event_time) { toast.error('Event time is required'); return }
+    if (!form.event_venue.trim()) { toast.error('Venue is required'); return }
+    if (!form.event_organizer.trim()) { toast.error('Organizer name is required'); return }
+    if (!form.event_organizer_phone_number.trim()) { toast.error('Organizer phone is required'); return }
+    if (!form.event_organizer_email_id.trim()) { toast.error('Organizer email is required'); return }
+    if (!form.event_description.trim()) { toast.error('Description is required'); return }
     setLoading(true)
     try {
       // Upload cover image first if provided
@@ -104,24 +111,24 @@ export default function CreateEventModal({ open, onClose, onCreated }) {
         {/* Two-column grid for fields */}
         <div className="grid grid-cols-2 gap-x-6">
           <div className="col-span-2">
-            <GoldInput label="Event Name *" name="event_name" value={form.event_name}
+            <GoldInput label="Event Name *" name="event_name" required value={form.event_name}
               onChange={e => update('event_name', e.target.value)} />
           </div>
-          <GoldInput label="Event Date" name="event_date" type="date" value={form.event_date}
+          <GoldInput label="Event Date *" name="event_date" type="date" required value={form.event_date}
             onChange={e => update('event_date', e.target.value)} />
-          <GoldInput label="Event Time" name="event_time" type="time" value={form.event_time}
+          <GoldInput label="Event Time *" name="event_time" type="time" required value={form.event_time}
             onChange={e => update('event_time', e.target.value)} />
-          <GoldInput label="Venue" name="event_venue" value={form.event_venue}
+          <GoldInput label="Venue *" name="event_venue" required value={form.event_venue}
             onChange={e => update('event_venue', e.target.value)} />
-          <GoldInput label="Organizer Name" name="event_organizer" value={form.event_organizer}
+          <GoldInput label="Organizer Name *" name="event_organizer" required value={form.event_organizer}
             onChange={e => update('event_organizer', e.target.value)} />
-          <GoldInput label="Organizer Phone" name="event_organizer_phone_number" value={form.event_organizer_phone_number}
+          <GoldInput label="Organizer Phone *" name="event_organizer_phone_number" required value={form.event_organizer_phone_number}
             onChange={e => update('event_organizer_phone_number', e.target.value)} />
-          <GoldInput label="Organizer Email" name="event_organizer_email_id" type="email"
+          <GoldInput label="Organizer Email *" name="event_organizer_email_id" type="email" required
             value={form.event_organizer_email_id}
             onChange={e => update('event_organizer_email_id', e.target.value)} />
           <div className="col-span-2">
-            <GoldInput label="Description" name="event_description" value={form.event_description}
+            <GoldInput label="Description *" name="event_description" required value={form.event_description}
               onChange={e => update('event_description', e.target.value)} />
           </div>
         </div>
