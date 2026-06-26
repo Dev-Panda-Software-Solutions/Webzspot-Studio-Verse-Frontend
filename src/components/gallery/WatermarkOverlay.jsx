@@ -6,7 +6,7 @@ export default function WatermarkOverlay({ src, size = 'md' }) {
   if (!src) return (
     <div className={`absolute inset-0 flex items-center justify-center pointer-events-none select-none`}>
       <span className={`font-display italic text-white/20 ${size === 'lg' ? 'text-2xl' : 'text-sm'} no-select`}>
-        Studio-Verse
+        Webzspot Studio
       </span>
     </div>
   )

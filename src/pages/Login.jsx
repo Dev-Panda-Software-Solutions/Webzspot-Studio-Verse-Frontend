@@ -88,7 +88,7 @@ export default function Login() {
           <div className="w-12 h-12 rounded-xl bg-gold-500 flex items-center justify-center mb-3 shadow-gold">
             <Camera size={22} className="text-obsidian-base" />
           </div>
-          <span className="font-display font-semibold text-gold-500 text-xl">Studio-Verse</span>
+          <span className="font-display font-semibold text-gold-500 text-xl">Webzspot Studio</span>
         </div>
 
         <div className="glass rounded-2xl p-8 shadow-elevated">

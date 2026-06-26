@@ -132,7 +132,7 @@ export default function Gallery() {
           ) : (
             <div className="flex items-center gap-2">
               <Camera size={16} className="text-gold-500" />
-              <span className="font-display text-sm text-gold-500">Studio-Verse</span>
+              <span className="font-display text-sm text-gold-500">Webzspot Studio</span>
             </div>
           )}
         </div>

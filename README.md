@@ -1,1 +1,1 @@
-# Webzspot-Studio-Verse-Frontend
+# Webzspot Studio Frontend

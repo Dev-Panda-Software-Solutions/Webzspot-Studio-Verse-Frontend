@@ -78,7 +78,7 @@ export default function Landing() {
           <div className="w-7 h-7 rounded-md bg-gold-500 flex items-center justify-center">
             <Camera size={14} className="text-obsidian-base" />
           </div>
-          <span className="font-display font-semibold text-gold-500">Studio-Verse</span>
+          <span className="font-display font-semibold text-gold-500">Webzspot Studio</span>
         </div>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/login')}
@@ -195,7 +195,7 @@ export default function Landing() {
           Ready to deliver work they'll <span className="text-gold-shimmer">never forget?</span>
         </h2>
         <p className="text-[var(--text-secondary)] mb-8 max-w-md mx-auto">
-          Join studios already using Studio-Verse to deliver a gallery experience their clients rave about.
+          Join studios already using Webzspot Studio to deliver a gallery experience their clients rave about.
         </p>
         <GoldButton onClick={() => navigate('/signup')} size="xl" icon={<ArrowRight size={18} />}>
           Create Your Studio
@@ -204,8 +204,8 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="py-8 px-6 border-t text-center" style={{ borderColor: 'var(--border-subtle)' }}>
-        <p className="font-display text-gold-500 font-semibold">Studio-Verse</p>
-        <p className="text-xs text-[var(--text-tertiary)] mt-1">© 2026 Studio-Verse. All rights reserved.</p>
+        <p className="font-display text-gold-500 font-semibold">Webzspot Studio</p>
+        <p className="text-xs text-[var(--text-tertiary)] mt-1">© 2026 Webzspot Studio. All rights reserved.</p>
       </footer>
     </div>
   )

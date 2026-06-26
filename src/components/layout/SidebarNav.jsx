@@ -96,7 +96,7 @@ export default function SidebarNav({ onCollapse }) {
               className="font-display font-semibold text-base truncate whitespace-nowrap"
               style={{ color: sb.gold }}
             >
-              Studio-Verse
+              Webzspot Studio
             </motion.span>
           )}
         </AnimatePresence>
