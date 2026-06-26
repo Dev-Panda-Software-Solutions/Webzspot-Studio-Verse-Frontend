@@ -10,6 +10,7 @@ import useGalleryStore from '../../stores/galleryStore'
 import useTenantFavouriteStore from '../../stores/tenantFavouriteStore'
 import { addFavourite, removeFavourite, addTenantFavourite, removeTenantFavourite } from '../../api/favourites'
 import useMediaToken from '../../hooks/useMediaToken'
+import { getMediaToken } from '../../api/media'
 import { mediaViewUrl } from '../../utils/apiUrl'
 import toast from 'react-hot-toast'
 
@@ -156,6 +157,7 @@ function LightboxVideo({ media, watermarkSrc }) {
 
 export default function LightboxViewer({
   media, index, total,
+  mediaList = [],
   onClose, onPrev, onNext,
   watermarkSrc, eventId,
   showFavourite = false,
@@ -169,6 +171,23 @@ export default function LightboxViewer({
     setHeartFlash({ adding, key: Date.now() })
     setTimeout(() => setHeartFlash(null), 560)
   }
+
+  // Silently prefetch tokens for the 5 photos before and 5 after current index
+  useEffect(() => {
+    if (!mediaList.length) return
+    const { getToken, setToken } = useGalleryStore.getState()
+    const start = Math.max(0, index - 5)
+    const end = Math.min(mediaList.length - 1, index + 5)
+    for (let i = start; i <= end; i++) {
+      const m = mediaList[i]
+      if (!m || i === index) continue
+      const id = m.media_id
+      if (getToken(id)) continue
+      getMediaToken(id)
+        .then(res => { const t = res?.data?.token || res?.token; if (t) setToken(id, t) })
+        .catch(() => {})
+    }
+  }, [index, mediaList])
 
   useLayoutEffect(() => {
     if (!media) return

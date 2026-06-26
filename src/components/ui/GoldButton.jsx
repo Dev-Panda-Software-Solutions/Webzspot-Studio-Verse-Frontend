@@ -1,5 +1,4 @@
-import React, { useRef } from 'react'
-import { gsap } from 'gsap'
+import React, { useRef, useCallback } from 'react'
 
 export default function GoldButton({
   children, onClick, type = 'button', variant = 'solid',
@@ -7,22 +6,31 @@ export default function GoldButton({
 }) {
   const btnRef = useRef(null)
 
-  const handleMouseMove = (e) => {
-    const el = btnRef.current
-    const rect = el.getBoundingClientRect()
-    const x = e.clientX - rect.left - rect.width / 2
-    const y = e.clientY - rect.top - rect.height / 2
-    gsap.to(el, { x: x * 0.12, y: y * 0.12, duration: 0.3, ease: 'power2.out' })
-  }
-  const handleMouseLeave = () => {
-    gsap.to(btnRef.current, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.5)' })
-  }
-  const handleMouseDown = () => {
-    gsap.to(btnRef.current, { scale: 0.96, duration: 0.1 })
-  }
-  const handleMouseUp = () => {
-    gsap.to(btnRef.current, { scale: 1, duration: 0.4, ease: 'elastic.out(1, 0.4)' })
-  }
+  // Ripple effect on click
+  const handleClick = useCallback((e) => {
+    const btn = btnRef.current
+    if (!btn) { onClick?.(e); return }
+
+    const rect = btn.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+
+    const ripple = document.createElement('span')
+    const size = Math.max(rect.width, rect.height) * 2
+    ripple.style.cssText = `
+      position:absolute;
+      width:${size}px;height:${size}px;
+      left:${x - size / 2}px;top:${y - size / 2}px;
+      border-radius:50%;
+      background:rgba(255,255,255,0.25);
+      transform:scale(0);
+      animation:goldRipple 0.55s ease-out forwards;
+      pointer-events:none;
+    `
+    btn.appendChild(ripple)
+    ripple.addEventListener('animationend', () => ripple.remove())
+    onClick?.(e)
+  }, [onClick])
 
   const sizes = {
     sm: 'px-3 py-1.5 text-xs',
@@ -32,41 +40,100 @@ export default function GoldButton({
   }
 
   const variants = {
-    solid: 'bg-gold-500 hover:bg-gold-400 text-obsidian-base font-semibold shadow-gold hover:shadow-gold-lg',
-    outline: 'border border-gold-500 text-gold-500 hover:bg-gold-500 hover:text-obsidian-base',
-    ghost: 'text-gold-500 hover:bg-[var(--accent-muted)]',
-    danger: 'bg-red-600 hover:bg-red-500 text-white font-semibold',
+    solid: 'gold-btn-solid text-obsidian-base font-semibold',
+    outline: 'gold-btn-outline text-gold-500',
+    ghost: 'gold-btn-ghost text-gold-500',
+    danger: 'gold-btn-danger text-white font-semibold',
   }
 
   return (
-    <button
-      ref={btnRef}
-      type={type}
-      onClick={onClick}
-      disabled={disabled || loading}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      className={`
-        relative inline-flex items-center gap-2 rounded-lg font-medium
-        transition-all duration-200 overflow-hidden
-        disabled:opacity-40 disabled:cursor-not-allowed
-        ${sizes[size]} ${variants[variant]} ${className}
-      `}
-    >
-      {/* Shimmer sweep on hover */}
-      <span className="absolute inset-0 -translate-x-full hover:translate-x-full transition-transform duration-500
-        bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none" />
+    <>
+      <style>{`
+        @keyframes goldRipple {
+          to { transform: scale(1); opacity: 0; }
+        }
 
-      {loading ? (
-        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-      ) : icon}
-      <span>{loading ? 'Loading...' : children}</span>
-    </button>
+        .gold-btn-solid {
+          background: linear-gradient(135deg, #B8860B 0%, #D4AF37 50%, #FFD700 100%);
+          background-size: 200% 200%;
+          background-position: 100% 0;
+          box-shadow: 0 2px 12px rgba(212,175,55,0.3);
+          transition: background-position 0.4s ease, box-shadow 0.3s ease, transform 0.15s ease;
+        }
+        .gold-btn-solid:hover:not(:disabled) {
+          background-position: 0% 100%;
+          box-shadow: 0 4px 20px rgba(212,175,55,0.5), 0 0 0 1px rgba(212,175,55,0.3);
+          transform: translateY(-1px);
+        }
+        .gold-btn-solid:active:not(:disabled) {
+          transform: translateY(0) scale(0.97);
+          box-shadow: 0 2px 8px rgba(212,175,55,0.3);
+        }
+
+        .gold-btn-outline {
+          border: 1px solid #D4AF37;
+          background: transparent;
+          transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+        }
+        .gold-btn-outline:hover:not(:disabled) {
+          background: rgba(212,175,55,0.12);
+          box-shadow: 0 0 0 1px rgba(212,175,55,0.4), inset 0 0 12px rgba(212,175,55,0.08);
+          transform: translateY(-1px);
+        }
+        .gold-btn-outline:active:not(:disabled) {
+          transform: scale(0.97);
+        }
+
+        .gold-btn-ghost {
+          background: transparent;
+          transition: background 0.2s ease, transform 0.15s ease;
+        }
+        .gold-btn-ghost:hover:not(:disabled) {
+          background: rgba(212,175,55,0.1);
+          transform: translateY(-1px);
+        }
+        .gold-btn-ghost:active:not(:disabled) {
+          transform: scale(0.96);
+        }
+
+        .gold-btn-danger {
+          background: linear-gradient(135deg, #b91c1c, #ef4444);
+          background-size: 200% 200%;
+          background-position: 100% 0;
+          box-shadow: 0 2px 10px rgba(239,68,68,0.25);
+          transition: background-position 0.4s ease, box-shadow 0.3s ease, transform 0.15s ease;
+        }
+        .gold-btn-danger:hover:not(:disabled) {
+          background-position: 0% 100%;
+          box-shadow: 0 4px 16px rgba(239,68,68,0.45);
+          transform: translateY(-1px);
+        }
+        .gold-btn-danger:active:not(:disabled) {
+          transform: scale(0.97);
+        }
+      `}</style>
+
+      <button
+        ref={btnRef}
+        type={type}
+        onClick={handleClick}
+        disabled={disabled || loading}
+        className={`
+          relative inline-flex items-center gap-2 rounded-lg font-medium
+          overflow-hidden select-none
+          disabled:opacity-40 disabled:cursor-not-allowed
+          ${sizes[size]} ${variants[variant]} ${className}
+        `}
+      >
+        {loading ? (
+          <svg className="animate-spin h-4 w-4 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+        ) : icon}
+        <span>{loading ? 'Loading...' : children}</span>
+      </button>
+    </>
   )
 }

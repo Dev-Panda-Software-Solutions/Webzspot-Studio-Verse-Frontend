@@ -157,6 +157,7 @@ export default function PhotoGrid({
           media={current}
           index={lightboxIndex}
           total={displayList.length}
+          mediaList={displayList}
           eventId={eventId}
           watermarkSrc={watermarkSrc}
           showFavourite={showFavourite}
