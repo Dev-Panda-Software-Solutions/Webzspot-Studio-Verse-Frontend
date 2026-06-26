@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { gsap } from 'gsap'
 import {
   LayoutDashboard, Building2, Users, Settings, LogOut,
-  Camera, ChevronLeft, ChevronRight, Store
+  Camera, ChevronLeft, ChevronRight, Store, GitBranch
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Avatar from '../ui/Avatar'
@@ -20,6 +20,7 @@ const navItems = {
   ],
   ADMIN: [
     { to: '/studio',          icon: LayoutDashboard, label: 'Dashboard'     },
+    { to: '/studio/access',   icon: GitBranch,       label: 'Access Board'  },
     { to: '/studio/settings', icon: Store,           label: 'Studio Profile' },
   ],
 }
