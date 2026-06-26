@@ -118,13 +118,13 @@ export default function Login() {
               />
             </div>
 
-            <div className="min-h-[48px] mb-4 flex items-center justify-center">
-              {error && (
+            {error && (
+              <div className="-mt-1 mb-4">
                 <p className="text-sm text-red-400 text-center leading-5 px-1 break-words">
                   {error}
                 </p>
-              )}
-            </div>
+              </div>
+            )}
 
             <div className="auth-btn">
               <GoldButton type="submit" loading={loading} size="lg" className="w-full justify-center">
