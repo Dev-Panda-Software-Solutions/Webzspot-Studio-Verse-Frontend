@@ -117,7 +117,6 @@ export default function SidebarNav({ onCollapse }) {
                 <p className="text-xs font-semibold truncate" style={{ color: sb.textPrimary }}>
                   {user?.tenant_studio_name || user?.user_name || user?.super_admin_name || 'User'}
                 </p>
-                <p className="text-xs truncate" style={{ color: sb.textTert }}>{role}</p>
               </div>
             </div>
           </motion.div>
