@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { useQuery } from '@tanstack/react-query'
-import { Building2, Users, CalendarDays, ImageIcon, Lock, KeyRound, TrendingUp } from 'lucide-react'
+import { Building2, Users, CalendarDays, ImageIcon, Lock, KeyRound, HardDrive } from 'lucide-react'
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell,
@@ -64,11 +64,50 @@ function ChartTooltip({ active, payload, label, suffix = '' }) {
   )
 }
 
+function StorageTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div style={tooltipStyle.contentStyle}>
+      <p style={tooltipStyle.labelStyle}>{label}</p>
+      {payload.map((p, i) => (
+        <p key={i} style={{ color: p.color || GOLD, fontWeight: 600 }}>
+          {formatStorage(p.value)} <span style={{ color: '#A0A0AB', fontWeight: 400 }}>{p.name}</span>
+        </p>
+      ))}
+    </div>
+  )
+}
+
 function SectionHeader({ title, subtitle }) {
   return (
     <div className="mb-5">
       <h2 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>{title}</h2>
       {subtitle && <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>{subtitle}</p>}
+    </div>
+  )
+}
+
+const formatStorage = (kb = 0) => {
+  const value = Number(kb) || 0
+  if (value >= 1024 * 1024) return `${(value / 1024 / 1024).toFixed(2)} GB`
+  if (value >= 1024) return `${(value / 1024).toFixed(2)} MB`
+  return `${value.toFixed(1)} KB`
+}
+
+function StorageRow({ name, meta, value, max }) {
+  const pct = max > 0 ? Math.max(4, Math.min(100, (value / max) * 100)) : 0
+  return (
+    <div className="py-3 border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <div className="min-w-0">
+          <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{name}</p>
+          {meta && <p className="text-xs truncate" style={{ color: 'var(--text-tertiary)' }}>{meta}</p>}
+        </div>
+        <p className="text-xs font-semibold whitespace-nowrap" style={{ color: GOLD }}>{formatStorage(value)}</p>
+      </div>
+      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
+        <div className="h-full rounded-full" style={{ width: `${pct}%`, background: GOLD }} />
+      </div>
     </div>
   )
 }
@@ -107,6 +146,12 @@ export default function AdminDashboard() {
   const totalUsers = userRes?.data?.total || 0
   const analytics = analyticsData?.data || {}
   const totals = analytics.totals || {}
+  const storage = analytics.storage_summary || {}
+  const storageByEvent = storage.by_event || []
+  const storageByStudio = storage.by_studio || []
+  const storageByClient = storage.by_client || []
+  const maxStudioStorage = Math.max(...storageByStudio.map(item => item.stored_kb || 0), 0)
+  const maxClientStorage = Math.max(...storageByClient.map(item => item.assigned_storage_kb || 0), 0)
 
   const studioGrowth = (analytics.studio_growth || []).map(d => ({ ...d, label: shortMonth(d.month) }))
   const userGrowth = (analytics.user_growth || []).map(d => ({ ...d, label: shortMonth(d.month) }))
@@ -151,7 +196,8 @@ export default function AdminDashboard() {
           <StatCard label="Total Studios" value={totalTenants} icon={Building2} />
           <StatCard label="Total Clients" value={totalUsers} icon={Users} />
           <StatCard label="Events" value={totals.events ?? 0} icon={CalendarDays} />
-          <StatCard label="Media Files" value={totals.media ?? 0} icon={ImageIcon} />
+          <StatCard label="Media Files" value={totals.media ?? 0} icon={ImageIcon}
+            sub={<span className="text-xs font-semibold text-gold-500">{formatStorage(storage.total_stored_kb)}</span>} />
         </div>
 
         {/* ── Growth Chart ─── */}
@@ -198,6 +244,64 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-0.5 rounded" style={{ background: '#60A5FA' }} />
                 <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Clients</span>
+              </div>
+            </div>
+          </GlassCard>
+        </div>
+
+        {/* ── Storage Analytics ─── */}
+        <div className="chart-section grid xl:grid-cols-3 gap-6 mb-6">
+          <GlassCard hover={false} className="xl:col-span-2">
+            <SectionHeader title="Storage by Event" subtitle="Original files plus compressed delivery copies" />
+            {aLoading ? (
+              <div className="h-64 skeleton rounded-lg" />
+            ) : storageByEvent.length === 0 ? (
+              <div className="h-64 flex items-center justify-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                No uploaded media yet
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={storageByEvent.slice(0, 8)} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="event_name" {...axisProps} tickFormatter={(v) => String(v).slice(0, 12)} />
+                  <YAxis {...axisProps} tickFormatter={formatStorage} />
+                  <Tooltip content={<StorageTooltip />} />
+                  <Bar dataKey="stored_kb" name="stored" radius={[4, 4, 0, 0]}>
+                    {storageByEvent.slice(0, 8).map((_, i) => (
+                      <Cell key={i} fill={i === 0 ? GOLD : `rgba(245,158,11,${0.72 - i * 0.06})`} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </GlassCard>
+
+          <GlassCard hover={false}>
+            <div className="flex items-center gap-2 mb-5">
+              <div className="p-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.12)' }}>
+                <HardDrive size={14} className="text-gold-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-[var(--text-primary)]">Storage Total</h3>
+                <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Private bucket usage estimate</p>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>Stored</p>
+                <p className="font-display text-3xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  {formatStorage(storage.total_stored_kb)}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg p-3" style={{ background: 'var(--bg-elevated)' }}>
+                  <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Originals</p>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{formatStorage(storage.total_original_kb)}</p>
+                </div>
+                <div className="rounded-lg p-3" style={{ background: 'var(--bg-elevated)' }}>
+                  <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Compressed</p>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{formatStorage(storage.total_compressed_kb)}</p>
+                </div>
               </div>
             </div>
           </GlassCard>
@@ -258,6 +362,36 @@ export default function AdminDashboard() {
 
           {/* Quick Actions */}
           <div className="space-y-4">
+            <GlassCard hover={false}>
+              <SectionHeader title="Storage by Studio" subtitle="Top studios by stored media" />
+              {storageByStudio.length === 0 ? (
+                <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No storage yet</p>
+              ) : storageByStudio.slice(0, 5).map(item => (
+                <StorageRow
+                  key={item.tenant_id}
+                  name={item.studio_name}
+                  meta={`${item.event_count} events · ${item.media_count} files`}
+                  value={item.stored_kb}
+                  max={maxStudioStorage}
+                />
+              ))}
+            </GlassCard>
+
+            <GlassCard hover={false}>
+              <SectionHeader title="Storage by Client" subtitle="Assigned event storage" />
+              {storageByClient.length === 0 ? (
+                <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No assigned client storage yet</p>
+              ) : storageByClient.slice(0, 5).map(item => (
+                <StorageRow
+                  key={item.user_id}
+                  name={item.user_name}
+                  meta={`${item.event_count} events · ${item.media_count} files`}
+                  value={item.assigned_storage_kb}
+                  max={maxClientStorage}
+                />
+              ))}
+            </GlassCard>
+
             <GlassCard hover={false}>
               <div className="flex items-center gap-2 mb-5">
                 <div className="p-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.12)' }}>
