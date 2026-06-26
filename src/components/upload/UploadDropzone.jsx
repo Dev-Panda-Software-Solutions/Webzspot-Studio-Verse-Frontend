@@ -6,6 +6,7 @@ import {
   Zap, Image, FileVideo, AlertCircle, Loader2, RotateCcw
 } from 'lucide-react'
 import { LARGE_UPLOAD_MAX_SIZE, LARGE_UPLOAD_THRESHOLD, uploadLargeMedia, uploadMedia } from '../../api/media'
+import ApertureSpinner, { UploadLoader } from '../ui/StudioLoader'
 import toast from 'react-hot-toast'
 
 /* ─── Helpers ─── */
@@ -323,7 +324,10 @@ export default function UploadDropzone({ eventId, onComplete }) {
         onMouseEnter={e => gsap.to(e.currentTarget, { scale: 1.04, duration: 0.18, ease: 'power2.out' })}
         onMouseLeave={e => gsap.to(e.currentTarget, { scale: 1, duration: 0.2, ease: 'power2.out' })}
       >
-        <UploadCloud size={15} />
+        {uploading
+          ? <ApertureSpinner size={15} />
+          : <UploadCloud size={15} />
+        }
         Upload Photos &amp; Videos
         {uploading && (
           <span className="ml-1 text-xs px-1.5 py-0.5 rounded-full font-bold"
@@ -404,40 +408,46 @@ export default function UploadDropzone({ eventId, onComplete }) {
               <div className="p-5 flex-1 overflow-y-auto">
                 <div
                   ref={zoneRef}
-                  onDrop={onDrop}
-                  onDragOver={onDragOver}
-                  onDragLeave={onDragLeave}
-                  onClick={() => inputRef.current?.click()}
-                  className="border-2 border-dashed rounded-xl p-12 text-center cursor-pointer
-                    transition-colors duration-200 relative overflow-hidden"
+                  onDrop={uploading ? undefined : onDrop}
+                  onDragOver={uploading ? undefined : onDragOver}
+                  onDragLeave={uploading ? undefined : onDragLeave}
+                  onClick={() => !uploading && inputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors duration-200 relative overflow-hidden ${uploading ? 'cursor-default' : 'cursor-pointer'}`}
                   style={{
-                    borderColor: dragging ? '#F59E0B' : 'var(--border-default)',
-                    background: dragging ? 'var(--accent-muted)' : 'var(--bg-elevated)',
+                    borderColor: uploading ? 'rgba(245,158,11,0.4)' : dragging ? '#F59E0B' : 'var(--border-default)',
+                    background: uploading ? 'rgba(245,158,11,0.05)' : dragging ? 'var(--accent-muted)' : 'var(--bg-elevated)',
                   }}
                 >
                   <input ref={inputRef} type="file" multiple className="hidden"
                     accept="image/*,video/*" onChange={e => processFiles(e.target.files)} />
 
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
-                      style={{ background: dragging ? 'rgba(245,158,11,0.2)' : 'var(--bg-surface)' }}>
-                      <UploadCloud size={28}
-                        style={{ color: dragging ? '#F59E0B' : 'var(--text-tertiary)' }} />
+                  {uploading ? (
+                    <UploadLoader
+                      label={`Uploading ${uploadingNow.length > 0 ? uploadingNow[0].file.name : '...'}`}
+                      percent={totalPct}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+                        style={{ background: dragging ? 'rgba(245,158,11,0.2)' : 'var(--bg-surface)' }}>
+                        <UploadCloud size={28}
+                          style={{ color: dragging ? '#F59E0B' : 'var(--text-tertiary)' }} />
+                      </div>
+                      <div>
+                        <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                          {dragging ? 'Drop to upload' : 'Drag & drop photos here'}
+                        </p>
+                        <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                          or click to browse — JPG, PNG, MP4, MOV · max 5GB each
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                        <span className="flex items-center gap-1"><Image size={11} /> Photos</span>
+                        <span>·</span>
+                        <span className="flex items-center gap-1"><FileVideo size={11} /> Videos</span>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        {dragging ? 'Drop to upload' : 'Drag & drop photos here'}
-                      </p>
-                      <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
-                        or click to browse — JPG, PNG, MP4, MOV · max 5GB each
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                      <span className="flex items-center gap-1"><Image size={11} /> Photos</span>
-                      <span>·</span>
-                      <span className="flex items-center gap-1"><FileVideo size={11} /> Videos</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {queue.length > 0 && (

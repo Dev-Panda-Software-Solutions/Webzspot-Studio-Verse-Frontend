@@ -129,9 +129,10 @@ export default function AdminDashboard() {
     queryFn: () => getUsers({ page: 1, limit: 5 })
   })
   const { data: analyticsData, isLoading: aLoading } = useQuery({
-    queryKey: ['dashboard-analytics'],
+    queryKey: ['super-admin-analytics'],
     queryFn: getDashboardAnalytics,
     staleTime: 60_000,
+    refetchOnMount: true,
   })
 
   useLayoutEffect(() => {
@@ -208,7 +209,7 @@ export default function AdminDashboard() {
             {aLoading ? (
               <div className="h-56 skeleton rounded-lg" />
             ) : (
-              <ResponsiveContainer width="100%" height={220}>
+              <ResponsiveContainer width="100%" height={220} key={growthChart.length}>
                 <AreaChart data={growthChart} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
                   <defs>
                     <linearGradient id="studioGrad" x1="0" y1="0" x2="0" y2="1">

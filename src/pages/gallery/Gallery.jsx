@@ -8,6 +8,7 @@ import FavouritesDrawer from '../../components/gallery/FavouritesDrawer'
 import ThemeToggle from '../../components/ui/ThemeToggle'
 import GoldButton from '../../components/ui/GoldButton'
 import SkeletonLoader from '../../components/ui/SkeletonLoader'
+import { GalleryLoader } from '../../components/ui/StudioLoader'
 import { getEvents, getEventById } from '../../api/events'
 import { getMediaByEvent } from '../../api/media'
 import { getUserFavourites } from '../../api/favourites'
@@ -123,11 +124,7 @@ export default function Gallery() {
   }
 
   if (eventsLoading || (!paramEventId && !eventsData)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg-base)' }}>
-        <SkeletonLoader type="page" />
-      </div>
-    )
+    return <GalleryLoader label="Opening your gallery..." />
   }
 
   const hasMultiple = allUserEvents.length > 1

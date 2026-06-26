@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, ImageIcon, Users, Heart, TrendingUp, Camera, Star, Layers } from 'lucide-react'
+import { CalendarDays, ImageIcon, Users, Heart, TrendingUp, Camera, Star, Layers, HardDrive } from 'lucide-react'
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
@@ -42,6 +42,13 @@ const axisProps = {
   tick: { fill: '#6B6B76', fontSize: 11 },
   axisLine: false,
   tickLine: false,
+}
+
+const formatStorage = (kb = 0) => {
+  const v = Number(kb) || 0
+  if (v >= 1024 * 1024) return `${(v / 1024 / 1024).toFixed(2)} GB`
+  if (v >= 1024) return `${(v / 1024).toFixed(1)} MB`
+  return `${v.toFixed(1)} KB`
 }
 
 // Format "2026-01" → "Jan"
@@ -173,6 +180,7 @@ export default function StudioDashboard() {
   const pages = data?.data?.pages || 1
   const analytics = analyticsData?.data || {}
   const totals = analytics.totals || {}
+  const storage = analytics.storage_summary || {}
   const eventsByMonth = (analytics.events_by_month || []).map(d => ({ ...d, label: shortMonth(d.month) }))
   const mediaByMonth = (analytics.media_by_month || []).map(d => ({ ...d, label: shortMonth(d.month) }))
   const topEvents = analytics.top_events || []
@@ -293,6 +301,47 @@ export default function StudioDashboard() {
                       <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{d.name} ({d.value})</span>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
+          </GlassCard>
+        </div>
+
+        {/* ── Storage Total ─── */}
+        <div className="chart-section mb-6">
+          <GlassCard hover={false}>
+            <div className="flex items-center gap-2 mb-5">
+              <div className="p-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.12)' }}>
+                <HardDrive size={14} className="text-gold-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Storage Usage</h3>
+                <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Your studio's private bucket usage</p>
+              </div>
+            </div>
+            {aLoading ? (
+              <div className="h-20 skeleton rounded-lg" />
+            ) : (
+              <div className="flex flex-wrap gap-4 items-end">
+                <div>
+                  <p className="text-xs uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Total Stored</p>
+                  <p className="font-display text-3xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    {formatStorage(storage.total_stored_kb)}
+                  </p>
+                </div>
+                <div className="flex gap-3 flex-wrap">
+                  <div className="rounded-lg px-4 py-3" style={{ background: 'var(--bg-elevated)' }}>
+                    <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Originals</p>
+                    <p className="text-sm font-semibold mt-0.5" style={{ color: 'var(--text-primary)' }}>
+                      {formatStorage(storage.total_original_kb)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg px-4 py-3" style={{ background: 'var(--bg-elevated)' }}>
+                    <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Compressed</p>
+                    <p className="text-sm font-semibold mt-0.5" style={{ color: 'var(--text-primary)' }}>
+                      {formatStorage(storage.total_compressed_kb)}
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
