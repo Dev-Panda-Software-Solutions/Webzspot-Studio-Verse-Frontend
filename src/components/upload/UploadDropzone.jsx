@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { gsap } from 'gsap'
 import {
   UploadCloud, X, CheckCircle2, XCircle, Clock,
-  Zap, Image, FileVideo, AlertCircle, Loader2
+  Zap, Image, FileVideo, AlertCircle, Loader2, RotateCcw
 } from 'lucide-react'
 import { LARGE_UPLOAD_MAX_SIZE, LARGE_UPLOAD_THRESHOLD, uploadLargeMedia, uploadMedia } from '../../api/media'
 import toast from 'react-hot-toast'
@@ -28,10 +28,11 @@ const fmtTime = (ms) => {
   return `${m}:${String(s % 60).padStart(2, '0')}`
 }
 const isVideoFile = (f) => f.type?.startsWith('video/')
+const errorText = (err, fallback) => typeof err === 'string' ? err : fallback
 
 /* ─── Per-file row in Status tab ─── */
-function FileRow({ item }) {
-  const { file, status, progress, speed, loaded } = item
+function FileRow({ item, onRetry, retryDisabled }) {
+  const { file, status, progress, speed, loaded, error } = item
   const isVid = isVideoFile(file)
 
   return (
@@ -88,6 +89,12 @@ function FileRow({ item }) {
             {fmtSize(loaded)} / {fmtSize(file.size)} · {progress}%
           </p>
         )}
+
+        {status === 'error' && error && (
+          <p className="text-xs mt-1 leading-relaxed" style={{ color: '#F87171' }}>
+            {error}
+          </p>
+        )}
       </div>
 
       {/* Status badge */}
@@ -95,7 +102,22 @@ function FileRow({ item }) {
         {status === 'pending'   && <Clock size={15} style={{ color: 'var(--text-tertiary)' }} />}
         {status === 'uploading' && <Loader2 size={15} className="animate-spin" style={{ color: '#F59E0B' }} />}
         {status === 'done'      && <CheckCircle2 size={15} className="text-green-400" />}
-        {status === 'error'     && <XCircle size={15} className="text-red-400" />}
+        {status === 'error'     && (
+          <>
+            <XCircle size={15} className="text-red-400" />
+            <button
+              type="button"
+              disabled={retryDisabled}
+              onClick={() => onRetry(item)}
+              className="ml-1 inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium transition-colors disabled:opacity-50"
+              style={{ color: '#F59E0B', background: 'var(--bg-elevated)' }}
+              title="Retry upload"
+            >
+              <RotateCcw size={12} />
+              Retry
+            </button>
+          </>
+        )}
       </div>
     </div>
   )
@@ -152,9 +174,48 @@ export default function UploadDropzone({ eventId, onComplete }) {
     }))
   }, [])
 
-  const updateStatus = useCallback((id, status) => {
-    setQueue(q => q.map(item => item.id !== id ? item : { ...item, status, speed: 0 }))
+  const updateStatus = useCallback((id, status, patch = {}) => {
+    setQueue(q => q.map(item => item.id !== id ? item : { ...item, status, speed: 0, ...patch }))
   }, [])
+
+  const uploadQueueItem = useCallback(async (item) => {
+    if (item.file.size > LARGE_UPLOAD_MAX_SIZE) {
+      const message = 'File too large. Maximum allowed is 5GB per file.'
+      updateStatus(item.id, 'error', { error: message, progress: 0, loaded: 0 })
+      toast.error(`${message}: ${item.file.name}`)
+      return false
+    }
+
+    updateStatus(item.id, 'uploading', {
+      error: null,
+      progress: 0,
+      loaded: 0,
+      _prevLoaded: 0,
+      _prevTime: 0,
+    })
+
+    try {
+      if (item.file.size >= LARGE_UPLOAD_THRESHOLD) {
+        await uploadLargeMedia({
+          eventId,
+          file: item.file,
+          onProgress: (e) => updateProgress(item.id, e.loaded, e.total),
+        })
+      } else {
+        const fd = new FormData()
+        fd.append('event_id', eventId)
+        fd.append('file', item.file)
+        await uploadMedia(fd, (e) => updateProgress(item.id, e.loaded, e.total))
+      }
+      updateStatus(item.id, 'done', { error: null, progress: 100, loaded: item.file.size })
+      return true
+    } catch (err) {
+      const message = errorText(err, `Failed: ${item.file.name}`)
+      updateStatus(item.id, 'error', { error: message })
+      toast.error(message)
+      return false
+    }
+  }, [eventId, updateProgress, updateStatus])
 
   /* ── File processing ── */
   const processFiles = async (files) => {
@@ -165,9 +226,12 @@ export default function UploadDropzone({ eventId, onComplete }) {
       progress: 0,
       loaded: 0,
       speed: 0,
+      error: null,
       _prevLoaded: 0,
       _prevTime: 0,
     }))
+
+    if (newItems.length === 0) return
 
     setQueue(prev => [...prev, ...newItems])
     setActiveTab('status')     // auto-switch to status
@@ -175,37 +239,31 @@ export default function UploadDropzone({ eventId, onComplete }) {
     setStartTime(Date.now())
     setElapsed(0)
 
+    let uploaded = 0
+    let failed = 0
     for (const item of newItems) {
-      if (item.file.size > LARGE_UPLOAD_MAX_SIZE) {
-        updateStatus(item.id, 'error')
-        toast.error(`File too large: ${item.file.name}`)
-        continue
-      }
-
-      updateStatus(item.id, 'uploading')
-      try {
-        if (item.file.size >= LARGE_UPLOAD_THRESHOLD) {
-          await uploadLargeMedia({
-            eventId,
-            file: item.file,
-            onProgress: (e) => updateProgress(item.id, e.loaded, e.total),
-          })
-        } else {
-          const fd = new FormData()
-          fd.append('event_id', eventId)
-          fd.append('file', item.file)
-          await uploadMedia(fd, (e) => updateProgress(item.id, e.loaded, e.total))
-        }
-        updateStatus(item.id, 'done')
-      } catch (err) {
-        updateStatus(item.id, 'error')
-        toast.error(typeof err === 'string' ? err : `Failed: ${item.file.name}`)
-      }
+      const ok = await uploadQueueItem(item)
+      if (ok) uploaded += 1
+      else failed += 1
     }
 
     setUploading(false)
     onComplete?.()
-    toast.success('Upload complete!')
+    if (uploaded > 0 && failed === 0) toast.success('Upload complete!')
+    if (uploaded > 0 && failed > 0) toast.success(`${uploaded} uploaded, ${failed} failed`)
+  }
+
+  const retryUpload = async (item) => {
+    setActiveTab('status')
+    setUploading(true)
+    setStartTime(Date.now())
+    setElapsed(0)
+    const ok = await uploadQueueItem(item)
+    setUploading(false)
+    if (ok) {
+      onComplete?.()
+      toast.success(`Uploaded: ${item.file.name}`)
+    }
   }
 
   /* ── Drag handlers ── */
@@ -469,7 +527,14 @@ export default function UploadDropzone({ eventId, onComplete }) {
 
                     {/* File list */}
                     <div className="flex-1 overflow-y-auto px-5">
-                      {queue.map(item => <FileRow key={item.id} item={item} />)}
+                      {queue.map(item => (
+                        <FileRow
+                          key={item.id}
+                          item={item}
+                          onRetry={retryUpload}
+                          retryDisabled={uploading}
+                        />
+                      ))}
                     </div>
 
                     {/* Footer */}
