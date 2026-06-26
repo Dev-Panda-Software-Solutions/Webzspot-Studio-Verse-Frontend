@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalendarDays, ImageIcon, Users, Heart, TrendingUp, Camera, Star, Layers } from 'lucide-react'
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell, Legend,
+  ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts'
 import AppLayout from '../../components/layout/AppLayout'
 import StatCard from '../../components/ui/StatCard'
@@ -247,34 +247,35 @@ export default function StudioDashboard() {
               <div className="h-52 skeleton rounded-lg" />
             ) : (
               <div className="flex flex-col items-center">
-                <ResponsiveContainer width="100%" height={160}>
-                  <PieChart>
-                    <Pie
-                      data={donutData.filter(d => d.value > 0)}
-                      cx="50%" cy="50%"
-                      innerRadius={48} outerRadius={70}
-                      paddingAngle={3}
-                      dataKey="value"
-                      startAngle={90} endAngle={-270}
-                    >
-                      {donutData.map((_, i) => (
-                        <Cell key={i} fill={DONUT_COLORS[i]} stroke="none" />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={tooltipStyle.contentStyle}
-                      itemStyle={tooltipStyle.itemStyle}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                {/* Center label overlay */}
-                <div className="-mt-[130px] mb-[52px] pointer-events-none text-center">
-                  <p className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                    {eventStatus.active + eventStatus.archived}
-                  </p>
-                  <p className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>events</p>
+                <div className="relative w-full h-40">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={donutData.filter(d => d.value > 0)}
+                        cx="50%" cy="50%"
+                        innerRadius={48} outerRadius={70}
+                        paddingAngle={3}
+                        dataKey="value"
+                        startAngle={90} endAngle={-270}
+                      >
+                        {donutData.map((_, i) => (
+                          <Cell key={i} fill={DONUT_COLORS[i]} stroke="none" />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={tooltipStyle.contentStyle}
+                        itemStyle={tooltipStyle.itemStyle}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-center">
+                    <p className="text-2xl font-bold leading-none" style={{ color: 'var(--text-primary)' }}>
+                      {eventStatus.active + eventStatus.archived}
+                    </p>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-tertiary)' }}>events</p>
+                  </div>
                 </div>
-                <div className="flex gap-4 mt-1">
+                <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mt-4">
                   {donutData.map((d, i) => (
                     <div key={i} className="flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-full" style={{ background: DONUT_COLORS[i] }} />
