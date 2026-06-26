@@ -24,12 +24,11 @@ const navItems = {
   ],
 }
 
-export default function SidebarNav({ onCollapse }) {
+export default function SidebarNav({ collapsed, onCollapse }) {
   const { user, role, logout: storeLogout } = useAuthStore()
   const navigate = useNavigate()
   const shutterNavigate = useShutterNavigate()
   const location = useLocation()
-  const [collapsed, setCollapsed] = useState(false)
   const sidebarRef = useRef(null)
   const items = navItems[role] || []
 
@@ -41,12 +40,17 @@ export default function SidebarNav({ onCollapse }) {
 
   // Slide-in on mount — x only, opacity never touched
   useEffect(() => {
+    gsap.set(sidebarRef.current, { width: collapsed ? 64 : 240 })
     gsap.fromTo(sidebarRef.current, { x: -16 }, { x: 0, duration: 0.45, ease: 'power3.out' })
   }, [])
 
+  useEffect(() => {
+    gsap.set(sidebarRef.current, { width: collapsed ? 64 : 240 })
+  }, [collapsed])
+
   const toggleCollapse = () => {
     const next = !collapsed
-    setCollapsed(next)
+    localStorage.setItem('sv-sidebar-collapsed', String(next))
     onCollapse?.(next)
     gsap.to(sidebarRef.current, { width: next ? 64 : 240, duration: 0.3, ease: 'power3.inOut' })
   }
@@ -76,7 +80,7 @@ export default function SidebarNav({ onCollapse }) {
       ref={sidebarRef}
       className="fixed left-0 top-0 h-screen flex flex-col z-40 select-none"
       style={{
-        width: 240,
+        width: collapsed ? 64 : 240,
         background: sb.bg,
         borderRight: `1px solid ${sb.border}`,
         willChange: 'width',

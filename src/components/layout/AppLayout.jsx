@@ -2,12 +2,14 @@ import React, { useState } from 'react'
 import SidebarNav from './SidebarNav'
 import ThemeToggle from '../ui/ThemeToggle'
 
+const getSavedCollapsed = () => localStorage.getItem('sv-sidebar-collapsed') === 'true'
+
 export default function AppLayout({ children, title, subtitle, actions }) {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(getSavedCollapsed)
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--bg-base)' }}>
-      <SidebarNav onCollapse={setCollapsed} />
+      <SidebarNav collapsed={collapsed} onCollapse={setCollapsed} />
       {/* Spacer that matches sidebar width */}
       <div className="flex-shrink-0 transition-all duration-300" style={{ width: collapsed ? 64 : 240 }} />
 
