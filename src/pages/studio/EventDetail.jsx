@@ -1,10 +1,10 @@
-import React, { useLayoutEffect, useRef, useState } from 'react'
+import React, { useLayoutEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft, Users, UserPlus, UserCheck,
-  Calendar, Ban, CheckCircle2, ChevronDown, ChevronUp, Search, HardDrive
+  Calendar, Ban, CheckCircle2, ChevronDown, ChevronUp, Search, HardDrive, Download
 } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GoldButton from '../../components/ui/GoldButton'
@@ -194,7 +194,11 @@ function AddClientModal({ open, onClose, eventId, qc }) {
     setCreating(true)
     try {
       await createUserInEvent({
-        ...newClient,
+        user_name: newClient.user_name,
+        username: newClient.username,
+        password: newClient.password,
+        ...(newClient.user_email_id?.trim() ? { user_email_id: newClient.user_email_id.trim() } : {}),
+        ...(newClient.user_phone_number?.trim() ? { user_phone_number: newClient.user_phone_number.trim() } : {}),
         event_id: eventId,
         validity_days: 365,
         expiry_date: accessExpires
@@ -364,6 +368,7 @@ export default function StudioEventDetail() {
   const [addClientOpen, setAddClientOpen] = useState(false)
   const [mediaPage, setMediaPage] = useState(1)
   const [showRevoked, setShowRevoked] = useState(false)
+  const [dlProgress, setDlProgress] = useState(null) // { label, percent, speedMBps, etaSec }
 
   const { data: eventData, isLoading: eventLoading } = useQuery({
     queryKey: ['event', id],
@@ -459,21 +464,35 @@ export default function StudioEventDetail() {
     (name || '').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_')
 
   const handleDownloadZip = async (userId, userName) => {
+    const eventName = sanitizeForFilename(event?.event_name)
+    const clientName = sanitizeForFilename(userName)
+    const filename = `${eventName}_(${clientName}).zip`
+    setDlProgress({ label: `${clientName}.zip`, percent: 0, speedMBps: 0, etaSec: null })
     try {
-      const eventName = sanitizeForFilename(event?.event_name)
-      const clientName = sanitizeForFilename(userName)
-      const filename = `${eventName}_(${clientName}).zip`
-      await downloadFavouritesZip(id, userId, filename)
-    } catch { toast.error('Failed to download zip') }
+      await downloadFavouritesZip(id, userId, filename, (p) => setDlProgress(d => ({ ...d, ...p })))
+      toast.success('Download started!')
+    } catch (err) {
+      toast.error('Failed to download zip')
+      console.error(err)
+    } finally {
+      setTimeout(() => setDlProgress(null), 800)
+    }
   }
 
   const handleStudioDownloadZip = async () => {
+    const eventName = sanitizeForFilename(event?.event_name)
+    const studioName = sanitizeForFilename(event?.tenant_studio_name || user?.tenant_studio_name || 'Studio')
+    const filename = `${eventName}_(${studioName}_Favourites).zip`
+    setDlProgress({ label: `${studioName}_Favourites.zip`, percent: 0, speedMBps: 0, etaSec: null })
     try {
-      const eventName = sanitizeForFilename(event?.event_name)
-      const studioName = sanitizeForFilename(event?.tenant_studio_name || user?.tenant_studio_name || 'Studio')
-      const filename = `${eventName}_(${studioName}_Favourites).zip`
-      await downloadStudioFavouritesZip(id, filename)
-    } catch { toast.error('Failed to download studio zip') }
+      await downloadStudioFavouritesZip(id, filename, (p) => setDlProgress(d => ({ ...d, ...p })))
+      toast.success('Download started!')
+    } catch (err) {
+      toast.error('Failed to download studio zip')
+      console.error(err)
+    } finally {
+      setTimeout(() => setDlProgress(null), 800)
+    }
   }
 
   if (eventLoading) return <AppLayout><SkeletonLoader type="page" /></AppLayout>
@@ -483,6 +502,35 @@ export default function StudioEventDetail() {
       title={event?.event_name || 'Event'}
       subtitle={[formatDate(event?.event_date), event?.event_venue].filter(Boolean).join(' · ')}
     >
+      {/* Download progress overlay */}
+      {dlProgress && (
+        <div className="fixed bottom-6 right-6 z-50 w-80 rounded-2xl p-4 shadow-2xl"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)' }}>
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ background: 'rgba(212,175,55,0.15)' }}>
+              <Download size={14} className="text-gold-500" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+                {dlProgress.label}
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+                {dlProgress.percent < 100
+                  ? `${dlProgress.percent}% · ${dlProgress.speedMBps > 0 ? dlProgress.speedMBps.toFixed(1) + ' MB/s' : 'Connecting...'}${dlProgress.etaSec != null ? ` · ${dlProgress.etaSec}s left` : ''}`
+                  : 'Saving file...'}
+              </p>
+            </div>
+          </div>
+          <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{ width: `${dlProgress.percent}%`, background: 'linear-gradient(90deg, #B8860B, #D4AF37, #FFD700)' }}
+            />
+          </div>
+        </div>
+      )}
+
       <div ref={containerRef}>
         {/* Header */}
         <div className="event-header mb-6">

@@ -90,16 +90,67 @@ const triggerBlobDownload = (blob, filename) => {
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
-  setTimeout(() => window.URL.revokeObjectURL(url), 100)
+  setTimeout(() => window.URL.revokeObjectURL(url), 1000)
 }
 
-export const downloadFavouritesZip = async (eventId, userId, filename) => {
-  const res = await api.get(`/media/download-zip/${eventId}/${userId}`, { responseType: 'blob' })
+// onProgress({ percent, speedMBps, etaSec }) — called during download
+export const downloadFavouritesZip = async (eventId, userId, filename, onProgress) => {
+  let startTime = null
+  let lastLoaded = 0
+  let lastTime = null
+
+  // Bypass the interceptor (which swallows res.data) by using raw axios
+  const { default: axios } = await import('axios')
+  const { API_BASE_URL } = await import('../utils/apiUrl')
+  const token = JSON.parse(sessionStorage.getItem('sv-auth') || localStorage.getItem('sv-auth') || '{}')?.state?.token
+
+  const res = await axios.get(`${API_BASE_URL}/media/download-zip/${eventId}/${userId}`, {
+    responseType: 'blob',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    onDownloadProgress: (evt) => {
+      if (!onProgress) return
+      const now = Date.now()
+      if (!startTime) { startTime = now; lastTime = now; lastLoaded = 0 }
+      const elapsed = (now - lastTime) / 1000
+      const deltaBytes = evt.loaded - lastLoaded
+      const speedMBps = elapsed > 0 ? (deltaBytes / 1024 / 1024) / elapsed : 0
+      lastLoaded = evt.loaded
+      lastTime = now
+      const percent = evt.total ? Math.round((evt.loaded / evt.total) * 100) : 0
+      const remaining = evt.total ? (evt.total - evt.loaded) : 0
+      const etaSec = speedMBps > 0 ? Math.round((remaining / 1024 / 1024) / speedMBps) : null
+      onProgress({ percent, speedMBps, etaSec, loaded: evt.loaded, total: evt.total })
+    }
+  })
   triggerBlobDownload(res.data, filename || `favourites-${userId}.zip`)
 }
 
-export const downloadStudioFavouritesZip = async (eventId, filename) => {
-  const res = await api.get(`/media/download-studio-zip/${eventId}`, { responseType: 'blob' })
+export const downloadStudioFavouritesZip = async (eventId, filename, onProgress) => {
+  let lastLoaded = 0
+  let lastTime = null
+
+  const { default: axios } = await import('axios')
+  const { API_BASE_URL } = await import('../utils/apiUrl')
+  const token = JSON.parse(sessionStorage.getItem('sv-auth') || localStorage.getItem('sv-auth') || '{}')?.state?.token
+
+  const res = await axios.get(`${API_BASE_URL}/media/download-studio-zip/${eventId}`, {
+    responseType: 'blob',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    onDownloadProgress: (evt) => {
+      if (!onProgress) return
+      const now = Date.now()
+      if (!lastTime) { lastTime = now; lastLoaded = 0 }
+      const elapsed = (now - lastTime) / 1000
+      const deltaBytes = evt.loaded - lastLoaded
+      const speedMBps = elapsed > 0 ? (deltaBytes / 1024 / 1024) / elapsed : 0
+      lastLoaded = evt.loaded
+      lastTime = now
+      const percent = evt.total ? Math.round((evt.loaded / evt.total) * 100) : 0
+      const remaining = evt.total ? (evt.total - evt.loaded) : 0
+      const etaSec = speedMBps > 0 ? Math.round((remaining / 1024 / 1024) / speedMBps) : null
+      onProgress({ percent, speedMBps, etaSec, loaded: evt.loaded, total: evt.total })
+    }
+  })
   triggerBlobDownload(res.data, filename || `studio-favourites.zip`)
 }
 
