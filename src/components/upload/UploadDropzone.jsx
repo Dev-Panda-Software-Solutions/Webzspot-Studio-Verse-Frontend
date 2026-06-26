@@ -5,7 +5,7 @@ import {
   UploadCloud, X, CheckCircle2, XCircle, Clock,
   Zap, Image, FileVideo, AlertCircle, Loader2
 } from 'lucide-react'
-import { uploadMedia } from '../../api/media'
+import { LARGE_UPLOAD_MAX_SIZE, LARGE_UPLOAD_THRESHOLD, uploadLargeMedia, uploadMedia } from '../../api/media'
 import toast from 'react-hot-toast'
 
 /* ─── Helpers ─── */
@@ -176,16 +176,30 @@ export default function UploadDropzone({ eventId, onComplete }) {
     setElapsed(0)
 
     for (const item of newItems) {
-      updateStatus(item.id, 'uploading')
-      const fd = new FormData()
-      fd.append('event_id', eventId)
-      fd.append('file', item.file)
-      try {
-        await uploadMedia(fd, (e) => updateProgress(item.id, e.loaded, e.total))
-        updateStatus(item.id, 'done')
-      } catch {
+      if (item.file.size > LARGE_UPLOAD_MAX_SIZE) {
         updateStatus(item.id, 'error')
-        toast.error(`Failed: ${item.file.name}`)
+        toast.error(`File too large: ${item.file.name}`)
+        continue
+      }
+
+      updateStatus(item.id, 'uploading')
+      try {
+        if (item.file.size >= LARGE_UPLOAD_THRESHOLD) {
+          await uploadLargeMedia({
+            eventId,
+            file: item.file,
+            onProgress: (e) => updateProgress(item.id, e.loaded, e.total),
+          })
+        } else {
+          const fd = new FormData()
+          fd.append('event_id', eventId)
+          fd.append('file', item.file)
+          await uploadMedia(fd, (e) => updateProgress(item.id, e.loaded, e.total))
+        }
+        updateStatus(item.id, 'done')
+      } catch (err) {
+        updateStatus(item.id, 'error')
+        toast.error(typeof err === 'string' ? err : `Failed: ${item.file.name}`)
       }
     }
 
@@ -357,7 +371,7 @@ export default function UploadDropzone({ eventId, onComplete }) {
                         {dragging ? 'Drop to upload' : 'Drag & drop photos here'}
                       </p>
                       <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
-                        or click to browse — JPG, PNG, MP4, MOV · max 500MB each
+                        or click to browse — JPG, PNG, MP4, MOV · max 5GB each
                       </p>
                     </div>
                     <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-tertiary)' }}>
