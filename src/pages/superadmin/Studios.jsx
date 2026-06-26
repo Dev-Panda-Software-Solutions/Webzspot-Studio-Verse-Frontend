@@ -9,6 +9,7 @@ import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
 import GoldInput from '../../components/ui/GoldInput'
+import PasswordStrength from '../../components/ui/PasswordStrength'
 import { getTenants, createTenant, deleteTenant } from '../../api/tenants'
 import { formatDate } from '../../utils/formatters'
 import toast from 'react-hot-toast'
@@ -131,6 +132,7 @@ export default function AdminStudios() {
           <GoldInput label="Phone" name="tenant_phone_number" value={form.tenant_phone_number} onChange={e => update('tenant_phone_number', e.target.value)} />
           <GoldInput label="Username *" name="username" value={form.username} onChange={e => update('username', e.target.value)} />
           <GoldInput label="Password *" name="password" type="password" value={form.password} onChange={e => update('password', e.target.value)} />
+          <PasswordStrength value={form.password} />
           <div className="flex gap-3 pt-2">
             <GoldButton type="submit" loading={creating} className="flex-1">Create</GoldButton>
             <GoldButton type="button" variant="ghost" onClick={() => setCreateOpen(false)}>Cancel</GoldButton>

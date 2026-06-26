@@ -12,6 +12,7 @@ import StatCard from '../../components/ui/StatCard'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
 import GoldInput from '../../components/ui/GoldInput'
+import PasswordStrength from '../../components/ui/PasswordStrength'
 import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import Badge from '../../components/ui/Badge'
 import { getTenants, unlockAccount, resetPassword } from '../../api/tenants'
@@ -433,6 +434,7 @@ export default function AdminDashboard() {
                   value={resetForm.new_password}
                   onChange={(e) => setResetForm(f => ({ ...f, new_password: e.target.value }))}
                 />
+                <PasswordStrength value={resetForm.new_password} />
                 <GoldButton type="submit" loading={resetting} size="sm" className="w-full justify-center">
                   Reset
                 </GoldButton>

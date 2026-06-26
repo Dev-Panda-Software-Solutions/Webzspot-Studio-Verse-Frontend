@@ -16,6 +16,7 @@ import Badge from '../../components/ui/Badge'
 import Avatar from '../../components/ui/Avatar'
 import Modal from '../../components/ui/Modal'
 import GoldInput from '../../components/ui/GoldInput'
+import PasswordStrength from '../../components/ui/PasswordStrength'
 import { getEventById, getEventFavouritesGrouped, getEventUsers, assignUserToEvent, updateEventUserMapping } from '../../api/events'
 import { getMediaByEvent } from '../../api/media'
 import { createUserInEvent, getUsers } from '../../api/users'
@@ -324,6 +325,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
             onChange={e => setNewClient(f => ({ ...f, username: e.target.value }))} />
           <GoldInput label="Password *" name="password" type="password" value={newClient.password}
             onChange={e => setNewClient(f => ({ ...f, password: e.target.value }))} />
+          <PasswordStrength value={newClient.password} />
 
           <div className="mb-4">
             <label className="text-xs font-medium block mb-1" style={{ color: 'var(--text-secondary)' }}>

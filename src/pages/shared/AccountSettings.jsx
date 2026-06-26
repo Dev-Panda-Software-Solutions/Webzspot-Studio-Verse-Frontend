@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
 import GoldInput from '../../components/ui/GoldInput'
+import PasswordStrength from '../../components/ui/PasswordStrength'
 import ThemeToggle from '../../components/ui/ThemeToggle'
 import useAuthStore from '../../stores/authStore'
 import useThemeStore from '../../stores/themeStore'
@@ -65,6 +66,7 @@ export default function AccountSettings() {
                 value={pwForm.current_password} onChange={e => setPwForm(f => ({ ...f, current_password: e.target.value }))} />
               <GoldInput label="New Password" name="new_password" type="password"
                 value={pwForm.new_password} onChange={e => setPwForm(f => ({ ...f, new_password: e.target.value }))} />
+              <PasswordStrength value={pwForm.new_password} />
               <GoldInput label="Confirm New Password" name="confirm" type="password"
                 value={pwForm.confirm} onChange={e => setPwForm(f => ({ ...f, confirm: e.target.value }))} />
               <GoldButton type="submit" loading={changingPw} className="w-full justify-center mt-2">

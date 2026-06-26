@@ -4,6 +4,7 @@ import { gsap } from 'gsap'
 import { Camera } from 'lucide-react'
 import GoldButton from '../components/ui/GoldButton'
 import GoldInput from '../components/ui/GoldInput'
+import PasswordStrength from '../components/ui/PasswordStrength'
 import { signup } from '../api/auth'
 import toast from 'react-hot-toast'
 
@@ -108,6 +109,7 @@ export default function Signup() {
             <div className="auth-field">
               <GoldInput label="Password *" name="password" type="password" value={form.password}
                 onChange={(e) => update('password', e.target.value)} error={errors.password} />
+              <PasswordStrength value={form.password} />
             </div>
             <div className="auth-field">
               <GoldInput label="Confirm Password *" name="confirm_password" type="password"
