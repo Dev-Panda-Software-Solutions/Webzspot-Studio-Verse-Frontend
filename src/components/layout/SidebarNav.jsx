@@ -6,7 +6,6 @@ import {
   Camera, ChevronLeft, ChevronRight, Store
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import ThemeToggle from '../ui/ThemeToggle'
 import Avatar from '../ui/Avatar'
 import useAuthStore from '../../stores/authStore'
 import { logout } from '../../api/auth'
@@ -199,10 +198,6 @@ export default function SidebarNav({ onCollapse }) {
             </div>
           )
         })()}
-
-        <div className={`flex items-center py-1 ${collapsed ? 'justify-center' : 'px-3'}`}>
-          <ThemeToggle />
-        </div>
 
         <button
           onClick={handleLogout}

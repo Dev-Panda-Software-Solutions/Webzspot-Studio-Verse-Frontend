@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import SidebarNav from './SidebarNav'
+import ThemeToggle from '../ui/ThemeToggle'
 
 export default function AppLayout({ children, title, subtitle, actions }) {
   const [collapsed, setCollapsed] = useState(false)
@@ -31,11 +32,10 @@ export default function AppLayout({ children, title, subtitle, actions }) {
                 </p>
               )}
             </div>
-            {actions && (
-              <div className="flex items-center gap-3 flex-shrink-0 ml-4">
-                {actions}
-              </div>
-            )}
+            <div className="flex items-center gap-3 flex-shrink-0 ml-4">
+              <ThemeToggle />
+              {actions}
+            </div>
           </header>
         )}
 
