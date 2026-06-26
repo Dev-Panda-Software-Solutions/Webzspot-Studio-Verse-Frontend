@@ -467,7 +467,7 @@ export default function StudioEventDetail() {
     const eventName = sanitizeForFilename(event?.event_name)
     const clientName = sanitizeForFilename(userName)
     const filename = `${eventName}_(${clientName}).zip`
-    setDlProgress({ label: `${clientName}.zip`, percent: 0, speedMBps: 0, etaSec: null })
+    setDlProgress({ label: `${clientName}.zip`, percent: 0, speedMBps: 0, etaSec: null, loaded: 0, total: 0 })
     try {
       await downloadFavouritesZip(id, userId, filename, (p) => setDlProgress(d => ({ ...d, ...p })))
       toast.success('Download started!')
@@ -483,7 +483,7 @@ export default function StudioEventDetail() {
     const eventName = sanitizeForFilename(event?.event_name)
     const studioName = sanitizeForFilename(event?.tenant_studio_name || user?.tenant_studio_name || 'Studio')
     const filename = `${eventName}_(${studioName}_Favourites).zip`
-    setDlProgress({ label: `${studioName}_Favourites.zip`, percent: 0, speedMBps: 0, etaSec: null })
+    setDlProgress({ label: `${studioName}_Favourites.zip`, percent: 0, speedMBps: 0, etaSec: null, loaded: 0, total: 0 })
     try {
       await downloadStudioFavouritesZip(id, filename, (p) => setDlProgress(d => ({ ...d, ...p })))
       toast.success('Download started!')
@@ -503,33 +503,55 @@ export default function StudioEventDetail() {
       subtitle={[formatDate(event?.event_date), event?.event_venue].filter(Boolean).join(' · ')}
     >
       {/* Download progress overlay */}
-      {dlProgress && (
-        <div className="fixed bottom-6 right-6 z-50 w-80 rounded-2xl p-4 shadow-2xl"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)' }}>
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ background: 'rgba(212,175,55,0.15)' }}>
-              <Download size={14} className="text-gold-500" />
+      {dlProgress && (() => {
+        const hasTotal = dlProgress.total > 0
+        const pct = hasTotal ? Math.round((dlProgress.loaded / dlProgress.total) * 100) : 0
+        const loadedMB = dlProgress.loaded ? (dlProgress.loaded / 1024 / 1024).toFixed(1) : '0'
+        const totalMB = hasTotal ? (dlProgress.total / 1024 / 1024).toFixed(1) : null
+        const speedStr = dlProgress.speedMBps > 0 ? `${dlProgress.speedMBps.toFixed(1)} MB/s` : 'Connecting...'
+        const etaStr = dlProgress.etaSec != null ? ` · ${dlProgress.etaSec}s left` : ''
+        const statusLine = hasTotal
+          ? `${pct}% · ${speedStr}${etaStr}`
+          : `${loadedMB} MB downloaded · ${speedStr}`
+        return (
+          <div className="fixed bottom-6 right-6 z-50 w-80 rounded-2xl p-4 shadow-2xl"
+            style={{ background: '#18181b', border: '1px solid rgba(212,175,55,0.3)' }}>
+            <style>{`
+              @keyframes dlIndeterminate {
+                0%   { transform: translateX(-100%); }
+                100% { transform: translateX(400%); }
+              }
+            `}</style>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: 'rgba(212,175,55,0.15)' }}>
+                <Download size={14} className="text-gold-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium truncate" style={{ color: '#f5f5f5' }}>
+                  {dlProgress.label}
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: '#a1a1aa' }}>
+                  {statusLine}
+                  {totalMB && <span> / {totalMB} MB</span>}
+                </p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium truncate" style={{ color: 'var(--text-primary)' }}>
-                {dlProgress.label}
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
-                {dlProgress.percent < 100
-                  ? `${dlProgress.percent}% · ${dlProgress.speedMBps > 0 ? dlProgress.speedMBps.toFixed(1) + ' MB/s' : 'Connecting...'}${dlProgress.etaSec != null ? ` · ${dlProgress.etaSec}s left` : ''}`
-                  : 'Saving file...'}
-              </p>
+            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: '#3f3f46' }}>
+              {hasTotal ? (
+                <div className="h-full rounded-full transition-all duration-300"
+                  style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #B8860B, #D4AF37, #FFD700)' }} />
+              ) : (
+                <div className="h-full w-1/3 rounded-full"
+                  style={{
+                    background: 'linear-gradient(90deg, #B8860B, #FFD700)',
+                    animation: 'dlIndeterminate 1.4s ease-in-out infinite',
+                  }} />
+              )}
             </div>
           </div>
-          <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
-            <div
-              className="h-full rounded-full transition-all duration-300"
-              style={{ width: `${dlProgress.percent}%`, background: 'linear-gradient(90deg, #B8860B, #D4AF37, #FFD700)' }}
-            />
-          </div>
-        </div>
-      )}
+        )
+      })()}
 
       <div ref={containerRef}>
         {/* Header */}
