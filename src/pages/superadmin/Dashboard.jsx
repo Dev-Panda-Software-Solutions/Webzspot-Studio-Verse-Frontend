@@ -308,8 +308,8 @@ export default function AdminDashboard() {
           </GlassCard>
         </div>
 
-        {/* ── Studios + Quick Actions ─── */}
-        <div className="chart-section grid xl:grid-cols-3 gap-6">
+        {/* ── Studios + Storage by Studio ─── */}
+        <div className="chart-section grid xl:grid-cols-3 gap-6 mb-6">
           {/* Recent Studios */}
           <div className="xl:col-span-2">
             <GlassCard hover={false} className="p-0 overflow-hidden">
@@ -332,28 +332,16 @@ export default function AdminDashboard() {
                     <div key={t.tenant_id || t.id}
                       className="flex items-center gap-4 px-6 py-4 border-b transition-colors hover:bg-[var(--bg-elevated)]"
                       style={{ borderColor: 'var(--border-subtle)' }}>
-                      {/* Avatar */}
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 font-semibold text-sm"
                         style={{ background: 'rgba(245,158,11,0.12)', color: '#F59E0B' }}>
                         {(t.tenant_studio_name || '?')[0].toUpperCase()}
                       </div>
-
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
-                          {t.tenant_studio_name}
-                        </p>
-                        <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
-                          {t.tenant_name}
-                        </p>
+                        <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{t.tenant_studio_name}</p>
+                        <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{t.tenant_name}</p>
                       </div>
-
-                      <p className="text-xs hidden md:block" style={{ color: 'var(--text-tertiary)' }}>
-                        {formatDate(t.createdAt)}
-                      </p>
-
-                      <Badge variant={t.isactive ? 'success' : 'error'}>
-                        {t.isactive ? 'Active' : 'Inactive'}
-                      </Badge>
+                      <p className="text-xs hidden md:block" style={{ color: 'var(--text-tertiary)' }}>{formatDate(t.createdAt)}</p>
+                      <Badge variant={t.isactive ? 'success' : 'error'}>{t.isactive ? 'Active' : 'Inactive'}</Badge>
                     </div>
                   ))}
                 </div>
@@ -361,86 +349,90 @@ export default function AdminDashboard() {
             </GlassCard>
           </div>
 
-          {/* Quick Actions */}
-          <div className="space-y-4">
-            <GlassCard hover={false}>
-              <SectionHeader title="Storage by Studio" subtitle="Top studios by stored media" />
-              {storageByStudio.length === 0 ? (
-                <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No storage yet</p>
-              ) : storageByStudio.slice(0, 5).map(item => (
-                <StorageRow
-                  key={item.tenant_id}
-                  name={item.studio_name}
-                  meta={`${item.event_count} events · ${item.media_count} files`}
-                  value={item.stored_kb}
-                  max={maxStudioStorage}
-                />
-              ))}
-            </GlassCard>
+          {/* Storage by Studio */}
+          <GlassCard hover={false}>
+            <SectionHeader title="Storage by Studio" subtitle="Top studios by stored media" />
+            {storageByStudio.length === 0 ? (
+              <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No storage yet</p>
+            ) : storageByStudio.slice(0, 5).map(item => (
+              <StorageRow
+                key={item.tenant_id}
+                name={item.studio_name}
+                meta={`${item.event_count} events · ${item.media_count} files`}
+                value={item.stored_kb}
+                max={maxStudioStorage}
+              />
+            ))}
+          </GlassCard>
+        </div>
 
-            <GlassCard hover={false}>
-              <SectionHeader title="Storage by Client" subtitle="Assigned event storage" />
-              {storageByClient.length === 0 ? (
-                <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No assigned client storage yet</p>
-              ) : storageByClient.slice(0, 5).map(item => (
-                <StorageRow
-                  key={item.user_id}
-                  name={item.user_name}
-                  meta={`${item.event_count} events · ${item.media_count} files`}
-                  value={item.assigned_storage_kb}
-                  max={maxClientStorage}
-                />
-              ))}
-            </GlassCard>
+        {/* ── Storage by Client + Quick Actions ─── */}
+        <div className="chart-section grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          {/* Storage by Client */}
+          <GlassCard hover={false}>
+            <SectionHeader title="Storage by Client" subtitle="Assigned event storage" />
+            {storageByClient.length === 0 ? (
+              <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No assigned client storage yet</p>
+            ) : storageByClient.slice(0, 5).map(item => (
+              <StorageRow
+                key={item.user_id}
+                name={item.user_name}
+                meta={`${item.event_count} events · ${item.media_count} files`}
+                value={item.assigned_storage_kb}
+                max={maxClientStorage}
+              />
+            ))}
+          </GlassCard>
 
-            <GlassCard hover={false}>
-              <div className="flex items-center gap-2 mb-5">
-                <div className="p-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.12)' }}>
-                  <Lock size={14} className="text-gold-500" />
-                </div>
-                <h3 className="font-semibold text-[var(--text-primary)]">Unlock Account</h3>
+          {/* Unlock Account */}
+          <GlassCard hover={false}>
+            <div className="flex items-center gap-2 mb-5">
+              <div className="p-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.12)' }}>
+                <Lock size={14} className="text-gold-500" />
               </div>
-              <form onSubmit={handleUnlock} className="space-y-3">
-                <GoldInput
-                  label="Username"
-                  name="unlock_username"
-                  value={unlockUsername}
-                  onChange={(e) => setUnlockUsername(e.target.value)}
-                />
-                <GoldButton type="submit" loading={unlocking} size="sm" className="w-full justify-center">
-                  Unlock
-                </GoldButton>
-              </form>
-            </GlassCard>
+              <h3 className="font-semibold text-[var(--text-primary)]">Unlock Account</h3>
+            </div>
+            <form onSubmit={handleUnlock} className="space-y-3">
+              <GoldInput
+                label="Username"
+                name="unlock_username"
+                value={unlockUsername}
+                onChange={(e) => setUnlockUsername(e.target.value)}
+              />
+              <GoldButton type="submit" loading={unlocking} size="sm" className="w-full justify-center">
+                Unlock
+              </GoldButton>
+            </form>
+          </GlassCard>
 
-            <GlassCard hover={false}>
-              <div className="flex items-center gap-2 mb-5">
-                <div className="p-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.12)' }}>
-                  <KeyRound size={14} className="text-gold-500" />
-                </div>
-                <h3 className="font-semibold text-[var(--text-primary)]">Reset Password</h3>
+          {/* Reset Password */}
+          <GlassCard hover={false}>
+            <div className="flex items-center gap-2 mb-5">
+              <div className="p-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.12)' }}>
+                <KeyRound size={14} className="text-gold-500" />
               </div>
-              <form onSubmit={handleReset} className="space-y-3">
-                <GoldInput
-                  label="Username"
-                  name="reset_username"
-                  value={resetForm.username}
-                  onChange={(e) => setResetForm(f => ({ ...f, username: e.target.value }))}
-                />
-                <GoldInput
-                  label="New Password"
-                  name="new_password"
-                  type="password"
-                  value={resetForm.new_password}
-                  onChange={(e) => setResetForm(f => ({ ...f, new_password: e.target.value }))}
-                />
-                <PasswordStrength value={resetForm.new_password} />
-                <GoldButton type="submit" loading={resetting} size="sm" className="w-full justify-center">
-                  Reset
-                </GoldButton>
-              </form>
-            </GlassCard>
-          </div>
+              <h3 className="font-semibold text-[var(--text-primary)]">Reset Password</h3>
+            </div>
+            <form onSubmit={handleReset} className="space-y-3">
+              <GoldInput
+                label="Username"
+                name="reset_username"
+                value={resetForm.username}
+                onChange={(e) => setResetForm(f => ({ ...f, username: e.target.value }))}
+              />
+              <GoldInput
+                label="New Password"
+                name="new_password"
+                type="password"
+                value={resetForm.new_password}
+                onChange={(e) => setResetForm(f => ({ ...f, new_password: e.target.value }))}
+              />
+              <PasswordStrength value={resetForm.new_password} />
+              <GoldButton type="submit" loading={resetting} size="sm" className="w-full justify-center">
+                Reset
+              </GoldButton>
+            </form>
+          </GlassCard>
         </div>
       </div>
     </AppLayout>

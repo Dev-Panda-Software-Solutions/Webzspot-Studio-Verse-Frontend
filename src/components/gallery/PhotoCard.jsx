@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Expand, Play, FileVideo, Image } from 'lucide-react'
+import { Expand, Play, FileVideo, Image, Archive, Trash2 } from 'lucide-react'
 import { useInView } from 'react-intersection-observer'
 import WatermarkOverlay from './WatermarkOverlay'
 import FavouriteButton from './FavouriteButton'
@@ -28,7 +28,7 @@ function FavBtn({ mediaId, eventId, showFavourite, showTenantFav, video, size = 
 }
 
 /* ─── Masonry / Grid card ─── */
-function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTenantFav, square }) {
+function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTenantFav, square, onDelete, onHardDelete }) {
   const [loaded, setLoaded] = useState(false)
   const [hovered, setHovered] = useState(false)
   const { ref: inViewRef, inView } = useInView({ triggerOnce: true, rootMargin: '200px' })
@@ -110,6 +110,39 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
         </div>
       )}
 
+      {/* Delete actions — top-right, hover only, only when handlers provided */}
+      {(onDelete || onHardDelete) && loaded && (
+        <div
+          className={`absolute top-2 right-2 flex gap-1 z-10 transition-opacity duration-200 ${hovered ? 'opacity-100' : 'opacity-0'}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {onDelete && (
+            <button
+              onClick={() => onDelete(media.media_id, media.media_name)}
+              title="Archive photo"
+              className="w-6 h-6 flex items-center justify-center rounded-lg"
+              style={{ background: 'rgba(0,0,0,0.6)', color: '#FBBF24' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.3)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.6)'}
+            >
+              <Archive size={11} />
+            </button>
+          )}
+          {onHardDelete && (
+            <button
+              onClick={() => onHardDelete(media.media_id, media.media_name)}
+              title="Permanently delete"
+              className="w-6 h-6 flex items-center justify-center rounded-lg"
+              style={{ background: 'rgba(0,0,0,0.6)', color: '#F87171' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.3)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.6)'}
+            >
+              <Trash2 size={11} />
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Name on hover */}
       {loaded && media.media_name && (
         <div className={`absolute top-2 left-2 right-2 transition-opacity duration-200 ${hovered ? 'opacity-100' : 'opacity-0'}`}>
@@ -123,7 +156,7 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
 }
 
 /* ─── List row ─── */
-function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTenantFav }) {
+function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTenantFav, onDelete, onHardDelete }) {
   const [loaded, setLoaded] = useState(false)
   const { ref: inViewRef, inView } = useInView({ triggerOnce: true, rootMargin: '200px' })
   const video = isVideo(media)
@@ -198,7 +231,7 @@ function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
         </p>
       </div>
 
-      {/* Actions — heart always visible, expand on hover */}
+      {/* Actions — heart always visible, expand + delete on hover */}
       <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
         <FavBtn mediaId={media.media_id} eventId={eventId}
           showFavourite={showFavourite} showTenantFav={showTenantFav} video={video} size={15} />
@@ -209,20 +242,41 @@ function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
         >
           <Expand size={14} style={{ color: 'var(--text-secondary)' }} />
         </button>
+        {onDelete && (
+          <button
+            onClick={() => onDelete(media.media_id, media.media_name)}
+            title="Archive"
+            className="p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+            style={{ background: 'var(--bg-elevated)', color: '#FBBF24' }}
+          >
+            <Archive size={14} />
+          </button>
+        )}
+        {onHardDelete && (
+          <button
+            onClick={() => onHardDelete(media.media_id, media.media_name)}
+            title="Permanently delete"
+            className="p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+            style={{ background: 'var(--bg-elevated)', color: '#F87171' }}
+          >
+            <Trash2 size={14} />
+          </button>
+        )}
       </div>
     </div>
   )
 }
 
 /* ─── Exported component ─── */
-export default function PhotoCard({ media, eventId, watermarkSrc, onClick, showFavourite = true, showTenantFav = false, view = 'masonry' }) {
+export default function PhotoCard({ media, eventId, watermarkSrc, onClick, showFavourite = true, showTenantFav = false, view = 'masonry', onDelete, onHardDelete }) {
   if (view === 'list') {
     return <ListView media={media} eventId={eventId} watermarkSrc={watermarkSrc}
-      onClick={onClick} showFavourite={showFavourite} showTenantFav={showTenantFav} />
+      onClick={onClick} showFavourite={showFavourite} showTenantFav={showTenantFav}
+      onDelete={onDelete} onHardDelete={onHardDelete} />
   }
   return (
     <CardView media={media} eventId={eventId} watermarkSrc={watermarkSrc}
       onClick={onClick} showFavourite={showFavourite} showTenantFav={showTenantFav}
-      square={view === 'grid'} />
+      square={view === 'grid'} onDelete={onDelete} onHardDelete={onHardDelete} />
   )
 }

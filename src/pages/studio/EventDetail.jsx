@@ -4,7 +4,7 @@ import { gsap } from 'gsap'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft, Users, UserPlus, UserCheck,
-  Calendar, Ban, CheckCircle2, ChevronDown, ChevronUp, Search
+  Calendar, Ban, CheckCircle2, ChevronDown, ChevronUp, Search, HardDrive
 } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GoldButton from '../../components/ui/GoldButton'
@@ -18,9 +18,9 @@ import Modal from '../../components/ui/Modal'
 import GoldInput from '../../components/ui/GoldInput'
 import PasswordStrength from '../../components/ui/PasswordStrength'
 import { getEventById, getEventFavouritesGrouped, getEventUsers, assignUserToEvent, updateEventUserMapping } from '../../api/events'
-import { getMediaByEvent } from '../../api/media'
+import { getMediaByEvent, deleteMedia } from '../../api/media'
 import { createUserInEvent, getUsers } from '../../api/users'
-import { downloadFavouritesZip } from '../../api/media'
+import { downloadFavouritesZip, downloadStudioFavouritesZip } from '../../api/media'
 import { getTenantSettings } from '../../api/tenants'
 import { getTenantFavouritesForEvent } from '../../api/favourites'
 import { formatDate } from '../../utils/formatters'
@@ -407,8 +407,18 @@ export default function StudioEventDetail() {
     return () => ctx.revert()
   }, [eventData])
 
+  const formatStorage = (kb) => {
+    if (!kb || kb === 0) return '0 KB'
+    if (kb >= 1024 * 1024) return `${(kb / 1024 / 1024).toFixed(2)} GB`
+    if (kb >= 1024) return `${(kb / 1024).toFixed(1)} MB`
+    return `${Math.round(kb)} KB`
+  }
+
   const event = eventData?.data
   const mediaList = mediaData?.data?.items || []
+  const totalOriginalKb = mediaData?.data?.total_original_kb || 0
+  const totalMediaKb = mediaData?.data?.total_media_kb || 0
+  const totalMediaCount = mediaData?.data?.total || 0
   const allMappings = usersData?.data || []
   const favsGrouped = favsData?.data || []
   const tenantFavs = tenantFavsData?.data || []
@@ -435,8 +445,35 @@ export default function StudioEventDetail() {
     } catch { toast.error('Failed to update access') }
   }
 
-  const handleDownloadZip = (userId) => {
-    window.open(downloadFavouritesZip(id, userId), '_blank')
+  const handleDeleteMedia = async (mediaId, mediaName) => {
+    if (!window.confirm(`Archive "${mediaName || 'this file'}"? It will be hidden from clients.`)) return
+    try {
+      await deleteMedia(mediaId)
+      toast.success('File archived')
+      refetchMedia()
+      qc.invalidateQueries(['event-media', id])
+    } catch { toast.error('Failed to archive file') }
+  }
+
+  const sanitizeForFilename = (name) =>
+    (name || '').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_')
+
+  const handleDownloadZip = async (userId, userName) => {
+    try {
+      const eventName = sanitizeForFilename(event?.event_name)
+      const clientName = sanitizeForFilename(userName)
+      const filename = `${eventName}_(${clientName}).zip`
+      await downloadFavouritesZip(id, userId, filename)
+    } catch { toast.error('Failed to download zip') }
+  }
+
+  const handleStudioDownloadZip = async () => {
+    try {
+      const eventName = sanitizeForFilename(event?.event_name)
+      const studioName = sanitizeForFilename(event?.tenant_studio_name || user?.tenant_studio_name || 'Studio')
+      const filename = `${eventName}_(${studioName}_Favourites).zip`
+      await downloadStudioFavouritesZip(id, filename)
+    } catch { toast.error('Failed to download studio zip') }
   }
 
   if (eventLoading) return <AppLayout><SkeletonLoader type="page" /></AppLayout>
@@ -504,6 +541,24 @@ export default function StudioEventDetail() {
         {/* Tab: Media */}
         {tab === 'Media' && (
           <div>
+            {/* Storage stats */}
+            {totalMediaCount > 0 && (
+              <div className="flex flex-wrap items-center gap-4 mb-5 px-4 py-3 rounded-xl"
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
+                <HardDrive size={14} className="text-gold-500 flex-shrink-0" />
+                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{totalMediaCount}</span> files
+                </span>
+                <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>·</span>
+                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  Original: <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{formatStorage(totalOriginalKb)}</span>
+                </span>
+                <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>·</span>
+                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  Stored: <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{formatStorage(totalMediaKb)}</span>
+                </span>
+              </div>
+            )}
             <div className="mb-6">
               <UploadDropzone eventId={id} onComplete={() => { refetchMedia(); qc.invalidateQueries(['event-media', id]) }} />
             </div>
@@ -514,6 +569,7 @@ export default function StudioEventDetail() {
               loading={mediaLoading}
               showFavourite={false}
               showTenantFav={true}
+              onDelete={handleDeleteMedia}
             />
           </div>
         )}
@@ -612,6 +668,7 @@ export default function StudioEventDetail() {
             loading={favsLoading}
             watermarkSrc={watermarkSrc}
             onDownloadZip={handleDownloadZip}
+            onStudioDownloadZip={handleStudioDownloadZip}
           />
         )}
       </div>

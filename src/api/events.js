@@ -5,6 +5,7 @@ export const getEventById = (id) => api.get(`/events/${id}`)
 export const createEvent = (data) => api.post('/events', data)
 export const updateEvent = (id, data) => api.put(`/events/${id}`, data)
 export const deleteEvent = (id) => api.delete(`/events/${id}`)
+export const hardDeleteEvent = (id) => api.delete(`/events/hard/${id}`)
 
 export const getEventUsers = (eventId) => api.get(`/event-user-mapping/event/${eventId}`)
 export const assignUserToEvent = (data) => api.post('/event-user-mapping', data)

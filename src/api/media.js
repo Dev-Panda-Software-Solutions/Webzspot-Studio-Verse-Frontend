@@ -77,13 +77,31 @@ export const uploadLargeMedia = async ({ eventId, file, onProgress }) => {
   }
 }
 export const deleteMedia = (id) => api.delete(`/uploaded-media/${id}`)
+export const hardDeleteMedia = (id) => api.delete(`/uploaded-media/hard/${id}`)
 
 export const getMediaToken = (mediaId) => api.get(`/media/token/${mediaId}`)
 export const getMediaViewUrl = (token) => mediaViewUrl(token)
-export const downloadFavouritesZip = (eventId, userId) =>
-  apiUrl(`media/download-zip/${eventId}/${userId}`)
-export const downloadStudioFavouritesZip = (eventId) =>
-  apiUrl(`media/download-studio-zip/${eventId}`)
+
+const triggerBlobDownload = (blob, filename) => {
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  setTimeout(() => window.URL.revokeObjectURL(url), 100)
+}
+
+export const downloadFavouritesZip = async (eventId, userId, filename) => {
+  const res = await api.get(`/media/download-zip/${eventId}/${userId}`, { responseType: 'blob' })
+  triggerBlobDownload(res.data, filename || `favourites-${userId}.zip`)
+}
+
+export const downloadStudioFavouritesZip = async (eventId, filename) => {
+  const res = await api.get(`/media/download-studio-zip/${eventId}`, { responseType: 'blob' })
+  triggerBlobDownload(res.data, filename || `studio-favourites.zip`)
+}
 
 export const uploadProfileImage = (formData) => api.post('/upload/profile', formData)
 export const uploadCoverImage = (formData) => api.post('/upload/cover', formData)

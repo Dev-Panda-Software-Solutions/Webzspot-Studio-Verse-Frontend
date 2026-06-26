@@ -22,14 +22,17 @@ export default function GalleryFavourites() {
     queryFn: () => getMediaByEvent(eventId, { page: 1, limit: 100 })
   })
 
+  // Use a page-specific key so we always fetch fresh data regardless of what
+  // the Gallery page cached under ['user-favs', eventId].
   useQuery({
-    queryKey: ['user-favs', eventId],
+    queryKey: ['user-favs-page', eventId, user?.user_id],
     queryFn: async () => {
       const res = await getUserFavourites(user?.user_id, eventId)
       setFavourites(res?.data || [])
       return res
     },
-    enabled: !!user?.user_id && !!eventId
+    enabled: !!user?.user_id && !!eventId,
+    staleTime: 0,
   })
 
   useLayoutEffect(() => {

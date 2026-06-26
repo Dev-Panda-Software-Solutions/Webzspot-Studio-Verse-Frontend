@@ -13,9 +13,10 @@ import CreateEventModal from '../../components/events/CreateEventModal'
 import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
-import { getEvents, getDashboardAnalytics } from '../../api/events'
+import { getEvents, getDashboardAnalytics, deleteEvent } from '../../api/events'
 import useAuthStore from '../../stores/authStore'
 import { greetingTime } from '../../utils/formatters'
+import toast from 'react-hot-toast'
 
 /* ── Shared chart theme ─────────────────────────────────────── */
 const GOLD = '#F59E0B'
@@ -145,6 +146,16 @@ export default function StudioDashboard() {
   const containerRef = useRef(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [page, setPage] = useState(1)
+
+  const handleArchiveEvent = async (eventId, eventName) => {
+    if (!window.confirm(`Archive "${eventName}"? Clients will lose access.`)) return
+    try {
+      await deleteEvent(eventId)
+      toast.success('Event archived')
+      qc.invalidateQueries(['events'])
+      qc.invalidateQueries(['dashboard-analytics'])
+    } catch { toast.error('Failed to archive event') }
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ['events', page],
@@ -351,7 +362,7 @@ export default function StudioDashboard() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {events.map(item => (
-                <EventCard key={item.event_id} event={item} eventId={item.event_id} />
+                <EventCard key={item.event_id} event={item} eventId={item.event_id} onDelete={handleArchiveEvent} />
               ))}
               <EventCard isNew onCreate={() => setCreateOpen(true)} />
             </div>

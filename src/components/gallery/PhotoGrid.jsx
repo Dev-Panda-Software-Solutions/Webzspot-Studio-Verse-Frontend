@@ -20,6 +20,8 @@ export default function PhotoGrid({
   loading,
   showFavourite = true,
   showTenantFav = false,
+  onDelete,
+  onHardDelete,
 }) {
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const [view, setView] = useState('masonry')
@@ -79,6 +81,8 @@ export default function PhotoGrid({
     watermarkSrc,
     showFavourite,
     showTenantFav,
+    onDelete,
+    onHardDelete,
     onClick: (m) => setLightboxIndex(displayList.findIndex(x => x.media_id === m.media_id)),
   })
 

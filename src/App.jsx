@@ -12,6 +12,7 @@ const Signup = lazy(() => import('./pages/Signup'))
 const AdminDashboard = lazy(() => import('./pages/superadmin/Dashboard'))
 const AdminStudios = lazy(() => import('./pages/superadmin/Studios'))
 const AdminUsers = lazy(() => import('./pages/superadmin/Users'))
+const AdminEvents = lazy(() => import('./pages/superadmin/Events'))
 
 const StudioDashboard = lazy(() => import('./pages/studio/Dashboard'))
 const StudioEventDetail = lazy(() => import('./pages/studio/EventDetail'))
@@ -64,6 +65,7 @@ export default function App() {
           <Route path="/admin" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/studios" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><AdminStudios /></ProtectedRoute>} />
           <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><AdminUsers /></ProtectedRoute>} />
+          <Route path="/admin/events" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><AdminEvents /></ProtectedRoute>} />
 
           {/* Studio (Admin) */}
           <Route path="/studio" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioDashboard /></ProtectedRoute>} />

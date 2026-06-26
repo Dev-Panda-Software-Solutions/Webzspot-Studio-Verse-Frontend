@@ -3,10 +3,13 @@ import { Download, Heart, Building2, User, Layers } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import PhotoCard from './PhotoCard'
 import LightboxViewer from './LightboxViewer'
+import GalleryControls from './GalleryControls'
 import Avatar from '../ui/Avatar'
 import GoldButton from '../ui/GoldButton'
 import SkeletonLoader from '../ui/SkeletonLoader'
-import { downloadStudioFavouritesZip } from '../../api/media'
+
+const MASONRY_COLS = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+const GRID_COLS    = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
 
 const estimateZipSize = (items) => {
   let totalKb = 0
@@ -59,11 +62,78 @@ function OwnerBadges({ labels }) {
   )
 }
 
+/* ─── Shared grid renderer ─── */
+function MediaGrid({ items, view, zoom, eventId, watermarkSrc, onClickItem }) {
+  const mCols = MASONRY_COLS[zoom]
+  const gCols = GRID_COLS[zoom]
+
+  if (view === 'masonry') {
+    return (
+      <div style={{ columns: mCols, columnGap: 12 }}>
+        {items.map(({ media, labels }, idx) => (
+          <div key={media.media_id} className="relative break-inside-avoid mb-3">
+            <PhotoCard
+              media={media}
+              eventId={eventId}
+              watermarkSrc={watermarkSrc}
+              showFavourite={false}
+              showTenantFav={false}
+              view="masonry"
+              onClick={() => onClickItem(idx)}
+            />
+            {labels && <OwnerBadges labels={labels} />}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (view === 'list') {
+    return (
+      <div className="flex flex-col gap-2">
+        {items.map(({ media, labels }, idx) => (
+          <div key={media.media_id} className="relative">
+            <PhotoCard
+              media={media}
+              eventId={eventId}
+              watermarkSrc={watermarkSrc}
+              showFavourite={false}
+              showTenantFav={false}
+              view="list"
+              onClick={() => onClickItem(idx)}
+            />
+            {labels && <OwnerBadges labels={labels} />}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  // grid (default)
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${gCols}, 1fr)`, gap: 10 }}>
+      {items.map(({ media, labels }, idx) => (
+        <div key={media.media_id} className="relative">
+          <PhotoCard
+            media={media}
+            eventId={eventId}
+            watermarkSrc={watermarkSrc}
+            showFavourite={false}
+            showTenantFav={false}
+            view="grid"
+            onClick={() => onClickItem(idx)}
+          />
+          {labels && <OwnerBadges labels={labels} />}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 /* ─── Deduped grid — shown when 2+ groups selected ─── */
-function DedupedGrid({ groups, eventId, watermarkSrc, onDownload, onStudioDownload }) {
+function DedupedGrid({ groups, eventId, watermarkSrc, view, zoom, onDownload, onStudioDownload }) {
   const [lbIndex, setLbIndex] = useState(null)
 
-  // Build dedup map preserving insertion order
   const mediaMap = new Map()
   for (const group of groups) {
     for (const media of group.items) {
@@ -88,7 +158,7 @@ function DedupedGrid({ groups, eventId, watermarkSrc, onDownload, onStudioDownlo
               {group.label}{sz ? ` (${sz})` : ''}
             </GoldButton>
           ) : group.userId ? (
-            <GoldButton key={group.id} size="sm" icon={<Download size={12} />} onClick={() => onDownload(group.userId)} variant="outline">
+            <GoldButton key={group.id} size="sm" icon={<Download size={12} />} onClick={() => onDownload(group.userId, group.label)} variant="outline">
               {group.label}{sz ? ` (${sz})` : ''}
             </GoldButton>
           ) : null
@@ -99,22 +169,15 @@ function DedupedGrid({ groups, eventId, watermarkSrc, onDownload, onStudioDownlo
         {items.length} unique {items.length === 1 ? 'photo' : 'photos'} ·{' '}
         photos with gold badges were favourited by more than one person
       </p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
-        {items.map(({ media, labels }, idx) => (
-          <div key={media.media_id} className="relative">
-            <PhotoCard
-              media={media}
-              eventId={eventId}
-              watermarkSrc={watermarkSrc}
-              showFavourite={false}
-              showTenantFav={false}
-              view="grid"
-              onClick={() => setLbIndex(idx)}
-            />
-            <OwnerBadges labels={labels} />
-          </div>
-        ))}
-      </div>
+
+      <MediaGrid
+        items={items}
+        view={view}
+        zoom={zoom}
+        eventId={eventId}
+        watermarkSrc={watermarkSrc}
+        onClickItem={setLbIndex}
+      />
 
       {current && (
         <LightboxViewer
@@ -134,10 +197,10 @@ function DedupedGrid({ groups, eventId, watermarkSrc, onDownload, onStudioDownlo
 }
 
 /* ─── Per-group grid — shown when exactly 1 group selected ─── */
-function GroupGallery({ group, eventId, watermarkSrc, onDownload, onStudioDownload }) {
+function GroupGallery({ group, eventId, watermarkSrc, view, zoom, onDownload, onStudioDownload }) {
   const [lbIndex, setLbIndex] = useState(null)
-  const items = group.items
-  const current = lbIndex !== null ? items[lbIndex] : null
+  const items = group.items.map(m => ({ media: m, labels: null }))
+  const current = lbIndex !== null ? items[lbIndex]?.media : null
 
   return (
     <motion.div
@@ -156,40 +219,33 @@ function GroupGallery({ group, eventId, watermarkSrc, onDownload, onStudioDownlo
               {group.label}
             </p>
             <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-              {items.length} {items.length === 1 ? 'photo' : 'photos'} favourited
+              {group.items.length} {group.items.length === 1 ? 'photo' : 'photos'} favourited
             </p>
           </div>
         </div>
-        {/* User group → Download zip. Studio group → Download studio zip. */}
         {group.userId && (
-          <GoldButton size="sm" icon={<Download size={12} />} onClick={() => onDownload(group.userId)}>
-            Download Zip{estimateZipSize(items) ? ` (${estimateZipSize(items)})` : ''}
+          <GoldButton size="sm" icon={<Download size={12} />} onClick={() => onDownload(group.userId, group.label)}>
+            Download Zip{estimateZipSize(group.items) ? ` (${estimateZipSize(group.items)})` : ''}
           </GoldButton>
         )}
         {group.isTenant && (
           <GoldButton size="sm" icon={<Download size={12} />} onClick={onStudioDownload}>
-            Download Zip{estimateZipSize(items) ? ` (${estimateZipSize(items)})` : ''}
+            Download Zip{estimateZipSize(group.items) ? ` (${estimateZipSize(group.items)})` : ''}
           </GoldButton>
         )}
       </div>
 
-      {items.length === 0 ? (
+      {group.items.length === 0 ? (
         <p className="text-sm py-6 text-center" style={{ color: 'var(--text-tertiary)' }}>No favourited photos</p>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10 }}>
-          {items.map((media, idx) => (
-            <PhotoCard
-              key={media.media_id}
-              media={media}
-              eventId={eventId}
-              watermarkSrc={watermarkSrc}
-              showFavourite={false}
-              showTenantFav={false}
-              view="grid"
-              onClick={() => setLbIndex(idx)}
-            />
-          ))}
-        </div>
+        <MediaGrid
+          items={items}
+          view={view}
+          zoom={zoom}
+          eventId={eventId}
+          watermarkSrc={watermarkSrc}
+          onClickItem={setLbIndex}
+        />
       )}
 
       {current && (
@@ -220,8 +276,11 @@ export default function FavouritesGallery({
   loading,
   watermarkSrc,
   onDownloadZip,
+  onStudioDownloadZip,
 }) {
   const [selected, setSelected] = useState(new Set(['all']))
+  const [view, setView] = useState('grid')
+  const [zoom, setZoom] = useState(6)
 
   const toggleGroup = (id) => {
     setSelected(prev => {
@@ -262,7 +321,8 @@ export default function FavouritesGallery({
     ? allGroups
     : allGroups.filter(g => selected.has(g.id))
 
-  const handleStudioZip = () => window.open(downloadStudioFavouritesZip(eventId), '_blank')
+  const mCols = MASONRY_COLS[zoom]
+  const gCols = GRID_COLS[zoom]
 
   return (
     <div>
@@ -276,6 +336,17 @@ export default function FavouritesGallery({
         </div>
       ) : (
         <>
+          {/* View controls */}
+          <div className="mb-5">
+            <GalleryControls
+              view={view}
+              onView={setView}
+              zoom={zoom}
+              onZoom={setZoom}
+              count={view === 'grid' ? gCols : mCols}
+            />
+          </div>
+
           {/* Filter chips */}
           <div className="flex flex-wrap gap-2 mb-6">
             <Chip
@@ -305,8 +376,10 @@ export default function FavouritesGallery({
                   groups={visibleGroups}
                   eventId={eventId}
                   watermarkSrc={watermarkSrc}
+                  view={view}
+                  zoom={zoom}
                   onDownload={onDownloadZip}
-                  onStudioDownload={handleStudioZip}
+                  onStudioDownload={onStudioDownloadZip}
                 />
               </motion.div>
             ) : (
@@ -316,8 +389,10 @@ export default function FavouritesGallery({
                   group={group}
                   eventId={eventId}
                   watermarkSrc={watermarkSrc}
+                  view={view}
+                  zoom={zoom}
                   onDownload={onDownloadZip}
-                  onStudioDownload={handleStudioZip}
+                  onStudioDownload={onStudioDownloadZip}
                 />
               ))
             )}
