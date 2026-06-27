@@ -99,6 +99,7 @@ export default function Gallery() {
   })
 
   useLayoutEffect(() => {
+    if (!containerRef.current) return
     const ctx = gsap.context(() => {
       gsap.fromTo('.gallery-header', { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out' })
     }, containerRef)
