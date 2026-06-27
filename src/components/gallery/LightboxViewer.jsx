@@ -132,13 +132,8 @@ function LightboxVideo({ media, watermarkSrc }) {
             onContextMenu={(e) => e.preventDefault()}
             style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
           />
-          <div
-            className="absolute top-0 left-0 right-0 rounded-t-lg"
-            style={{ bottom: 40, zIndex: 1 }}
-            onContextMenu={(e) => e.preventDefault()}
-          />
-          <div className="absolute top-0 left-0 right-0 pointer-events-none select-none"
-            style={{ bottom: 44, zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="absolute inset-0 pointer-events-none select-none"
+            style={{ zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: 44 }}>
             <WatermarkOverlay src={watermarkSrc} size="lg" />
           </div>
         </div>
