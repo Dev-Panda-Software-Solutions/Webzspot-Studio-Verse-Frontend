@@ -319,11 +319,11 @@ export default function LightboxViewer({
         {heartFlash && <HeartFlash key={heartFlash.key} adding={heartFlash.adding} />}
       </div>
 
-      {/* Bottom panel */}
+      {/* Bottom panel — pointer-events-none so video seek bar stays clickable */}
       <div ref={panelRef}
-        className="absolute bottom-0 left-0 right-0 p-6 flex items-end justify-between"
+        className="absolute bottom-0 left-0 right-0 p-6 flex items-end justify-between pointer-events-none"
         style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.4), transparent)' }}>
-        <div>
+        <div className="pointer-events-auto">
           <p className="text-white font-medium">
             {media.media_name ? media.media_name.replace(/\.[^/.]+$/, '') : 'Untitled'}
           </p>
@@ -354,7 +354,7 @@ export default function LightboxViewer({
           </p>
         </div>
 
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-col items-end gap-2 pointer-events-auto">
           {/* Owner labels — who favourited this photo */}
           {ownerLabels && ownerLabels.length > 0 && (
             <div className="flex flex-wrap gap-1 justify-end">
