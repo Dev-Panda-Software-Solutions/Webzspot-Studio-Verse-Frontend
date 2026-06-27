@@ -77,7 +77,8 @@ export default function Gallery() {
     || 'Gallery'
   const mediaList = mediaData?.data?.items || []
 
-  const tenantId = event?.tenant_id
+  // tenant_mapping[0] is the OWNER entry — included in USER response specifically for watermark fetch
+  const tenantId = event?.tenant_mapping?.[0]?.tenant_id || event?.tenant_id
   const { data: settingsData } = useQuery({
     queryKey: ['gallery-settings', tenantId],
     queryFn: () => getTenantSettings(tenantId),

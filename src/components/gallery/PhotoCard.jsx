@@ -21,9 +21,9 @@ const fmtSize = (sizeStr) => {
   return `${Math.round(kb)} KB`
 }
 
-function FavBtn({ mediaId, eventId, showFavourite, showTenantFav, video, size = 16 }) {
-  if (showTenantFav && !video) return <TenantFavouriteButton mediaId={mediaId} eventId={eventId} size={size} />
-  if (showFavourite && !video) return <FavouriteButton mediaId={mediaId} eventId={eventId} size={size} />
+function FavBtn({ mediaId, eventId, showFavourite, showTenantFav, size = 16 }) {
+  if (showTenantFav) return <TenantFavouriteButton mediaId={mediaId} eventId={eventId} size={size} />
+  if (showFavourite) return <FavouriteButton mediaId={mediaId} eventId={eventId} size={size} />
   return null
 }
 
@@ -36,7 +36,7 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
   const { token } = useMediaToken(inView ? media.media_id : null)
   const src = token ? mediaViewUrl(token) : null
 
-  const hasFav = (showFavourite || showTenantFav) && !video
+  const hasFav = showFavourite || showTenantFav
 
   return (
     <div
@@ -106,7 +106,7 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
       {loaded && hasFav && (
         <div className="absolute bottom-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
           <FavBtn mediaId={media.media_id} eventId={eventId}
-            showFavourite={showFavourite} showTenantFav={showTenantFav} video={video} size={14} />
+            showFavourite={showFavourite} showTenantFav={showTenantFav} size={14} />
         </div>
       )}
 
@@ -234,7 +234,7 @@ function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
       {/* Actions — heart always visible, expand + delete on hover */}
       <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
         <FavBtn mediaId={media.media_id} eventId={eventId}
-          showFavourite={showFavourite} showTenantFav={showTenantFav} video={video} size={15} />
+          showFavourite={showFavourite} showTenantFav={showTenantFav} size={15} />
         <button
           onClick={(e) => { e.stopPropagation(); onClick && onClick(media) }}
           className="p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all"

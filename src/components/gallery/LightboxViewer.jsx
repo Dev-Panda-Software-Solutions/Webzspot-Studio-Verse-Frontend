@@ -111,12 +111,6 @@ function LightboxImage({ media, watermarkSrc }) {
 function LightboxVideo({ media, watermarkSrc }) {
   const mediaId = media?.media_id
   const { token } = useMediaToken(mediaId)
-  const videoRef = useRef(null)
-
-  useEffect(() => {
-    if (videoRef.current) videoRef.current.load()
-  }, [token])
-
   const src = token ? mediaViewUrl(token) : null
 
   return (
@@ -127,17 +121,17 @@ function LightboxVideo({ media, watermarkSrc }) {
       {src ? (
         <div className="relative" onContextMenu={(e) => e.preventDefault()}>
           <video
-            ref={videoRef}
+            key={src}
+            src={src}
             className="max-h-[80vh] max-w-[85vw] rounded-lg outline-none"
             controls
+            autoPlay
             controlsList="nodownload nofullscreen"
             disablePictureInPicture
             disableRemotePlayback
             onContextMenu={(e) => e.preventDefault()}
             style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
-          >
-            <source src={src} type={media.media_type} />
-          </video>
+          />
           <div
             className="absolute top-0 left-0 right-0 rounded-t-lg"
             style={{ bottom: 40, zIndex: 1 }}
@@ -284,7 +278,7 @@ export default function LightboxViewer({
   if (!media) return null
 
   const mediaId = media.media_id
-  const canFav = !isVideo(media) && (showFavourite || showTenantFav)
+  const canFav = showFavourite || showTenantFav
 
   return createPortal(
     <div
