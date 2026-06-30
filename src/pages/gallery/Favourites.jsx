@@ -19,7 +19,9 @@ export default function GalleryFavourites() {
 
   const { data: mediaData, isLoading: mediaLoading } = useQuery({
     queryKey: ['gallery-media', eventId],
-    queryFn: () => getMediaByEvent(eventId, { page: 1, limit: 100 })
+    queryFn: () => getMediaByEvent(eventId, { page: 1, limit: 100 }),
+    // Pre-signed S3 URLs expire after ~30s — refetch ahead of that so images keep loading.
+    refetchInterval: 25_000,
   })
 
   // Use a page-specific key so we always fetch fresh data regardless of what

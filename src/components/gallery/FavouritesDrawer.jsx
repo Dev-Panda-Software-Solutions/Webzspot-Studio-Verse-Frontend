@@ -5,12 +5,13 @@ import useGalleryStore from '../../stores/galleryStore'
 import useMediaToken from '../../hooks/useMediaToken'
 import { mediaViewUrl } from '../../utils/apiUrl'
 
-function ThumbImage({ mediaId }) {
-  const { token } = useMediaToken(mediaId)
-  if (!token) return <div className="skeleton w-20 h-20 rounded-lg flex-shrink-0" />
+function ThumbImage({ media }) {
+  const { token } = useMediaToken(media.media_url ? null : media.media_id)
+  const src = media.media_url || (token ? mediaViewUrl(token) : null)
+  if (!src) return <div className="skeleton w-20 h-20 rounded-lg flex-shrink-0" />
   return (
     <img
-      src={mediaViewUrl(token)}
+      src={src}
       alt=""
       className="w-20 h-20 object-cover rounded-lg flex-shrink-0 no-select"
       draggable={false}
@@ -48,7 +49,7 @@ export default function FavouritesDrawer({ open, onClose, mediaList = [], eventI
           </div>
         ) : (
           <div className="flex gap-3 overflow-x-auto pb-2">
-            {favouritedMedia.map(m => <ThumbImage key={m.media_id} mediaId={m.media_id} />)}
+            {favouritedMedia.map(m => <ThumbImage key={m.media_id} media={m} />)}
           </div>
         )}
       </Drawer>

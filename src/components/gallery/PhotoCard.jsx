@@ -33,8 +33,10 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
   const [hovered, setHovered] = useState(false)
   const { ref: inViewRef, inView } = useInView({ triggerOnce: true, rootMargin: '200px' })
   const video = isVideo(media)
-  const { token } = useMediaToken(inView ? media.media_id : null)
-  const src = token ? mediaViewUrl(token) : null
+  // Pre-signed S3 URL comes straight from the media list — fall back to the
+  // legacy token flow only for media that predates the S3 migration.
+  const { token } = useMediaToken(inView && !media.media_url ? media.media_id : null)
+  const src = media.media_url || (token ? mediaViewUrl(token) : null)
 
   const hasFav = showFavourite || showTenantFav
 
@@ -160,8 +162,8 @@ function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
   const [loaded, setLoaded] = useState(false)
   const { ref: inViewRef, inView } = useInView({ triggerOnce: true, rootMargin: '200px' })
   const video = isVideo(media)
-  const { token } = useMediaToken(inView ? media.media_id : null)
-  const src = token ? mediaViewUrl(token) : null
+  const { token } = useMediaToken(inView && !media.media_url ? media.media_id : null)
+  const src = media.media_url || (token ? mediaViewUrl(token) : null)
 
   return (
     <div

@@ -376,7 +376,9 @@ export default function StudioEventDetail() {
   })
   const { data: mediaData, isLoading: mediaLoading, refetch: refetchMedia } = useQuery({
     queryKey: ['event-media', id, mediaPage],
-    queryFn: () => getMediaByEvent(id, { page: mediaPage, limit: 30 })
+    queryFn: () => getMediaByEvent(id, { page: mediaPage, limit: 30 }),
+    // Pre-signed S3 URLs expire after ~30s — refetch ahead of that while this tab is visible.
+    refetchInterval: tab === 'Media' ? 25_000 : false,
   })
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ['event-users', id],
@@ -386,12 +388,14 @@ export default function StudioEventDetail() {
   const { data: favsData, isLoading: favsLoading } = useQuery({
     queryKey: ['event-favs', id],
     queryFn: () => getEventFavouritesGrouped(id),
-    enabled: tab === 'Favourites'
+    enabled: tab === 'Favourites',
+    refetchInterval: tab === 'Favourites' ? 25_000 : false,
   })
   const { data: tenantFavsData } = useQuery({
     queryKey: ['event-tenant-favs', id],
     queryFn: () => getTenantFavouritesForEvent(id),
-    enabled: tab === 'Favourites'
+    enabled: tab === 'Favourites',
+    refetchInterval: tab === 'Favourites' ? 25_000 : false,
   })
   const { data: settingsData } = useQuery({
     queryKey: ['tenant-settings', user?.tenant_id],

@@ -74,12 +74,12 @@ function HeartFlash({ adding }) {
 
 function LightboxImage({ media, watermarkSrc }) {
   const mediaId = media?.media_id
-  const { token } = useMediaToken(mediaId)
+  const { token } = useMediaToken(media?.media_url ? null : mediaId)
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => { setLoaded(false) }, [mediaId])
 
-  const src = token ? mediaViewUrl(token) : null
+  const src = media?.media_url || (token ? mediaViewUrl(token) : null)
 
   return (
     <div className="relative flex items-center justify-center select-none">
@@ -110,8 +110,8 @@ function LightboxImage({ media, watermarkSrc }) {
 
 function LightboxVideo({ media, watermarkSrc }) {
   const mediaId = media?.media_id
-  const { token } = useMediaToken(mediaId)
-  const src = token ? mediaViewUrl(token) : null
+  const { token } = useMediaToken(media?.media_url ? null : mediaId)
+  const src = media?.media_url || (token ? mediaViewUrl(token) : null)
 
   return (
     <div
@@ -161,7 +161,8 @@ export default function LightboxViewer({
     setTimeout(() => setHeartFlash(null), 560)
   }
 
-  // Silently prefetch tokens for the 5 photos before and 5 after current index
+  // Silently prefetch legacy tokens for the 5 photos before/after current index —
+  // only needed for pre-S3-migration media that has no media_url already.
   useEffect(() => {
     if (!mediaList.length) return
     const { getToken, setToken } = useGalleryStore.getState()
@@ -169,7 +170,7 @@ export default function LightboxViewer({
     const end = Math.min(mediaList.length - 1, index + 5)
     for (let i = start; i <= end; i++) {
       const m = mediaList[i]
-      if (!m || i === index) continue
+      if (!m || i === index || m.media_url) continue
       const id = m.media_id
       if (getToken(id)) continue
       getMediaToken(id)

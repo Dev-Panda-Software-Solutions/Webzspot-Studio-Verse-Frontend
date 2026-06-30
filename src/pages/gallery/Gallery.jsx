@@ -69,6 +69,8 @@ export default function Gallery() {
     queryKey: ['gallery-media', activeEventId, mediaPage],
     queryFn: () => getMediaByEvent(activeEventId, { page: mediaPage, limit: 50 }),
     enabled: !!activeEventId && !isLocked,
+    // Pre-signed S3 URLs expire after ~30s — refetch ahead of that so images keep loading.
+    refetchInterval: 25_000,
   })
 
   const event = eventData?.data
