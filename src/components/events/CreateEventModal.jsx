@@ -1,17 +1,20 @@
 import React, { useRef, useState, useEffect } from 'react'
-import { UploadCloud, X } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { UploadCloud, X, Sparkles } from 'lucide-react'
 import Modal from '../ui/Modal'
 import GoldButton from '../ui/GoldButton'
 import GoldInput from '../ui/GoldInput'
 import { createEvent, updateEvent } from '../../api/events'
 import { uploadCoverImage } from '../../api/media'
+import { getMySubscription } from '../../api/billing'
 import { backendAssetUrl } from '../../utils/apiUrl'
 import toast from 'react-hot-toast'
 
 const EMPTY = {
   event_name: '', event_date: '', event_time: '',
   event_venue: '', event_organizer: '', event_description: '',
-  event_organizer_phone_number: '', event_organizer_email_id: ''
+  event_organizer_phone_number: '', event_organizer_email_id: '',
+  is_ai_event: false
 }
 
 function toDateInput(val) {
@@ -33,6 +36,14 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
   const [loading, setLoading] = useState(false)
   const imgInputRef = useRef(null)
 
+  const { data: subData } = useQuery({
+    queryKey: ['tenant-subscription'],
+    queryFn: getMySubscription,
+    enabled: open
+  })
+  const hasWalletPlan = subData?.data?.subscription?.plan?.plan_type === 'WALLET'
+    && (subData?.data?.wallet?.balance_credits ?? 0) > 0
+
   // Pre-fill form when opening in edit mode
   useEffect(() => {
     if (open && isEdit) {
@@ -45,6 +56,7 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
         event_description: editEvent.event_description || '',
         event_organizer_phone_number: editEvent.event_organizer_phone_number || '',
         event_organizer_email_id: editEvent.event_organizer_email_id || '',
+        is_ai_event: Boolean(editEvent.is_ai_event),
       })
       setCoverPreview(editEvent.profile_url ? backendAssetUrl(editEvent.profile_url) : null)
       setCoverFile(null)
@@ -167,6 +179,24 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
             <GoldInput label="Description *" name="event_description" required value={form.event_description}
               onChange={e => update('event_description', e.target.value)} />
           </div>
+        </div>
+
+        <div
+          className="flex items-center justify-between gap-3 mb-6 p-3 rounded-xl"
+          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}
+          title={hasWalletPlan ? '' : 'Requires an active Wallet plan with credits'}
+        >
+          <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: hasWalletPlan ? 'var(--text-primary)' : 'var(--text-tertiary)' }}>
+            <Sparkles size={15} style={{ color: hasWalletPlan ? 'var(--accent-primary)' : 'var(--text-tertiary)' }} />
+            AI Event
+          </label>
+          <input
+            type="checkbox"
+            checked={form.is_ai_event}
+            disabled={!hasWalletPlan}
+            onChange={e => update('is_ai_event', e.target.checked)}
+            className="w-4 h-4 accent-[var(--accent-primary)] disabled:opacity-40"
+          />
         </div>
 
         <div className="flex gap-3 pt-2">

@@ -13,11 +13,13 @@ const AdminDashboard = lazy(() => import('./pages/superadmin/Dashboard'))
 const AdminStudios = lazy(() => import('./pages/superadmin/Studios'))
 const AdminUsers = lazy(() => import('./pages/superadmin/Users'))
 const AdminEvents = lazy(() => import('./pages/superadmin/Events'))
+const AdminPlans = lazy(() => import('./pages/superadmin/Plans'))
 
 const StudioDashboard = lazy(() => import('./pages/studio/Dashboard'))
 const StudioEventDetail = lazy(() => import('./pages/studio/EventDetail'))
 const StudioSettings = lazy(() => import('./pages/studio/Settings'))
 const StudioAccessBoard = lazy(() => import('./pages/studio/AccessBoard'))
+const StudioBilling = lazy(() => import('./pages/studio/Billing'))
 
 const Gallery = lazy(() => import('./pages/gallery/Gallery'))
 const GalleryFavourites = lazy(() => import('./pages/gallery/Favourites'))
@@ -66,12 +68,14 @@ export default function App() {
           <Route path="/admin/studios" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><AdminStudios /></ProtectedRoute>} />
           <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><AdminUsers /></ProtectedRoute>} />
           <Route path="/admin/events" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><AdminEvents /></ProtectedRoute>} />
+          <Route path="/admin/plans" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><AdminPlans /></ProtectedRoute>} />
 
           {/* Studio (Admin) */}
           <Route path="/studio" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioDashboard /></ProtectedRoute>} />
           <Route path="/studio/access" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioAccessBoard /></ProtectedRoute>} />
           <Route path="/studio/events/:id" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioEventDetail /></ProtectedRoute>} />
           <Route path="/studio/settings" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioSettings /></ProtectedRoute>} />
+          <Route path="/studio/billing" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioBilling /></ProtectedRoute>} />
 
           {/* Client Gallery */}
           <Route path="/gallery" element={<ProtectedRoute allowedRoles={['USER']}><Gallery /></ProtectedRoute>} />

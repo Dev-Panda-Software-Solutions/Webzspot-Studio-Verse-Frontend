@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { UploadCloud, Save, User, Building2, Phone, Mail, MapPin } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { UploadCloud, Save, User, Building2, Phone, Mail, MapPin, CreditCard } from 'lucide-react'
 import { gsap } from 'gsap'
 import AppLayout from '../../components/layout/AppLayout'
 import PageHeader from '../../components/layout/PageHeader'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
 import GoldInput from '../../components/ui/GoldInput'
+import Badge from '../../components/ui/Badge'
 import { getTenantSettings, updateTenant, getTenantById } from '../../api/tenants'
 import { uploadWatermark } from '../../api/media'
+import { getMySubscription } from '../../api/billing'
 import useAuthStore from '../../stores/authStore'
 import { backendAssetUrl } from '../../utils/apiUrl'
 import toast from 'react-hot-toast'
@@ -16,6 +19,7 @@ import toast from 'react-hot-toast'
 export default function StudioSettings() {
   const { user } = useAuthStore()
   const qc = useQueryClient()
+  const navigate = useNavigate()
   const inputRef = useRef(null)
   const pageRef = useRef(null)
   const [uploading, setUploading] = useState(false)
@@ -40,8 +44,15 @@ export default function StudioSettings() {
     enabled: !!user?.tenant_id
   })
 
+  const { data: subData } = useQuery({
+    queryKey: ['tenant-subscription'],
+    queryFn: getMySubscription,
+    enabled: !!user?.tenant_id
+  })
+
   const settings = settingsData?.data
   const profile = profileData?.data
+  const subscription = subData?.data?.subscription
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -158,6 +169,34 @@ export default function StudioSettings() {
               </GoldButton>
             </div>
           </form>
+        </GlassCard>
+
+        {/* ── Plan & Billing ── */}
+        <GlassCard hover={false} className="settings-section">
+          <h3 className="font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <CreditCard size={16} style={{ color: 'var(--accent-primary)' }} />
+            Plan &amp; Billing
+          </h3>
+          {subscription ? (
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                  {subscription.plan?.plan_name || 'Free Trial'}
+                </p>
+                {subscription.plan?.plan_type !== 'WALLET' && (
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                    {subscription.photo_quota_used} / {subscription.photo_quota_total} photos used
+                  </p>
+                )}
+              </div>
+              <Badge variant={subscription.status === 'ACTIVE' ? 'success' : subscription.status === 'TRIAL' ? 'gold' : 'error'}>
+                {subscription.status}
+              </Badge>
+            </div>
+          ) : (
+            <p className="text-sm mb-4" style={{ color: 'var(--text-tertiary)' }}>No active subscription found.</p>
+          )}
+          <GoldButton variant="outline" onClick={() => navigate('/studio/billing')}>Manage Billing</GoldButton>
         </GlassCard>
 
         {/* ── Watermark ── */}
