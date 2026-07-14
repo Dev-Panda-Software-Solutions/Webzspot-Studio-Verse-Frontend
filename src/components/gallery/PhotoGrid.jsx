@@ -7,6 +7,7 @@ import SkeletonLoader from '../ui/SkeletonLoader'
 import GalleryControls from './GalleryControls'
 import { getTenantFavouritesForEvent } from '../../api/favourites'
 import useTenantFavouriteStore from '../../stores/tenantFavouriteStore'
+import toast from 'react-hot-toast'
 
 // Slider right = zoom in = fewer cols = bigger items
 // zoom 0 (left/out) → most cols (smallest), zoom 9 (right/in) → fewest cols (biggest)
@@ -36,7 +37,7 @@ export default function PhotoGrid({
     if (!showTenantFav || !eventId) return
     getTenantFavouritesForEvent(eventId)
       .then(res => setFavourites(res?.data || []))  // res is already JSON body {success,data,message}
-      .catch(() => {})
+      .catch(() => toast.error('Could not load studio favourites'))
   }, [showTenantFav, eventId])
 
   useLayoutEffect(() => {

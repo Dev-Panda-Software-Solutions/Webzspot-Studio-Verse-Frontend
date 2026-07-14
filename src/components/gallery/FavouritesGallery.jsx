@@ -186,6 +186,7 @@ function DedupedGrid({ groups, eventId, watermarkSrc, view, zoom, onDownload, on
           total={items.length}
           eventId={eventId}
           watermarkSrc={watermarkSrc}
+          showTenantFav
           ownerLabels={currentEntry?.labels}
           onClose={() => setLbIndex(null)}
           onPrev={lbIndex > 0 ? () => setLbIndex(i => i - 1) : null}
@@ -255,6 +256,7 @@ function GroupGallery({ group, eventId, watermarkSrc, view, zoom, onDownload, on
           total={items.length}
           eventId={eventId}
           watermarkSrc={watermarkSrc}
+          showTenantFav
           ownerLabels={[group.label]}
           onClose={() => setLbIndex(null)}
           onPrev={lbIndex > 0 ? () => setLbIndex(i => i - 1) : null}

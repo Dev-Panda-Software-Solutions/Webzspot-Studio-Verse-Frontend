@@ -94,6 +94,7 @@ export default function FavouriteButton({ mediaId, eventId, size = 16 }) {
       <button
         ref={heartRef}
         onClick={handleClick}
+        onKeyDown={(e) => { if (e.key === ' ') e.preventDefault() }}
         className={`p-2 rounded-full transition-all duration-200
           ${fav ? 'bg-gold-500/20' : 'bg-black/30 hover:bg-black/50'}`}
       >

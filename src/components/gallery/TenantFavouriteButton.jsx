@@ -91,6 +91,7 @@ export default function TenantFavouriteButton({ mediaId, eventId, size = 16 }) {
       <button
         ref={heartRef}
         onClick={handleClick}
+        onKeyDown={(e) => { if (e.key === ' ') e.preventDefault() }}
         title={fav ? 'Remove from studio favourites' : 'Add to studio favourites'}
         className={`p-2 rounded-full transition-all duration-200
           ${fav ? 'bg-gold-500/20' : 'bg-black/30 hover:bg-black/50'}`}
