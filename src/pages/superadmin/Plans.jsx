@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CreditCard, Trash2, ArrowUp, ArrowDown } from 'lucide-react'
+import { CreditCard, Trash2, ArrowUp, ArrowDown, Users } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
@@ -8,12 +8,13 @@ import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
 import GoldInput from '../../components/ui/GoldInput'
-import { getPlans, createPlan, updatePlan, deletePlan, reorderPlans } from '../../api/plans'
+import { getPlans, createPlan, updatePlan, deletePlan, reorderPlans, setSpecialAccess } from '../../api/plans'
+import { formatDate } from '../../utils/formatters'
 import toast from 'react-hot-toast'
 
 const emptyForm = {
   plan_name: '', plan_type: 'SUBSCRIPTION', duration_value: '', duration_unit: 'MONTHS',
-  photo_quota: '', price: '', wallet_credits: '', ai_credit_cost_per_photo: '', price_lock_window_days: '0'
+  photo_quota: '', price: '', wallet_credits: '', ai_credit_cost_per_photo: ''
 }
 
 export default function Plans() {
@@ -22,6 +23,9 @@ export default function Plans() {
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
+  const [specialAccessPlan, setSpecialAccessPlan] = useState(null)
+  const [cutoffDate, setCutoffDate] = useState('')
+  const [savingAccess, setSavingAccess] = useState(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['plans'],
@@ -43,10 +47,37 @@ export default function Plans() {
       photo_quota: plan.photo_quota || '',
       price: plan.price,
       wallet_credits: plan.wallet_credits || '',
-      ai_credit_cost_per_photo: plan.ai_credit_cost_per_photo || '',
-      price_lock_window_days: plan.price_lock_window_days || '0'
+      ai_credit_cost_per_photo: plan.ai_credit_cost_per_photo || ''
     })
     setModalOpen(true)
+  }
+
+  const openSpecialAccess = (plan) => {
+    setSpecialAccessPlan(plan)
+    setCutoffDate(plan.special_access_cutoff_date ? plan.special_access_cutoff_date.slice(0, 10) : '')
+  }
+
+  const handleSaveSpecialAccess = async (e) => {
+    e.preventDefault()
+    setSavingAccess(true)
+    try {
+      await setSpecialAccess(specialAccessPlan.subscription_plan_id, cutoffDate || null)
+      toast.success(cutoffDate ? 'Special access saved' : 'Special access cleared')
+      qc.invalidateQueries(['plans'])
+      setSpecialAccessPlan(null)
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to save special access') }
+    finally { setSavingAccess(false) }
+  }
+
+  const handleClearSpecialAccess = async () => {
+    setSavingAccess(true)
+    try {
+      await setSpecialAccess(specialAccessPlan.subscription_plan_id, null)
+      toast.success('Special access cleared')
+      qc.invalidateQueries(['plans'])
+      setSpecialAccessPlan(null)
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to clear special access') }
+    finally { setSavingAccess(false) }
   }
 
   const handleSave = async (e) => {
@@ -57,7 +88,6 @@ export default function Plans() {
         plan_name: form.plan_name,
         plan_type: form.plan_type,
         price: Number(form.price),
-        price_lock_window_days: Number(form.price_lock_window_days) || 0,
         ...(form.plan_type === 'SUBSCRIPTION'
           ? { duration_value: Number(form.duration_value), duration_unit: form.duration_unit, photo_quota: Number(form.photo_quota) }
           : { wallet_credits: Number(form.wallet_credits), ai_credit_cost_per_photo: Number(form.ai_credit_cost_per_photo) || 0 })
@@ -136,7 +166,14 @@ export default function Plans() {
                       <div className="w-8 h-8 rounded-lg bg-[var(--accent-muted)] flex items-center justify-center">
                         <CreditCard size={14} className="text-gold-500" />
                       </div>
-                      <p className="text-sm font-medium text-[var(--text-primary)]">{p.plan_name}</p>
+                      <div>
+                        <p className="text-sm font-medium text-[var(--text-primary)]">{p.plan_name}</p>
+                        {p.special_access_cutoff_date && (
+                          <p className="text-xs text-[var(--text-tertiary)]">
+                            Special access · joined before {formatDate(p.special_access_cutoff_date)}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -153,6 +190,11 @@ export default function Plans() {
                   </td>
                   <td className="px-6 py-4" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => openSpecialAccess(p)}
+                        title="Special access (restrict to studios that joined before a date)"
+                        className="p-1.5 text-[var(--text-tertiary)] hover:text-gold-500 transition-colors">
+                        <Users size={14} />
+                      </button>
                       <button onClick={() => handleDelete(p.subscription_plan_id)}
                         className="p-1.5 text-[var(--text-tertiary)] hover:text-red-400 transition-colors">
                         <Trash2 size={14} />
@@ -208,11 +250,29 @@ export default function Plans() {
             </>
           )}
 
-          <GoldInput label="Price Lock Window (days)" name="price_lock_window_days" type="number" value={form.price_lock_window_days} onChange={e => update('price_lock_window_days', e.target.value)} />
-
           <div className="flex gap-3 pt-2">
             <GoldButton type="submit" loading={saving} className="flex-1">{editingId ? 'Save' : 'Create'}</GoldButton>
             <GoldButton type="button" variant="ghost" onClick={() => setModalOpen(false)}>Cancel</GoldButton>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal open={!!specialAccessPlan} onClose={() => setSpecialAccessPlan(null)} title="Special Access">
+        <form onSubmit={handleSaveSpecialAccess}>
+          <p className="text-sm mb-5" style={{ color: 'var(--text-secondary)' }}>
+            Restrict <strong style={{ color: 'var(--text-primary)' }}>{specialAccessPlan?.plan_name}</strong> to studios
+            that joined before a chosen date. Studios that joined on or after that date won't see this plan at all.
+          </p>
+          <GoldInput label="Visible only to studios that joined before" name="cutoff_date" type="date"
+            value={cutoffDate} onChange={e => setCutoffDate(e.target.value)} />
+          <div className="flex gap-3 pt-2">
+            <GoldButton type="submit" loading={savingAccess} className="flex-1">Save</GoldButton>
+            {specialAccessPlan?.special_access_cutoff_date && (
+              <GoldButton type="button" variant="outline" loading={savingAccess} onClick={handleClearSpecialAccess}>
+                Clear
+              </GoldButton>
+            )}
+            <GoldButton type="button" variant="ghost" onClick={() => setSpecialAccessPlan(null)}>Cancel</GoldButton>
           </div>
         </form>
       </Modal>

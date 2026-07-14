@@ -7,3 +7,4 @@ export const updatePlan = (id, data) => api.put(`/subscription-plans/${id}`, dat
 export const deletePlan = (id) => api.delete(`/subscription-plans/${id}`)
 export const hardDeletePlan = (id) => api.delete(`/subscription-plans/hard/${id}`)
 export const reorderPlans = (orderedIds) => api.post('/subscription-plans/reorder', { orderedIds })
+export const setSpecialAccess = (id, cutoff_date) => api.put(`/subscription-plans/${id}/special-access`, { cutoff_date })
