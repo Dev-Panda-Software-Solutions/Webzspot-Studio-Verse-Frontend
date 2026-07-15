@@ -13,10 +13,48 @@ import CreateEventModal from '../../components/events/CreateEventModal'
 import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
+import Modal from '../../components/ui/Modal'
 import { getEvents, getDashboardAnalytics, deleteEvent } from '../../api/events'
+import { getMySubscription } from '../../api/billing'
 import useAuthStore from '../../stores/authStore'
 import { greetingTime } from '../../utils/formatters'
 import toast from 'react-hot-toast'
+
+/* ── One-time welcome popup for a brand-new free trial ─────── */
+function TrialWelcomeModal({ subscription }) {
+  const [dismissed, setDismissed] = useState(true)
+
+  useLayoutEffect(() => {
+    if (subscription?.status !== 'TRIAL') return
+    const seenKey = `sv-trial-welcome-seen-${subscription.tenant_subscription_id}`
+    if (localStorage.getItem(seenKey)) return
+    setDismissed(false)
+  }, [subscription?.tenant_subscription_id, subscription?.status])
+
+  if (!subscription || subscription.status !== 'TRIAL') return null
+
+  const close = () => {
+    localStorage.setItem(`sv-trial-welcome-seen-${subscription.tenant_subscription_id}`, '1')
+    setDismissed(true)
+  }
+
+  const daysLeft = subscription.expires_at
+    ? Math.max(0, Math.ceil((new Date(subscription.expires_at) - new Date()) / 86400000))
+    : null
+
+  return (
+    <Modal open={!dismissed} onClose={close} title="Welcome to Webzspot Studio!" size="sm">
+      <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+        You're on a <strong style={{ color: 'var(--text-primary)' }}>free trial</strong> — upload up to{' '}
+        <strong style={{ color: 'var(--text-primary)' }}>{subscription.photo_quota_total} photos</strong>
+        {daysLeft !== null && (
+          <> for the next <strong style={{ color: 'var(--text-primary)' }}>{daysLeft} day{daysLeft === 1 ? '' : 's'}</strong></>
+        )}. Create your first event to get started.
+      </p>
+      <GoldButton onClick={close} className="w-full justify-center">Let's go</GoldButton>
+    </Modal>
+  )
+}
 
 /* ── Shared chart theme ─────────────────────────────────────── */
 const GOLD = '#F59E0B'
@@ -176,6 +214,11 @@ export default function StudioDashboard() {
     staleTime: 60_000,
   })
 
+  const { data: subData } = useQuery({
+    queryKey: ['tenant-subscription'],
+    queryFn: getMySubscription,
+  })
+
   const events = data?.data?.items || []
   const total = data?.data?.total || 0
   const pages = data?.data?.pages || 1
@@ -213,6 +256,8 @@ export default function StudioDashboard() {
       subtitle={new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
       actions={<GoldButton onClick={() => setCreateOpen(true)} icon={<Camera size={14} />}>New Event</GoldButton>}
     >
+      <TrialWelcomeModal subscription={subData?.data?.subscription} />
+
       <div ref={containerRef}>
         {/* ── Stat Cards ─── */}
         <div className="stat-row grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">

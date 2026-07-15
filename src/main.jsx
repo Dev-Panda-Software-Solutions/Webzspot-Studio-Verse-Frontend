@@ -1,23 +1,15 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'react-hot-toast'
 import App from './App'
+import { queryClient } from './lib/queryClient'
 import './index.css'
 
 // Apply saved theme before first render
 const saved = localStorage.getItem('sv-theme') || 'dark'
 document.documentElement.classList.toggle('dark', saved === 'dark')
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      retry: 1,
-    }
-  }
-})
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
