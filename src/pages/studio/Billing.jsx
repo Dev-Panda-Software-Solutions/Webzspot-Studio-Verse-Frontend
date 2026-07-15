@@ -43,7 +43,9 @@ export default function Billing() {
   const subscription = subData?.data?.subscription
   const wallet = subData?.data?.wallet
   const plans = plansData?.data?.items || []
-  const hasWalletPlan = subscription?.plan?.plan_type === 'WALLET'
+  // A wallet is a feature add-on available regardless of the active subscription
+  // plan type — it exists once the studio has recharged it at least once.
+  const hasWallet = !!wallet
 
   const handleSubscribe = async (planId) => {
     setActingId(planId)
@@ -105,7 +107,7 @@ export default function Billing() {
               )}
             </GlassCard>
 
-            {hasWalletPlan && (
+            {hasWallet && (
               <GlassCard hover={false}>
                 <h3 className="font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                   <Wallet size={16} style={{ color: 'var(--accent-primary)' }} />
@@ -148,11 +150,11 @@ export default function Billing() {
                   </p>
                   {isWallet ? (
                     <GoldButton
-                      variant={hasWalletPlan ? 'solid' : 'outline'}
+                      variant="solid"
                       loading={actingId === plan.subscription_plan_id}
-                      onClick={() => hasWalletPlan ? handleRecharge(plan.subscription_plan_id) : handleSubscribe(plan.subscription_plan_id)}
+                      onClick={() => handleRecharge(plan.subscription_plan_id)}
                     >
-                      {hasWalletPlan ? 'Recharge' : 'Switch to Wallet'}
+                      Recharge
                     </GoldButton>
                   ) : (
                     <GoldButton

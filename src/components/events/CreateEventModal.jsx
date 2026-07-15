@@ -41,8 +41,9 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
     queryFn: getMySubscription,
     enabled: open
   })
-  const hasWalletPlan = subData?.data?.subscription?.plan?.plan_type === 'WALLET'
-    && (subData?.data?.wallet?.balance_credits ?? 0) > 0
+  // AI events are gated on wallet credits alone — available on ANY active
+  // subscription plan (Basic, Pro, or Wallet), not just a Wallet-type plan.
+  const hasWalletPlan = (subData?.data?.wallet?.balance_credits ?? 0) > 0
 
   // Pre-fill form when opening in edit mode
   useEffect(() => {
@@ -184,7 +185,7 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
         <div
           className="flex items-center justify-between gap-3 mb-6 p-3 rounded-xl"
           style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}
-          title={hasWalletPlan ? '' : 'Requires an active Wallet plan with credits'}
+          title={hasWalletPlan ? '' : 'Requires wallet credits — recharge your wallet in Billing'}
         >
           <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: hasWalletPlan ? 'var(--text-primary)' : 'var(--text-tertiary)' }}>
             <Sparkles size={15} style={{ color: hasWalletPlan ? 'var(--accent-primary)' : 'var(--text-tertiary)' }} />
