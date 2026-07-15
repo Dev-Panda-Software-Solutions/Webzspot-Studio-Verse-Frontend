@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CreditCard, Trash2, ArrowUp, ArrowDown, Users } from 'lucide-react'
+import { CreditCard, Trash2, ArrowUp, ArrowDown, Users, Gift } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
@@ -9,8 +9,64 @@ import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
 import GoldInput from '../../components/ui/GoldInput'
 import { getPlans, createPlan, updatePlan, deletePlan, reorderPlans, setSpecialAccess } from '../../api/plans'
+import { getPlatformSettings, updatePlatformSettings } from '../../api/platformSettings'
 import { formatDate } from '../../utils/formatters'
 import toast from 'react-hot-toast'
+
+function TrialSettingsCard() {
+  const qc = useQueryClient()
+  const [days, setDays] = useState('')
+  const [quota, setQuota] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['platform-settings'],
+    queryFn: getPlatformSettings
+  })
+
+  const settings = data?.data
+
+  useEffect(() => {
+    if (settings) {
+      setDays(String(settings.trial_duration_days))
+      setQuota(String(settings.trial_photo_quota))
+    }
+  }, [settings])
+
+  const dirty = settings && (Number(days) !== settings.trial_duration_days || Number(quota) !== settings.trial_photo_quota)
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      await updatePlatformSettings({ trial_duration_days: Number(days), trial_photo_quota: Number(quota) })
+      toast.success('Free trial settings updated')
+      qc.invalidateQueries(['platform-settings'])
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to update settings') }
+    finally { setSaving(false) }
+  }
+
+  if (isLoading) return <SkeletonLoader type="table-row" />
+
+  return (
+    <GlassCard hover={false} className="mb-6">
+      <div className="flex items-center gap-2 mb-4">
+        <Gift size={16} className="text-gold-500" />
+        <h3 className="text-sm font-semibold text-[var(--text-primary)]">Free Trial (applies to every new signup)</h3>
+      </div>
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="w-40">
+          <GoldInput label="Trial Length (days)" name="trial_duration_days" type="number" min="1"
+            value={days} onChange={e => setDays(e.target.value)} />
+        </div>
+        <div className="w-40">
+          <GoldInput label="Trial Photo Quota" name="trial_photo_quota" type="number" min="1"
+            value={quota} onChange={e => setQuota(e.target.value)} />
+        </div>
+        <GoldButton onClick={handleSave} loading={saving} disabled={!dirty}>Save</GoldButton>
+      </div>
+    </GlassCard>
+  )
+}
 
 const emptyForm = {
   plan_name: '', plan_type: 'SUBSCRIPTION', duration_value: '', duration_unit: 'MONTHS',
@@ -127,6 +183,8 @@ export default function Plans() {
       subtitle="Manage subscription and wallet plans available to studios"
       actions={<GoldButton onClick={openCreate}>+ Add Plan</GoldButton>}
     >
+      <TrialSettingsCard />
+
       <GlassCard hover={false} className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
