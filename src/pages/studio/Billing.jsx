@@ -1,12 +1,12 @@
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Wallet, CreditCard, Clock, ImagePlus } from 'lucide-react'
+import { Wallet, CreditCard, Clock, ImagePlus, Gift } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
 import Badge from '../../components/ui/Badge'
 import { getPlans } from '../../api/plans'
-import { getMySubscription, subscribeToPlan, rechargeWallet } from '../../api/billing'
+import { getMySubscription, subscribeToPlan, rechargeWallet, activateTrial } from '../../api/billing'
 import toast from 'react-hot-toast'
 
 const GOLD = '#F59E0B'
@@ -29,6 +29,7 @@ const daysLeft = (expiresAt) => {
 export default function Billing() {
   const qc = useQueryClient()
   const [actingId, setActingId] = useState(null)
+  const [activatingTrial, setActivatingTrial] = useState(false)
 
   const { data: subData, isLoading: subLoading } = useQuery({
     queryKey: ['tenant-subscription'],
@@ -42,10 +43,21 @@ export default function Billing() {
 
   const subscription = subData?.data?.subscription
   const wallet = subData?.data?.wallet
+  const trialActivatedAt = subData?.data?.trial_activated_at
   const plans = plansData?.data?.items || []
   // A wallet is a feature add-on available regardless of the active subscription
   // plan type — it exists once the studio has recharged it at least once.
   const hasWallet = !!wallet
+
+  const handleActivateTrial = async () => {
+    setActivatingTrial(true)
+    try {
+      await activateTrial()
+      toast.success("Free trial activated!")
+      qc.invalidateQueries(['tenant-subscription'])
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to activate trial') }
+    finally { setActivatingTrial(false) }
+  }
 
   const handleSubscribe = async (planId) => {
     setActingId(planId)
@@ -102,8 +114,22 @@ export default function Billing() {
                     </p>
                   )}
                 </>
+              ) : trialActivatedAt ? (
+                <>
+                  <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No active subscription found.</p>
+                  <p className="text-xs mt-2" style={{ color: 'var(--text-tertiary)' }}>
+                    Your free trial has already been used. Subscribe to a plan below to continue.
+                  </p>
+                </>
               ) : (
-                <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No active subscription found.</p>
+                <>
+                  <p className="text-sm mb-3" style={{ color: 'var(--text-tertiary)' }}>
+                    No active subscription — activate your one-time free trial or choose a plan below.
+                  </p>
+                  <GoldButton icon={<Gift size={13} />} loading={activatingTrial} onClick={handleActivateTrial}>
+                    Activate Free Trial
+                  </GoldButton>
+                </>
               )}
             </GlassCard>
 
