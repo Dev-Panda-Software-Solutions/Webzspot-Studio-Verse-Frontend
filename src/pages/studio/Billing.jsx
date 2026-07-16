@@ -48,6 +48,12 @@ export default function Billing() {
   // A wallet is a feature add-on available regardless of the active subscription
   // plan type — it exists once the studio has recharged it at least once.
   const hasWallet = !!wallet
+  const subscriptionPlans = plans.filter(p => p.plan_type === 'SUBSCRIPTION')
+  // Before the one-time initial purchase, only INITIAL plans are offered;
+  // afterwards only TOPUP amounts are (the initial purchase can't be repeated).
+  const walletPlansToShow = plans.filter(p =>
+    p.plan_type === 'WALLET' && p.wallet_tier === (hasWallet ? 'TOPUP' : 'INITIAL')
+  )
 
   const handleActivateTrial = async () => {
     setActivatingTrial(true)
@@ -153,48 +159,77 @@ export default function Billing() {
             <CreditCard size={16} style={{ color: 'var(--accent-primary)' }} />
             Available Plans
           </h3>
-          {!plansLoading && plans.length === 0 && (
+          {!plansLoading && subscriptionPlans.length === 0 && (
             <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No plans have been published yet.</p>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {plans.map(plan => {
+            {subscriptionPlans.map(plan => {
               const isCurrent = subscription?.subscription_plan_id === plan.subscription_plan_id
-              const isWallet = plan.plan_type === 'WALLET'
               return (
                 <GlassCard key={plan.subscription_plan_id} hover={false} className="flex flex-col">
                   <div className="flex items-center justify-between mb-2">
                     <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{plan.plan_name}</p>
-                    <Badge variant={isWallet ? 'gold' : 'info'}>{plan.plan_type}</Badge>
+                    <Badge variant="info">{plan.plan_type}</Badge>
                   </div>
                   <p className="text-2xl font-display font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
                     ₹{Number(plan.price).toLocaleString()}
                   </p>
                   <p className="text-xs mb-4 flex-1" style={{ color: 'var(--text-secondary)' }}>
-                    {isWallet
-                      ? `${plan.wallet_credits} credits · unlocks AI events`
-                      : `${plan.photo_quota} photos / ${plan.duration_value} ${plan.duration_unit?.toLowerCase()}`}
+                    {plan.photo_quota} photos / {plan.duration_value} {plan.duration_unit?.toLowerCase()}
                   </p>
-                  {isWallet ? (
-                    <GoldButton
-                      variant="solid"
-                      loading={actingId === plan.subscription_plan_id}
-                      onClick={() => handleRecharge(plan.subscription_plan_id)}
-                    >
-                      Recharge
-                    </GoldButton>
-                  ) : (
-                    <GoldButton
-                      variant={isCurrent ? 'ghost' : 'outline'}
-                      disabled={isCurrent}
-                      loading={actingId === plan.subscription_plan_id}
-                      onClick={() => handleSubscribe(plan.subscription_plan_id)}
-                    >
-                      {isCurrent ? 'Current Plan' : 'Subscribe'}
-                    </GoldButton>
-                  )}
+                  <GoldButton
+                    variant={isCurrent ? 'ghost' : 'outline'}
+                    disabled={isCurrent}
+                    loading={actingId === plan.subscription_plan_id}
+                    onClick={() => handleSubscribe(plan.subscription_plan_id)}
+                  >
+                    {isCurrent ? 'Current Plan' : 'Subscribe'}
+                  </GoldButton>
                 </GlassCard>
               )
             })}
+          </div>
+        </div>
+
+        <div>
+          <h3 className="font-semibold mb-1 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <Wallet size={16} style={{ color: 'var(--accent-primary)' }} />
+            {hasWallet ? 'Top Up Wallet' : 'Get Started with Wallet'}
+          </h3>
+          <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>
+            {hasWallet
+              ? 'Add more credits any time — credits never expire.'
+              : 'Purchase the initial wallet plan once to unlock AI events and start topping up later.'}
+          </p>
+          {!plansLoading && walletPlansToShow.length === 0 && (
+            <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>
+              {hasWallet ? 'No top-up amounts have been published yet.' : 'No initial wallet plan has been published yet.'}
+            </p>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {walletPlansToShow.map(plan => (
+              <GlassCard key={plan.subscription_plan_id} hover={false} className="flex flex-col">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{plan.plan_name}</p>
+                  <Badge variant={plan.wallet_tier === 'INITIAL' ? 'success' : 'gold'}>
+                    {plan.wallet_tier === 'INITIAL' ? 'Initial' : 'Top-up'}
+                  </Badge>
+                </div>
+                <p className="text-2xl font-display font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
+                  ₹{Number(plan.price).toLocaleString()}
+                </p>
+                <p className="text-xs mb-4 flex-1" style={{ color: 'var(--text-secondary)' }}>
+                  {plan.wallet_credits} credits · unlocks AI events
+                </p>
+                <GoldButton
+                  variant="solid"
+                  loading={actingId === plan.subscription_plan_id}
+                  onClick={() => handleRecharge(plan.subscription_plan_id)}
+                >
+                  {plan.wallet_tier === 'INITIAL' ? 'Purchase' : 'Recharge'}
+                </GoldButton>
+              </GlassCard>
+            ))}
           </div>
         </div>
       </div>

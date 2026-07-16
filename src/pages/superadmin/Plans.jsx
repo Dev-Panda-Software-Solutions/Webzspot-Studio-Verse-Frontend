@@ -70,7 +70,7 @@ function TrialSettingsCard() {
 
 const emptyForm = {
   plan_name: '', plan_type: 'SUBSCRIPTION', duration_value: '', duration_unit: 'MONTHS',
-  photo_quota: '', price: '', wallet_credits: '', ai_credit_cost_per_photo: ''
+  photo_quota: '', price: '', wallet_credits: '', wallet_tier: 'TOPUP', ai_credit_cost_per_photo: ''
 }
 
 export default function Plans() {
@@ -103,6 +103,7 @@ export default function Plans() {
       photo_quota: plan.photo_quota || '',
       price: plan.price,
       wallet_credits: plan.wallet_credits || '',
+      wallet_tier: plan.wallet_tier || 'TOPUP',
       ai_credit_cost_per_photo: plan.ai_credit_cost_per_photo || ''
     })
     setModalOpen(true)
@@ -146,7 +147,7 @@ export default function Plans() {
         price: Number(form.price),
         ...(form.plan_type === 'SUBSCRIPTION'
           ? { duration_value: Number(form.duration_value), duration_unit: form.duration_unit, photo_quota: Number(form.photo_quota) }
-          : { wallet_credits: Number(form.wallet_credits), ai_credit_cost_per_photo: Number(form.ai_credit_cost_per_photo) || 0 })
+          : { wallet_credits: Number(form.wallet_credits), wallet_tier: form.wallet_tier, ai_credit_cost_per_photo: Number(form.ai_credit_cost_per_photo) || 0 })
       }
       if (editingId) await updatePlan(editingId, payload)
       else await createPlan(payload)
@@ -235,7 +236,14 @@ export default function Plans() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <Badge variant={p.plan_type === 'WALLET' ? 'gold' : 'info'}>{p.plan_type}</Badge>
+                    <div className="flex flex-col gap-1 items-start">
+                      <Badge variant={p.plan_type === 'WALLET' ? 'gold' : 'info'}>{p.plan_type}</Badge>
+                      {p.plan_type === 'WALLET' && (
+                        <Badge variant={p.wallet_tier === 'INITIAL' ? 'success' : 'info'}>
+                          {p.wallet_tier === 'INITIAL' ? 'Initial' : 'Top-up'}
+                        </Badge>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                     {p.plan_type === 'SUBSCRIPTION'
@@ -303,6 +311,20 @@ export default function Plans() {
             </>
           ) : (
             <>
+              <div className="mb-6">
+                <label className="block text-xs uppercase tracking-wider text-[var(--text-tertiary)] mb-2">Wallet Tier *</label>
+                <select
+                  value={form.wallet_tier}
+                  onChange={e => update('wallet_tier', e.target.value)}
+                  className="w-full bg-transparent border-b-2 pb-2 text-sm text-[var(--text-primary)] focus:outline-none border-[var(--border-default)] focus:border-[var(--accent-primary)]"
+                >
+                  <option value="INITIAL">Initial Purchase (first-time only)</option>
+                  <option value="TOPUP">Top-up (repeatable recharge)</option>
+                </select>
+                <p className="text-xs mt-1.5" style={{ color: 'var(--text-tertiary)' }}>
+                  A studio must buy an Initial plan once before Top-up amounts become available.
+                </p>
+              </div>
               <GoldInput label="Wallet Credits *" name="wallet_credits" type="number" value={form.wallet_credits} onChange={e => update('wallet_credits', e.target.value)} />
               <GoldInput label="AI Credit Cost / Photo" name="ai_credit_cost_per_photo" type="number" value={form.ai_credit_cost_per_photo} onChange={e => update('ai_credit_cost_per_photo', e.target.value)} />
             </>
