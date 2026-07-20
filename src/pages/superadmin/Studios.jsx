@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, Trash2 } from 'lucide-react'
+import { Building2, Archive, Trash2, RotateCcw } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import PageHeader from '../../components/layout/PageHeader'
 import GlassCard from '../../components/ui/GlassCard'
@@ -10,20 +10,21 @@ import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
 import GoldInput from '../../components/ui/GoldInput'
 import PasswordStrength from '../../components/ui/PasswordStrength'
-import { getTenants, createTenant, deleteTenant } from '../../api/tenants'
+import { getTenants, createTenant, deleteTenant, hardDeleteTenant, restoreTenant } from '../../api/tenants'
 import { formatDate } from '../../utils/formatters'
 import toast from 'react-hot-toast'
 
 export default function AdminStudios() {
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
+  const [status, setStatus] = useState('active')
   const [createOpen, setCreateOpen] = useState(false)
   const [form, setForm] = useState({ tenant_studio_name: '', tenant_name: '', tenant_email_id: '', tenant_phone_number: '', username: '', password: '' })
   const [creating, setCreating] = useState(false)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['tenants', page],
-    queryFn: () => getTenants({ page, limit: 10 })
+    queryKey: ['tenants', page, status],
+    queryFn: () => getTenants({ page, limit: 10, status })
   })
 
   const items = data?.data?.items || []
@@ -45,11 +46,29 @@ export default function AdminStudios() {
     finally { setCreating(false) }
   }
 
-  const handleDelete = async (tenantId) => {
-    if (!window.confirm('Delete this studio?')) return
+  const handleArchive = async (tenantId, studioName) => {
+    if (!window.confirm(`Archive "${studioName}"? The studio's admin will immediately lose access, but nothing is deleted.`)) return
     try {
       await deleteTenant(tenantId)
-      toast.success('Studio deleted')
+      toast.success('Studio archived')
+      qc.invalidateQueries(['tenants'])
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed') }
+  }
+
+  const handleRestore = async (tenantId, studioName) => {
+    if (!window.confirm(`Restore "${studioName}"? The studio's admin will regain access immediately.`)) return
+    try {
+      await restoreTenant(tenantId)
+      toast.success('Studio restored')
+      qc.invalidateQueries(['tenants'])
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed') }
+  }
+
+  const handleHardDelete = async (tenantId, studioName) => {
+    if (!window.confirm(`Permanently delete "${studioName}"? This cannot be undone.`)) return
+    try {
+      await hardDeleteTenant(tenantId)
+      toast.success('Studio permanently deleted')
       qc.invalidateQueries(['tenants'])
     } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed') }
   }
@@ -60,6 +79,27 @@ export default function AdminStudios() {
       subtitle={`${total} total studios on the platform`}
       actions={<GoldButton onClick={() => setCreateOpen(true)}>+ Add Studio</GoldButton>}
     >
+
+      <div className="flex gap-1 p-1 rounded-xl mb-4 w-fit" style={{ background: 'var(--bg-elevated)' }}>
+        {[
+          { key: 'active', label: 'Active' },
+          { key: 'archived', label: 'Archived' },
+          { key: 'all', label: 'All' },
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => { setStatus(key); setPage(1) }}
+            className="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
+            style={{
+              background: status === key ? 'var(--bg-surface)' : 'transparent',
+              color: status === key ? '#F59E0B' : 'var(--text-secondary)',
+              boxShadow: status === key ? '0 1px 3px rgba(0,0,0,0.2)' : 'none',
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
       <GlassCard hover={false} className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
@@ -97,11 +137,25 @@ export default function AdminStudios() {
                   <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{t.tenant_email_id || '—'}</td>
                   <td className="px-6 py-4 text-sm text-[var(--text-tertiary)]">{formatDate(t.createdAt)}</td>
                   <td className="px-6 py-4">
-                    <Badge variant={t.isactive ? 'success' : 'error'}>{t.isactive ? 'Active' : 'Inactive'}</Badge>
+                    <Badge variant={t.isactive ? 'success' : 'error'}>{t.isactive ? 'Active' : 'Archived'}</Badge>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => handleDelete(t.tenant_id)}
+                      {t.isactive ? (
+                        <button onClick={() => handleArchive(t.tenant_id, t.tenant_studio_name)}
+                          title="Archive studio"
+                          className="p-1.5 text-[var(--text-tertiary)] hover:text-amber-400 transition-colors">
+                          <Archive size={14} />
+                        </button>
+                      ) : (
+                        <button onClick={() => handleRestore(t.tenant_id, t.tenant_studio_name)}
+                          title="Restore studio"
+                          className="p-1.5 text-[var(--text-tertiary)] hover:text-green-400 transition-colors">
+                          <RotateCcw size={14} />
+                        </button>
+                      )}
+                      <button onClick={() => handleHardDelete(t.tenant_id, t.tenant_studio_name)}
+                        title="Permanently delete"
                         className="p-1.5 text-[var(--text-tertiary)] hover:text-red-400 transition-colors">
                         <Trash2 size={14} />
                       </button>

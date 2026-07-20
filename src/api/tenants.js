@@ -5,6 +5,8 @@ export const getTenantById = (id) => api.get(`/tenants/${id}`)
 export const createTenant = (data) => api.post('/tenants', data)
 export const updateTenant = (id, data) => api.put(`/tenants/${id}`, data)
 export const deleteTenant = (id) => api.delete(`/tenants/${id}`)
+export const hardDeleteTenant = (id) => api.delete(`/tenants/hard/${id}`)
+export const restoreTenant = (id) => api.put(`/tenants/${id}/restore`)
 
 export const getTenantSettings = (tenantId) => api.get(`/tenant-settings/${tenantId}`)
 export const updateTenantSettings = (tenantId, data) => api.put(`/tenant-settings/${tenantId}`, data)

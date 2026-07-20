@@ -7,3 +7,4 @@ export const createUserInEvent = (data) => api.post('/users/create-in-event', da
 export const updateUser = (id, data) => api.put(`/users/${id}`, data)
 export const deleteUser = (id) => api.delete(`/users/${id}`)
 export const hardDeleteUser = (id) => api.delete(`/users/hard/${id}`)
+export const restoreUser = (id) => api.put(`/users/${id}/restore`)

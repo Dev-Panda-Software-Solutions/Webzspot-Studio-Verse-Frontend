@@ -1,32 +1,42 @@
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Users as UsersIcon, Trash2, UserX } from 'lucide-react'
+import { Users as UsersIcon, Trash2, UserX, RotateCcw } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GlassCard from '../../components/ui/GlassCard'
 import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import Badge from '../../components/ui/Badge'
 import GoldButton from '../../components/ui/GoldButton'
 import Avatar from '../../components/ui/Avatar'
-import { getUsers, deleteUser, hardDeleteUser } from '../../api/users'
+import { getUsers, deleteUser, hardDeleteUser, restoreUser } from '../../api/users'
 import { formatDate, isExpired } from '../../utils/formatters'
 import toast from 'react-hot-toast'
 
 export default function AdminUsers() {
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
+  const [status, setStatus] = useState('active')
   const { data, isLoading } = useQuery({
-    queryKey: ['users', page],
-    queryFn: () => getUsers({ page, limit: 15 })
+    queryKey: ['users', page, status],
+    queryFn: () => getUsers({ page, limit: 15, status })
   })
   const items = data?.data?.items || []
   const total = data?.data?.total || 0
   const pages = data?.data?.pages || 1
 
   const handleSoftDelete = async (userId, userName) => {
-    if (!window.confirm(`Deactivate "${userName}"?`)) return
+    if (!window.confirm(`Archive "${userName}"? They will immediately lose access, but nothing is deleted.`)) return
     try {
       await deleteUser(userId)
-      toast.success('User deactivated')
+      toast.success('User archived')
+      qc.invalidateQueries(['users'])
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed') }
+  }
+
+  const handleRestore = async (userId, userName) => {
+    if (!window.confirm(`Restore "${userName}"? They will regain access immediately.`)) return
+    try {
+      await restoreUser(userId)
+      toast.success('User restored')
       qc.invalidateQueries(['users'])
     } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed') }
   }
@@ -42,6 +52,27 @@ export default function AdminUsers() {
 
   return (
     <AppLayout title="All Clients" subtitle={`${total} clients across all studios`}>
+
+      <div className="flex gap-1 p-1 rounded-xl mb-4 w-fit" style={{ background: 'var(--bg-elevated)' }}>
+        {[
+          { key: 'active', label: 'Active' },
+          { key: 'archived', label: 'Archived' },
+          { key: 'all', label: 'All' },
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => { setStatus(key); setPage(1) }}
+            className="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
+            style={{
+              background: status === key ? 'var(--bg-surface)' : 'transparent',
+              color: status === key ? '#F59E0B' : 'var(--text-secondary)',
+              boxShadow: status === key ? '0 1px 3px rgba(0,0,0,0.2)' : 'none',
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
       <GlassCard hover={false} className="p-0 overflow-hidden">
         <div className="overflow-x-auto">
@@ -77,7 +108,7 @@ export default function AdminUsers() {
                   </td>
                   <td className="px-6 py-4">
                     {!u.isactive
-                      ? <Badge variant="error">Inactive</Badge>
+                      ? <Badge variant="error">Archived</Badge>
                       : u.expiry_date
                         ? <Badge variant={isExpired(u.expiry_date) ? 'error' : 'success'}>
                             {isExpired(u.expiry_date) ? 'Expired' : 'Active'}
@@ -87,16 +118,29 @@ export default function AdminUsers() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => handleSoftDelete(u.user_id, u.user_name)}
-                        title="Deactivate user"
-                        className="p-1.5 rounded transition-colors"
-                        style={{ color: 'var(--text-tertiary)' }}
-                        onMouseEnter={e => e.currentTarget.style.color = '#FBBF24'}
-                        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}
-                      >
-                        <UserX size={14} />
-                      </button>
+                      {u.isactive ? (
+                        <button
+                          onClick={() => handleSoftDelete(u.user_id, u.user_name)}
+                          title="Archive user"
+                          className="p-1.5 rounded transition-colors"
+                          style={{ color: 'var(--text-tertiary)' }}
+                          onMouseEnter={e => e.currentTarget.style.color = '#FBBF24'}
+                          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}
+                        >
+                          <UserX size={14} />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleRestore(u.user_id, u.user_name)}
+                          title="Restore user"
+                          className="p-1.5 rounded transition-colors"
+                          style={{ color: 'var(--text-tertiary)' }}
+                          onMouseEnter={e => e.currentTarget.style.color = '#34D399'}
+                          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}
+                        >
+                          <RotateCcw size={14} />
+                        </button>
+                      )}
                       <button
                         onClick={() => handleHardDelete(u.user_id, u.user_name)}
                         title="Permanently delete"
