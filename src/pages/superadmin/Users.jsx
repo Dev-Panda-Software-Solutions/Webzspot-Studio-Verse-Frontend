@@ -8,7 +8,7 @@ import Badge from '../../components/ui/Badge'
 import GoldButton from '../../components/ui/GoldButton'
 import Avatar from '../../components/ui/Avatar'
 import { getUsers, deleteUser, hardDeleteUser, restoreUser } from '../../api/users'
-import { formatDate, isExpired } from '../../utils/formatters'
+import { formatDate, isExpired, clientDisplayName } from '../../utils/formatters'
 import toast from 'react-hot-toast'
 
 export default function AdminUsers() {
@@ -96,7 +96,7 @@ export default function AdminUsers() {
                     <div className="flex items-center gap-3">
                       <Avatar name={u.user_name} size="sm" />
                       <div>
-                        <p className="text-sm font-medium text-[var(--text-primary)]">{u.user_name || '—'}</p>
+                        <p className="text-sm font-medium text-[var(--text-primary)]">{clientDisplayName(u)}</p>
                         <p className="text-xs text-[var(--text-tertiary)]">{u.user_phone_number || '—'}</p>
                       </div>
                     </div>

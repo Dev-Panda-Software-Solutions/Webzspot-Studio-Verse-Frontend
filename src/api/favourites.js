@@ -9,3 +9,5 @@ export const addTenantFavourite = (data) => api.post('/tenant-favourites', data)
 export const removeTenantFavourite = (id) => api.delete(`/tenant-favourites/${id}`)
 export const getTenantFavouritesForEvent = (eventId) =>
   api.get(`/tenant-favourites/event/${eventId}`)
+export const getTenantFavouriteIdsForEventAsUser = (eventId) =>
+  api.get(`/tenant-favourites/event/${eventId}/ids-for-client`)

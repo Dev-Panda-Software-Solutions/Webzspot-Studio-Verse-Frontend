@@ -21,9 +21,13 @@ export default function PhotoGrid({
   loading,
   showFavourite = true,
   showTenantFav = false,
+  studioFavouriteIds = null,
+  favouriteLimit = null,
+  favouritedCount = 0,
   onDelete,
   onHardDelete,
 }) {
+  const atFavouriteLimit = favouriteLimit != null && favouritedCount >= favouriteLimit
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const [view, setView] = useState('masonry')
   const [zoom, setZoom] = useState(6) // index 6 → 4 cols default
@@ -82,6 +86,8 @@ export default function PhotoGrid({
     watermarkSrc,
     showFavourite,
     showTenantFav,
+    isStudioPick: studioFavouriteIds?.has(media.media_id),
+    atFavouriteLimit,
     onDelete,
     onHardDelete,
     onClick: (m) => setLightboxIndex(displayList.findIndex(x => x.media_id === m.media_id)),
@@ -163,6 +169,8 @@ export default function PhotoGrid({
           watermarkSrc={watermarkSrc}
           showFavourite={showFavourite}
           showTenantFav={showTenantFav}
+          isStudioPick={studioFavouriteIds?.has(current.media_id)}
+          atFavouriteLimit={atFavouriteLimit}
           onClose={() => setLightboxIndex(null)}
           onPrev={lightboxIndex > 0 ? () => setLightboxIndex(i => i - 1) : null}
           onNext={lightboxIndex < displayList.length - 1 ? () => setLightboxIndex(i => i + 1) : null}

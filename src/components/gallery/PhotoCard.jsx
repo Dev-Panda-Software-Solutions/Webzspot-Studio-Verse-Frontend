@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Expand, Play, FileVideo, Image, Archive, Trash2 } from 'lucide-react'
+import { Expand, Play, FileVideo, Image, Archive, Trash2, Star } from 'lucide-react'
 import { useInView } from 'react-intersection-observer'
 import WatermarkOverlay from './WatermarkOverlay'
 import FavouriteButton from './FavouriteButton'
@@ -21,14 +21,14 @@ const fmtSize = (sizeStr) => {
   return `${Math.round(kb)} KB`
 }
 
-function FavBtn({ mediaId, eventId, showFavourite, showTenantFav, size = 16 }) {
+function FavBtn({ mediaId, eventId, showFavourite, showTenantFav, atFavouriteLimit, size = 16 }) {
   if (showTenantFav) return <TenantFavouriteButton mediaId={mediaId} eventId={eventId} size={size} />
-  if (showFavourite) return <FavouriteButton mediaId={mediaId} eventId={eventId} size={size} />
+  if (showFavourite) return <FavouriteButton mediaId={mediaId} eventId={eventId} size={size} atLimit={atFavouriteLimit} />
   return null
 }
 
 /* ─── Masonry / Grid card ─── */
-function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTenantFav, square, onDelete, onHardDelete }) {
+function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTenantFav, isStudioPick, hideSize, atFavouriteLimit, square, onDelete, onHardDelete }) {
   const [loaded, setLoaded] = useState(false)
   const [hovered, setHovered] = useState(false)
   const { ref: inViewRef, inView } = useInView({ triggerOnce: true, rootMargin: '200px' })
@@ -91,6 +91,14 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
         {loaded && <WatermarkOverlay src={watermarkSrc} />}
       </div>
 
+      {/* Studio Pick pill — distinct from the client's own heart toggle, always visible */}
+      {isStudioPick && (
+        <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+          style={{ background: 'rgba(245,158,11,0.9)', color: '#111113' }}>
+          <Star size={9} className="fill-current" /> Studio Pick
+        </div>
+      )}
+
       {/* Hover overlay — darkens, shows expand */}
       <div className={`absolute inset-0 bg-black/40 transition-opacity duration-200 ${hovered ? 'opacity-100' : 'opacity-0'}`} />
 
@@ -108,7 +116,7 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
       {loaded && hasFav && (
         <div className="absolute bottom-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
           <FavBtn mediaId={media.media_id} eventId={eventId}
-            showFavourite={showFavourite} showTenantFav={showTenantFav} size={14} />
+            showFavourite={showFavourite} showTenantFav={showTenantFav} atFavouriteLimit={atFavouriteLimit} size={14} />
         </div>
       )}
 
@@ -147,9 +155,10 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
 
       {/* Name on hover */}
       {loaded && media.media_name && (
-        <div className={`absolute top-2 left-2 right-2 transition-opacity duration-200 ${hovered ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`absolute left-2 right-2 transition-opacity duration-200 ${hovered ? 'opacity-100' : 'opacity-0'}`}
+          style={{ top: isStudioPick ? 30 : 8 }}>
           <p className="text-white text-xs truncate bg-black/50 rounded px-2 py-0.5">
-            {stripExt(media.media_name)}{fmtSize(media.media_size) ? ` · ${fmtSize(media.media_size)}` : ''}
+            {stripExt(media.media_name)}{!hideSize && fmtSize(media.media_size) ? ` · ${fmtSize(media.media_size)}` : ''}
           </p>
         </div>
       )}
@@ -158,7 +167,7 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
 }
 
 /* ─── List row ─── */
-function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTenantFav, onDelete, onHardDelete }) {
+function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTenantFav, isStudioPick, hideSize, atFavouriteLimit, onDelete, onHardDelete }) {
   const [loaded, setLoaded] = useState(false)
   const { ref: inViewRef, inView } = useInView({ triggerOnce: true, rootMargin: '200px' })
   const video = isVideo(media)
@@ -208,13 +217,21 @@ function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
-          {stripExt(media.media_name) || 'Untitled'}
-        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
+            {stripExt(media.media_name) || 'Untitled'}
+          </p>
+          {isStudioPick && (
+            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold flex-shrink-0"
+              style={{ background: 'rgba(245,158,11,0.15)', color: '#F59E0B' }}>
+              <Star size={9} className="fill-current" /> Studio Pick
+            </span>
+          )}
+        </div>
         <p className="text-xs mt-0.5 flex items-center gap-1.5 flex-wrap" style={{ color: 'var(--text-tertiary)' }}>
           {video ? <FileVideo size={11} /> : <Image size={11} />}
           <span>{media.media_type?.split('/')[1]?.toUpperCase() || 'FILE'}</span>
-          {(media.original_size || media.media_size) && (
+          {!hideSize && (media.original_size || media.media_size) && (
             <>
               <span style={{ color: 'var(--border-default)' }}>·</span>
               {media.original_size && media.original_size !== media.media_size && (
@@ -236,7 +253,7 @@ function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
       {/* Actions — heart always visible, expand + delete on hover */}
       <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
         <FavBtn mediaId={media.media_id} eventId={eventId}
-          showFavourite={showFavourite} showTenantFav={showTenantFav} size={15} />
+          showFavourite={showFavourite} showTenantFav={showTenantFav} atFavouriteLimit={atFavouriteLimit} size={15} />
         <button
           onClick={(e) => { e.stopPropagation(); onClick && onClick(media) }}
           className="p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
@@ -270,15 +287,20 @@ function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
 }
 
 /* ─── Exported component ─── */
-export default function PhotoCard({ media, eventId, watermarkSrc, onClick, showFavourite = true, showTenantFav = false, view = 'masonry', onDelete, onHardDelete }) {
+export default function PhotoCard({ media, eventId, watermarkSrc, onClick, showFavourite = true, showTenantFav = false, isStudioPick = false, atFavouriteLimit = false, view = 'masonry', onDelete, onHardDelete }) {
+  // Storage/compressed size is only relevant to the studio side — clients browsing
+  // their own gallery (showFavourite without showTenantFav) don't need to see it.
+  const hideSize = showFavourite && !showTenantFav
   if (view === 'list') {
     return <ListView media={media} eventId={eventId} watermarkSrc={watermarkSrc}
       onClick={onClick} showFavourite={showFavourite} showTenantFav={showTenantFav}
+      isStudioPick={isStudioPick} hideSize={hideSize} atFavouriteLimit={atFavouriteLimit}
       onDelete={onDelete} onHardDelete={onHardDelete} />
   }
   return (
     <CardView media={media} eventId={eventId} watermarkSrc={watermarkSrc}
       onClick={onClick} showFavourite={showFavourite} showTenantFav={showTenantFav}
+      isStudioPick={isStudioPick} hideSize={hideSize} atFavouriteLimit={atFavouriteLimit}
       square={view === 'grid'} onDelete={onDelete} onHardDelete={onHardDelete} />
   )
 }

@@ -151,8 +151,11 @@ export default function LightboxViewer({
   watermarkSrc, eventId,
   showFavourite = false,
   showTenantFav = false,
+  isStudioPick = false,
+  atFavouriteLimit = false,
   ownerLabels = null,   // string[] — who favourited this photo (from FavouritesGallery)
 }) {
+  const hideSize = showFavourite && !showTenantFav
   const panelRef = useRef(null)
   const pendingFav = useRef(false)
   const [heartFlash, setHeartFlash] = useState(null) // null | { adding: bool, key: number }
@@ -239,10 +242,12 @@ export default function LightboxViewer({
               flashHeart(false)
               try {
                 await removeFavourite(favId)
-              } catch {
+              } catch (err) {
                 gs.addFavourite(media.media_id, favId)
-                toast.error('Could not remove favourite')
+                toast.error(typeof err === 'string' ? err : 'Could not remove favourite')
               }
+            } else if (atFavouriteLimit) {
+              toast.error('Favourite limit reached for this event')
             } else {
               const tempId = `temp-${media.media_id}-${Date.now()}`
               gs.addFavourite(media.media_id, tempId)
@@ -251,9 +256,9 @@ export default function LightboxViewer({
                 const res = await addFavourite({ event_id: eventId, media_id: media.media_id })
                 const realId = res?.data?.user_favourite_media_id
                 if (realId) gs.addFavourite(media.media_id, realId)
-              } catch {
+              } catch (err) {
                 gs.removeFavourite(media.media_id)
-                toast.error('Could not add favourite')
+                toast.error(typeof err === 'string' ? err : 'Could not add favourite')
               }
             }
           }
@@ -269,7 +274,7 @@ export default function LightboxViewer({
       window.removeEventListener('keydown', handler)
       document.body.style.overflow = ''
     }
-  }, [onClose, onPrev, onNext, media, showFavourite, showTenantFav, eventId])
+  }, [onClose, onPrev, onNext, media, showFavourite, showTenantFav, eventId, atFavouriteLimit])
 
   if (!media) return null
 
@@ -325,12 +330,20 @@ export default function LightboxViewer({
         className="absolute bottom-0 left-0 right-0 p-6 flex items-end justify-between pointer-events-none"
         style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.4), transparent)' }}>
         <div className="pointer-events-auto">
-          <p className="text-white font-medium">
-            {media.media_name ? media.media_name.replace(/\.[^/.]+$/, '') : 'Untitled'}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-white font-medium">
+              {media.media_name ? media.media_name.replace(/\.[^/.]+$/, '') : 'Untitled'}
+            </p>
+            {isStudioPick && (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
+                style={{ background: 'rgba(245,158,11,0.9)', color: '#111113' }}>
+                <Heart size={9} className="fill-current" /> Studio Pick
+              </span>
+            )}
+          </div>
           <p className="text-xs flex items-center gap-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
             <span>{media.media_type}</span>
-            {media.original_size && (
+            {!hideSize && media.original_size && (
               <>
                 <span>·</span>
                 {media.original_size !== media.media_size && (
@@ -346,7 +359,7 @@ export default function LightboxViewer({
                 })()} stored</span>
               </>
             )}
-            {!media.original_size && media.media_size && (
+            {!hideSize && !media.original_size && media.media_size && (
               <><span>·</span><span>{(() => {
                 const kb = parseFloat(media.media_size)
                 return isNaN(kb) ? media.media_size : kb >= 1024 ? `${(kb/1024).toFixed(1)} MB` : `${Math.round(kb)} KB`
@@ -376,7 +389,7 @@ export default function LightboxViewer({
                   style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)' }}>
                   {showTenantFav
                     ? <TenantFavouriteButton mediaId={mediaId} eventId={eventId} size={28} />
-                    : <FavouriteButton mediaId={mediaId} eventId={eventId} size={28} />
+                    : <FavouriteButton mediaId={mediaId} eventId={eventId} size={28} atLimit={atFavouriteLimit} />
                   }
                 </div>
                 <span className="text-[10px] font-medium select-none tracking-widest uppercase"

@@ -11,7 +11,7 @@ import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import { GalleryLoader } from '../../components/ui/StudioLoader'
 import { getEvents, getEventById } from '../../api/events'
 import { getMediaByEvent } from '../../api/media'
-import { getUserFavourites } from '../../api/favourites'
+import { getUserFavourites, getTenantFavouriteIdsForEventAsUser } from '../../api/favourites'
 import { getTenantSettings } from '../../api/tenants'
 import useAuthStore from '../../stores/authStore'
 import useGalleryStore from '../../stores/galleryStore'
@@ -51,6 +51,7 @@ export default function Gallery() {
   // Access info for current event
   const currentAccess = allUserEvents.find(e => e.event_id === activeEventId)?._access
   const isLocked = currentAccess ? currentAccess.has_current_access === false : false
+  const favouriteLimit = currentAccess?.favourite_limit ?? null
 
   // Expiry warning (for events that will expire soon but aren't expired yet)
   const expiresDate = currentAccess?.access_expires ? new Date(currentAccess.access_expires) : null
@@ -99,6 +100,15 @@ export default function Gallery() {
     },
     enabled: !!activeEventId && !!user?.user_id && !isLocked,
   })
+
+  // Studio's own picks — shown as a distinct "Studio Pick" indicator so clients
+  // can see what the photographer already favourited while choosing their own.
+  const { data: studioFavsData } = useQuery({
+    queryKey: ['studio-favs-for-client', activeEventId],
+    queryFn: () => getTenantFavouriteIdsForEventAsUser(activeEventId),
+    enabled: !!activeEventId && !isLocked,
+  })
+  const studioFavouriteIds = new Set(studioFavsData?.data || [])
 
   useLayoutEffect(() => {
     if (!containerRef.current) return
@@ -169,6 +179,11 @@ export default function Gallery() {
 
         {/* Right: favourites + theme + logout */}
         <div className="flex items-center gap-2">
+          {favouriteLimit != null && (
+            <span className="text-xs font-medium whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>
+              {getFavouritedMediaIds().size} / {favouriteLimit} selected
+            </span>
+          )}
           <button
             onClick={() => setDrawerOpen(true)}
             className="relative p-2 rounded-full hover:bg-[var(--accent-muted)] transition-colors"
@@ -270,6 +285,9 @@ export default function Gallery() {
             watermarkSrc={watermarkSrc}
             loading={mediaLoading}
             showFavourite
+            studioFavouriteIds={studioFavouriteIds}
+            favouriteLimit={favouriteLimit}
+            favouritedCount={getFavouritedMediaIds().size}
           />
         )}
 

@@ -12,7 +12,7 @@ import GoldButton from '../../components/ui/GoldButton'
 import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import { assignUserToEvent, getEventUsers, getEvents, updateEventUserMapping } from '../../api/events'
 import { getUsers } from '../../api/users'
-import { formatDate } from '../../utils/formatters'
+import { formatDate, clientDisplayName } from '../../utils/formatters'
 import toast from 'react-hot-toast'
 
 const today = new Date()
@@ -147,7 +147,7 @@ function UnassignedClient({ user, eventId, onAssigned }) {
       <div className="flex items-center gap-3">
         <Avatar name={user.user_name || 'Client'} size="sm" />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{user.user_name}</p>
+          <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{clientDisplayName(user)}</p>
           <p className="text-xs truncate" style={{ color: 'var(--text-tertiary)' }}>{user.user_email_id || user.user_phone_number || 'No contact saved'}</p>
         </div>
       </div>

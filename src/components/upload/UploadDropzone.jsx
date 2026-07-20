@@ -6,6 +6,7 @@ import {
   Zap, Image, FileVideo, AlertCircle, Loader2, RotateCcw
 } from 'lucide-react'
 import { LARGE_UPLOAD_MAX_SIZE, LARGE_UPLOAD_THRESHOLD, uploadLargeMedia, uploadMedia } from '../../api/media'
+import { getMySubscription } from '../../api/billing'
 import ApertureSpinner, { UploadLoader } from '../ui/StudioLoader'
 import toast from 'react-hot-toast'
 
@@ -220,7 +221,30 @@ export default function UploadDropzone({ eventId, onComplete }) {
 
   /* ── File processing ── */
   const processFiles = async (files) => {
-    const newItems = Array.from(files).map(file => ({
+    const fileList = Array.from(files)
+    if (fileList.length === 0) return
+
+    // Check remaining quota BEFORE queuing anything — catches the shortfall up
+    // front instead of letting files fail one-by-one partway through the batch.
+    try {
+      const res = await getMySubscription()
+      const subscription = res?.data?.subscription
+      if (subscription?.photo_quota_total != null) {
+        const remaining = subscription.photo_quota_total - subscription.photo_quota_used
+        if (remaining <= 0) {
+          toast.error('Your photo upload quota is used up. Upgrade your plan to upload more.')
+          return
+        }
+        if (fileList.length > remaining) {
+          toast.error(`Only ${remaining} photo${remaining === 1 ? '' : 's'} left in your quota — you selected ${fileList.length}. Select ${remaining} or fewer.`)
+          return
+        }
+      }
+    } catch {
+      // Quota check failing shouldn't block upload entirely — the backend still enforces it per-file.
+    }
+
+    const newItems = fileList.map(file => ({
       id: `${file.name}-${file.size}-${Date.now()}-${Math.random()}`,
       file,
       status: 'pending',
@@ -231,8 +255,6 @@ export default function UploadDropzone({ eventId, onComplete }) {
       _prevLoaded: 0,
       _prevTime: 0,
     }))
-
-    if (newItems.length === 0) return
 
     setQueue(prev => [...prev, ...newItems])
     setActiveTab('status')     // auto-switch to status

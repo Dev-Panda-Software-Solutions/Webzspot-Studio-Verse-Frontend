@@ -42,17 +42,22 @@ function ConfettiPiece({ angle, distance, rect, w, h, color }) {
   )
 }
 
-export default function FavouriteButton({ mediaId, eventId, size = 16 }) {
+export default function FavouriteButton({ mediaId, eventId, size = 16, atLimit = false }) {
   const { isFavourited, getFavId, addFavourite: addLocal, removeFavourite: removeLocal } = useGalleryStore()
   const [burst, setBurst] = useState(false)
   const heartRef = useRef(null)
   // Ref-based lock prevents double-tap creating duplicate DB rows before React batches state
   const pendingRef = useRef(false)
   const fav = isFavourited(mediaId)
+  const blocked = atLimit && !fav
 
   const handleClick = async (e) => {
     e.stopPropagation()
     if (pendingRef.current) return
+    if (blocked) {
+      toast.error('Favourite limit reached for this event')
+      return
+    }
     pendingRef.current = true
 
     try {
@@ -61,9 +66,9 @@ export default function FavouriteButton({ mediaId, eventId, size = 16 }) {
         removeLocal(mediaId)
         try {
           await removeFavourite(favId)
-        } catch {
+        } catch (err) {
           addLocal(mediaId, favId)
-          toast.error('Could not remove favourite')
+          toast.error(typeof err === 'string' ? err : 'Could not remove favourite')
         }
       } else {
         const tempId = `temp-${mediaId}-${Date.now()}`
@@ -78,9 +83,9 @@ export default function FavouriteButton({ mediaId, eventId, size = 16 }) {
           const res = await addFavourite({ event_id: eventId, media_id: mediaId })
           const realId = res?.data?.user_favourite_media_id
           if (realId) addLocal(mediaId, realId)
-        } catch {
+        } catch (err) {
           removeLocal(mediaId)
-          toast.error('Could not add favourite')
+          toast.error(typeof err === 'string' ? err : 'Could not add favourite')
         }
       }
     } finally {
@@ -95,8 +100,9 @@ export default function FavouriteButton({ mediaId, eventId, size = 16 }) {
         ref={heartRef}
         onClick={handleClick}
         onKeyDown={(e) => { if (e.key === ' ') e.preventDefault() }}
+        title={blocked ? 'Favourite limit reached for this event' : undefined}
         className={`p-2 rounded-full transition-all duration-200
-          ${fav ? 'bg-gold-500/20' : 'bg-black/30 hover:bg-black/50'}`}
+          ${fav ? 'bg-gold-500/20' : 'bg-black/30 hover:bg-black/50'} ${blocked ? 'opacity-40 cursor-not-allowed' : ''}`}
       >
         <Heart
           size={size}

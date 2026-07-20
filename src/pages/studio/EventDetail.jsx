@@ -4,7 +4,7 @@ import { gsap } from 'gsap'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft, Users, UserPlus, UserCheck,
-  Calendar, Ban, CheckCircle2, ChevronDown, ChevronUp, Search, HardDrive, Download
+  Calendar, Ban, CheckCircle2, ChevronDown, ChevronUp, Search, HardDrive, Download, Trash2
 } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GoldButton from '../../components/ui/GoldButton'
@@ -19,11 +19,11 @@ import GoldInput from '../../components/ui/GoldInput'
 import PasswordStrength from '../../components/ui/PasswordStrength'
 import { getEventById, getEventFavouritesGrouped, getEventUsers, assignUserToEvent, updateEventUserMapping } from '../../api/events'
 import { getMediaByEvent, deleteMedia } from '../../api/media'
-import { createUserInEvent, getUsers } from '../../api/users'
+import { createUserInEvent, getUsers, deleteUser, restoreUser, hardDeleteUser } from '../../api/users'
 import { downloadFavouritesZip, downloadStudioFavouritesZip } from '../../api/media'
 import { getTenantSettings } from '../../api/tenants'
 import { getTenantFavouritesForEvent } from '../../api/favourites'
-import { formatDate } from '../../utils/formatters'
+import { formatDate, clientDisplayName } from '../../utils/formatters'
 import useAuthStore from '../../stores/authStore'
 import FavouritesGallery from '../../components/gallery/FavouritesGallery'
 import { backendAssetUrl } from '../../utils/apiUrl'
@@ -44,17 +44,21 @@ function AccessBadge({ access_expires, isactive }) {
 }
 
 /* ── Inline access extend panel ──────────────────────────── */
-function AccessPanel({ mapping, onUpdate, onRevoke }) {
+function AccessPanel({ mapping, onUpdate }) {
   const [open, setOpen] = useState(false)
   const [newExpiry, setNewExpiry] = useState(
     mapping.access_expires ? new Date(mapping.access_expires).toISOString().split('T')[0] : ''
   )
+  const [favLimit, setFavLimit] = useState(mapping.favourite_limit ?? '')
   const [saving, setSaving] = useState(false)
 
   const handleExtend = async () => {
     setSaving(true)
     try {
-      await onUpdate(mapping.event_user_id, { access_expires: newExpiry || null })
+      await onUpdate(mapping.event_user_id, {
+        access_expires: newExpiry || null,
+        favourite_limit: favLimit === '' ? null : Number(favLimit),
+      })
       setOpen(false)
       toast.success('Access updated')
     } catch { toast.error('Failed to update access') }
@@ -72,13 +76,16 @@ function AccessPanel({ mapping, onUpdate, onRevoke }) {
       >
         <Calendar size={11} />
         {open ? 'Close' : 'Edit access'}
+        {mapping.favourite_limit != null && (
+          <span style={{ color: 'var(--text-tertiary)' }}>· limit {mapping.favourite_limit}</span>
+        )}
         {open ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
       </button>
 
       {open && (
-        <div className="mt-2 p-3 rounded-xl flex items-end gap-2"
+        <div className="mt-2 p-3 rounded-xl flex items-end gap-2 flex-wrap"
           style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-          <div className="flex-1">
+          <div className="flex-1 min-w-[140px]">
             <label className="text-[10px] font-medium block mb-1" style={{ color: 'var(--text-tertiary)' }}>
               Access expires (leave empty = no expiry)
             </label>
@@ -86,6 +93,23 @@ function AccessPanel({ mapping, onUpdate, onRevoke }) {
               type="date"
               value={newExpiry}
               onChange={e => setNewExpiry(e.target.value)}
+              className="w-full text-xs rounded-lg px-3 py-2 outline-none"
+              style={{
+                background: 'var(--bg-surface)', color: 'var(--text-primary)',
+                border: '1px solid var(--border-default)',
+              }}
+            />
+          </div>
+          <div className="w-28">
+            <label className="text-[10px] font-medium block mb-1" style={{ color: 'var(--text-tertiary)' }}>
+              Favourite limit
+            </label>
+            <input
+              type="number"
+              min="0"
+              placeholder="No limit"
+              value={favLimit}
+              onChange={e => setFavLimit(e.target.value)}
               className="w-full text-xs rounded-lg px-3 py-2 outline-none"
               style={{
                 background: 'var(--bg-surface)', color: 'var(--text-primary)',
@@ -101,10 +125,11 @@ function AccessPanel({ mapping, onUpdate, onRevoke }) {
 }
 
 /* ── Client row ──────────────────────────────────────────── */
-function ClientRow({ mapping, onUpdate, onRevoke }) {
+function ClientRow({ mapping, onUpdate, onRevokeUser, onRestoreUser, onHardDeleteUser }) {
   const u = mapping.user
+  const isRevoked = !u.isactive
   return (
-    <div className="flex items-start gap-4 px-5 py-4 border-b group transition-colors"
+    <div className="flex items-start gap-4 px-5 py-4 border-b transition-colors"
       style={{ borderColor: 'var(--border-subtle)' }}
       onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -114,27 +139,35 @@ function ClientRow({ mapping, onUpdate, onRevoke }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{u.user_name}</p>
-          <AccessBadge access_expires={mapping.access_expires} isactive={mapping.isactive} />
+          <AccessBadge access_expires={mapping.access_expires} isactive={u.isactive} />
         </div>
         <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
           {u.user_email_id || u.user_phone_number || '—'}
         </p>
         <div className="mt-1.5">
-          <AccessPanel mapping={mapping} onUpdate={onUpdate} onRevoke={onRevoke} />
+          <AccessPanel mapping={mapping} onUpdate={onUpdate} />
         </div>
       </div>
 
-      {/* Revoke / restore toggle */}
-      <button
-        onClick={() => onRevoke(mapping.event_user_id, !mapping.isactive)}
-        className="flex-shrink-0 p-1.5 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-        style={{ color: mapping.isactive ? 'var(--text-tertiary)' : '#34D399' }}
-        title={mapping.isactive ? 'Revoke access' : 'Restore access'}
-        onMouseEnter={e => e.currentTarget.style.color = mapping.isactive ? '#F87171' : '#34D399'}
-        onMouseLeave={e => e.currentTarget.style.color = mapping.isactive ? 'var(--text-tertiary)' : '#34D399'}
-      >
-        {mapping.isactive ? <Ban size={14} /> : <CheckCircle2 size={14} />}
-      </button>
+      {/* Revoke/Restore (disables or restores login system-wide) + permanent delete — always visible */}
+      <div className="flex-shrink-0 flex items-center gap-1">
+        <button
+          onClick={() => isRevoked ? onRestoreUser(u.user_id, u.user_name) : onRevokeUser(u.user_id, u.user_name)}
+          className="p-1.5 rounded-lg transition-colors"
+          style={{ color: isRevoked ? '#34D399' : '#F87171', background: isRevoked ? 'rgba(52,211,153,0.12)' : 'rgba(248,113,113,0.12)' }}
+          title={isRevoked ? 'Restore client (re-enable login)' : 'Revoke client (disable login everywhere)'}
+        >
+          {isRevoked ? <CheckCircle2 size={14} /> : <Ban size={14} />}
+        </button>
+        <button
+          onClick={() => onHardDeleteUser(u.user_id, u.user_name)}
+          className="p-1.5 rounded-lg transition-colors"
+          style={{ color: '#F87171', background: 'rgba(248,113,113,0.08)' }}
+          title="Permanently delete client"
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
     </div>
   )
 }
@@ -274,7 +307,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
               >
                 <Avatar name={u.user_name} size="xs" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{u.user_name}</p>
+                  <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{clientDisplayName(u)}</p>
                   <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{u.user_email_id || u.user_phone_number || '—'}</p>
                 </div>
                 {selected?.user_id === u.user_id && (
@@ -432,8 +465,10 @@ export default function StudioEventDetail() {
   const favsGrouped = favsData?.data || []
   const tenantFavs = tenantFavsData?.data || []
 
-  const activeClients = allMappings.filter(m => m.isactive)
-  const revokedClients = allMappings.filter(m => !m.isactive)
+  // "Revoked" reflects the client's account itself (User.isactive) — revoking
+  // disables their login everywhere, not just access to this one event.
+  const activeClients = allMappings.filter(m => m.user?.isactive)
+  const revokedClients = allMappings.filter(m => !m.user?.isactive)
 
   const handleUpdateAccess = async (mappingId, data) => {
     try {
@@ -444,14 +479,31 @@ export default function StudioEventDetail() {
     }
   }
 
-  const handleRevokeToggle = async (mappingId, restore) => {
-    const action = restore ? 'Restore' : 'Revoke'
-    if (!window.confirm(`${action} this client's access?`)) return
+  const handleRevokeUser = async (userId, userName) => {
+    if (!window.confirm(`Revoke "${userName}"? They will be immediately unable to log in to the portal at all — not just this event.`)) return
     try {
-      await updateEventUserMapping(mappingId, { isactive: restore })
-      toast.success(`Access ${restore ? 'restored' : 'revoked'}`)
+      await deleteUser(userId)
+      toast.success('Client revoked — login disabled')
       qc.invalidateQueries(['event-users', id])
-    } catch { toast.error('Failed to update access') }
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to revoke client') }
+  }
+
+  const handleRestoreUser = async (userId, userName) => {
+    if (!window.confirm(`Restore "${userName}"? They will regain login access immediately.`)) return
+    try {
+      await restoreUser(userId)
+      toast.success('Client restored')
+      qc.invalidateQueries(['event-users', id])
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to restore client') }
+  }
+
+  const handleHardDeleteUser = async (userId, userName) => {
+    if (!window.confirm(`Permanently delete "${userName}"? This removes their account and login entirely and cannot be undone.`)) return
+    try {
+      await hardDeleteUser(userId)
+      toast.success('Client permanently deleted')
+      qc.invalidateQueries(['event-users', id])
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to delete client') }
   }
 
   const handleDeleteMedia = async (mediaId, mediaName) => {
@@ -634,7 +686,7 @@ export default function StudioEventDetail() {
               </div>
             )}
             <div className="mb-6">
-              <UploadDropzone eventId={id} onComplete={() => { refetchMedia(); qc.invalidateQueries(['event-media', id]) }} />
+              <UploadDropzone eventId={id} onComplete={() => { refetchMedia(); qc.invalidateQueries(['event-media', id]); qc.invalidateQueries(['tenant-subscription']) }} />
             </div>
             <PhotoGrid
               mediaList={mediaList}
@@ -694,7 +746,9 @@ export default function StudioEventDetail() {
                         key={mapping.event_user_id}
                         mapping={mapping}
                         onUpdate={handleUpdateAccess}
-                        onRevoke={handleRevokeToggle}
+                        onRevokeUser={handleRevokeUser}
+                        onRestoreUser={handleRestoreUser}
+                        onHardDeleteUser={handleHardDeleteUser}
                       />
                     ))}
                   </GlassCard>
@@ -720,7 +774,9 @@ export default function StudioEventDetail() {
                             key={mapping.event_user_id}
                             mapping={mapping}
                             onUpdate={handleUpdateAccess}
-                            onRevoke={handleRevokeToggle}
+                            onRevokeUser={handleRevokeUser}
+                            onRestoreUser={handleRestoreUser}
+                            onHardDeleteUser={handleHardDeleteUser}
                           />
                         ))}
                       </GlassCard>

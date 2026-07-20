@@ -28,3 +28,10 @@ export const isExpired = (dateStr) => {
   if (!dateStr) return false
   return new Date(dateStr) < new Date()
 }
+
+// Same-named clients are easy to confuse in a flat list — prefix with the
+// event they belong to (e.g. "Diwali Party - Priya Sharma") when known.
+export const clientDisplayName = (user) => {
+  const eventName = user?.event_names?.[0]
+  return eventName ? `${eventName} - ${user.user_name}` : (user?.user_name || 'Unnamed client')
+}
