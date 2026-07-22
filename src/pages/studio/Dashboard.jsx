@@ -193,14 +193,14 @@ export default function StudioDashboard() {
   const [editingEvent, setEditingEvent] = useState(null)
   const [page, setPage] = useState(1)
 
-  const handleArchiveEvent = async (eventId, eventName) => {
-    if (!window.confirm(`Archive "${eventName}"? Clients will lose access.`)) return
+  const handleDeleteEvent = async (eventId, eventName) => {
+    if (!window.confirm(`Delete "${eventName}"? Clients will lose access.`)) return
     try {
       await deleteEvent(eventId)
-      toast.success('Event archived')
+      toast.success('Event deleted')
       qc.invalidateQueries(['events'])
       qc.invalidateQueries(['dashboard-analytics'])
-    } catch { toast.error('Failed to archive event') }
+    } catch { toast.error('Failed to delete event') }
   }
 
   const { data, isLoading } = useQuery({
@@ -462,7 +462,7 @@ export default function StudioDashboard() {
                   event={item}
                   eventId={item.event_id}
                   onEdit={ev => setEditingEvent(ev)}
-                  onDelete={handleArchiveEvent}
+                  onDelete={handleDeleteEvent}
                 />
               ))}
               <EventCard isNew onCreate={() => setCreateOpen(true)} />

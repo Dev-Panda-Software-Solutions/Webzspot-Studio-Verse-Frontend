@@ -1,6 +1,6 @@
 import React, { useRef } from 'react'
 import { gsap } from 'gsap'
-import { Calendar, ArrowRight, Aperture, Archive, Pencil } from 'lucide-react'
+import { Calendar, ArrowRight, Aperture, Trash2, Pencil } from 'lucide-react'
 import { formatDate } from '../../utils/formatters'
 import { useShutterNavigate } from '../../context/ShutterContext'
 import { backendAssetUrl } from '../../utils/apiUrl'
@@ -156,13 +156,13 @@ export default function EventCard({ event, eventId, isNew = false, onCreate, onD
             {onDelete && (
               <button
                 onClick={e => { e.stopPropagation(); onDelete(resolvedId, event?.event_name) }}
-                title="Archive event"
+                title="Delete event"
                 className="w-7 h-7 rounded-lg flex items-center justify-center"
-                style={{ background: 'rgba(0,0,0,0.55)', color: '#FBBF24', backdropFilter: 'blur(4px)' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.2)'}
+                style={{ background: 'rgba(0,0,0,0.55)', color: '#F87171', backdropFilter: 'blur(4px)' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.25)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.55)'}
               >
-                <Archive size={13} />
+                <Trash2 size={13} />
               </button>
             )}
           </div>
