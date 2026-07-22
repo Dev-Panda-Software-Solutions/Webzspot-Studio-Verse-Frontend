@@ -3,14 +3,15 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { gsap } from 'gsap'
 import {
   LayoutDashboard, Building2, Users, Settings, LogOut,
-  Camera, ChevronLeft, ChevronRight, Store, GitBranch, CalendarDays,
-  CreditCard, Wallet
+  Camera, ChevronLeft, ChevronRight, Store, CalendarDays,
+  CreditCard, Wallet, UserPlus
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Avatar from '../ui/Avatar'
 import useAuthStore from '../../stores/authStore'
 import { logout } from '../../api/auth'
 import { useShutterNavigate } from '../../context/ShutterContext'
+import QuickAddClientModal from '../events/QuickAddClientModal'
 import toast from 'react-hot-toast'
 
 const navItems = {
@@ -23,7 +24,7 @@ const navItems = {
   ],
   ADMIN: [
     { to: '/studio',          icon: LayoutDashboard, label: 'Dashboard'     },
-    { to: '/studio/access',   icon: GitBranch,       label: 'Access Board'  },
+    { action: 'add-client',   icon: UserPlus,        label: 'Add Client'   },
     { to: '/studio/billing',  icon: Wallet,          label: 'Billing'      },
     { to: '/studio/settings', icon: Store,           label: 'Studio Profile' },
   ],
@@ -36,6 +37,7 @@ export default function SidebarNav({ collapsed, onCollapse }) {
   const location = useLocation()
   const sidebarRef = useRef(null)
   const items = navItems[role] || []
+  const [addClientOpen, setAddClientOpen] = useState(false)
 
   // Active check — exact match for root paths, prefix match for nested
   const isActive = (to) => {
@@ -134,12 +136,12 @@ export default function SidebarNav({ collapsed, onCollapse }) {
 
       {/* ── Nav items ── */}
       <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto overflow-x-hidden">
-        {items.map(({ to, icon: Icon, label }) => {
-          const active = isActive(to)
+        {items.map(({ to, action, icon: Icon, label }) => {
+          const active = action ? false : isActive(to)
           return (
             <div
-              key={to}
-              onClick={() => shutterNavigate(to)}
+              key={to || action}
+              onClick={() => action === 'add-client' ? setAddClientOpen(true) : shutterNavigate(to)}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
                 transition-colors duration-150 group relative overflow-hidden cursor-pointer"
               style={{
@@ -242,6 +244,10 @@ export default function SidebarNav({ collapsed, onCollapse }) {
       >
         {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
       </button>
+
+      {role === 'ADMIN' && (
+        <QuickAddClientModal open={addClientOpen} onClose={() => setAddClientOpen(false)} />
+      )}
     </aside>
   )
 }

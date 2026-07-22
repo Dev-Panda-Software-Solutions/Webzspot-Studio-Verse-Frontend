@@ -153,6 +153,7 @@ export default function LightboxViewer({
   showTenantFav = false,
   isStudioPick = false,
   atFavouriteLimit = false,
+  frozen = false,
   ownerLabels = null,   // string[] — who favourited this photo (from FavouritesGallery)
 }) {
   const hideSize = showFavourite && !showTenantFav
@@ -233,6 +234,10 @@ export default function LightboxViewer({
               }
             }
           } else if (showFavourite) {
+            if (frozen) {
+              toast.error('Your favourites have been submitted and are locked')
+              return
+            }
             const gs = useGalleryStore.getState()
             const fav = gs.isFavourited(media.media_id)
             if (fav) {
@@ -274,7 +279,7 @@ export default function LightboxViewer({
       window.removeEventListener('keydown', handler)
       document.body.style.overflow = ''
     }
-  }, [onClose, onPrev, onNext, media, showFavourite, showTenantFav, eventId, atFavouriteLimit])
+  }, [onClose, onPrev, onNext, media, showFavourite, showTenantFav, eventId, atFavouriteLimit, frozen])
 
   if (!media) return null
 
@@ -389,7 +394,7 @@ export default function LightboxViewer({
                   style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)' }}>
                   {showTenantFav
                     ? <TenantFavouriteButton mediaId={mediaId} eventId={eventId} size={28} />
-                    : <FavouriteButton mediaId={mediaId} eventId={eventId} size={28} atLimit={atFavouriteLimit} />
+                    : <FavouriteButton mediaId={mediaId} eventId={eventId} size={28} atLimit={atFavouriteLimit} frozen={frozen} />
                   }
                 </div>
                 <span className="text-[10px] font-medium select-none tracking-widest uppercase"

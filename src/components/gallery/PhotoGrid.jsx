@@ -24,6 +24,7 @@ export default function PhotoGrid({
   studioFavouriteIds = null,
   favouriteLimit = null,
   favouritedCount = 0,
+  frozen = false,
   onDelete,
   onHardDelete,
 }) {
@@ -88,6 +89,7 @@ export default function PhotoGrid({
     showTenantFav,
     isStudioPick: studioFavouriteIds?.has(media.media_id),
     atFavouriteLimit,
+    frozen,
     onDelete,
     onHardDelete,
     onClick: (m) => setLightboxIndex(displayList.findIndex(x => x.media_id === m.media_id)),
@@ -171,6 +173,7 @@ export default function PhotoGrid({
           showTenantFav={showTenantFav}
           isStudioPick={studioFavouriteIds?.has(current.media_id)}
           atFavouriteLimit={atFavouriteLimit}
+          frozen={frozen}
           onClose={() => setLightboxIndex(null)}
           onPrev={lightboxIndex > 0 ? () => setLightboxIndex(i => i - 1) : null}
           onNext={lightboxIndex < displayList.length - 1 ? () => setLightboxIndex(i => i + 1) : null}

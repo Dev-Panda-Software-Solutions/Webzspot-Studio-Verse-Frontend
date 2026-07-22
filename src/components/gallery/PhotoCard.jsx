@@ -21,14 +21,14 @@ const fmtSize = (sizeStr) => {
   return `${Math.round(kb)} KB`
 }
 
-function FavBtn({ mediaId, eventId, showFavourite, showTenantFav, atFavouriteLimit, size = 16 }) {
+function FavBtn({ mediaId, eventId, showFavourite, showTenantFav, atFavouriteLimit, frozen, size = 16 }) {
   if (showTenantFav) return <TenantFavouriteButton mediaId={mediaId} eventId={eventId} size={size} />
-  if (showFavourite) return <FavouriteButton mediaId={mediaId} eventId={eventId} size={size} atLimit={atFavouriteLimit} />
+  if (showFavourite) return <FavouriteButton mediaId={mediaId} eventId={eventId} size={size} atLimit={atFavouriteLimit} frozen={frozen} />
   return null
 }
 
 /* ─── Masonry / Grid card ─── */
-function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTenantFav, isStudioPick, hideSize, atFavouriteLimit, square, onDelete, onHardDelete }) {
+function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTenantFav, isStudioPick, hideSize, atFavouriteLimit, frozen, square, onDelete, onHardDelete }) {
   const [loaded, setLoaded] = useState(false)
   const [hovered, setHovered] = useState(false)
   const { ref: inViewRef, inView } = useInView({ triggerOnce: true, rootMargin: '200px' })
@@ -116,7 +116,7 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
       {loaded && hasFav && (
         <div className="absolute bottom-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
           <FavBtn mediaId={media.media_id} eventId={eventId}
-            showFavourite={showFavourite} showTenantFav={showTenantFav} atFavouriteLimit={atFavouriteLimit} size={14} />
+            showFavourite={showFavourite} showTenantFav={showTenantFav} atFavouriteLimit={atFavouriteLimit} frozen={frozen} size={14} />
         </div>
       )}
 
@@ -167,7 +167,7 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
 }
 
 /* ─── List row ─── */
-function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTenantFav, isStudioPick, hideSize, atFavouriteLimit, onDelete, onHardDelete }) {
+function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTenantFav, isStudioPick, hideSize, atFavouriteLimit, frozen, onDelete, onHardDelete }) {
   const [loaded, setLoaded] = useState(false)
   const { ref: inViewRef, inView } = useInView({ triggerOnce: true, rootMargin: '200px' })
   const video = isVideo(media)
@@ -253,7 +253,7 @@ function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
       {/* Actions — heart always visible, expand + delete on hover */}
       <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
         <FavBtn mediaId={media.media_id} eventId={eventId}
-          showFavourite={showFavourite} showTenantFav={showTenantFav} atFavouriteLimit={atFavouriteLimit} size={15} />
+          showFavourite={showFavourite} showTenantFav={showTenantFav} atFavouriteLimit={atFavouriteLimit} frozen={frozen} size={15} />
         <button
           onClick={(e) => { e.stopPropagation(); onClick && onClick(media) }}
           className="p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
@@ -287,20 +287,20 @@ function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
 }
 
 /* ─── Exported component ─── */
-export default function PhotoCard({ media, eventId, watermarkSrc, onClick, showFavourite = true, showTenantFav = false, isStudioPick = false, atFavouriteLimit = false, view = 'masonry', onDelete, onHardDelete }) {
+export default function PhotoCard({ media, eventId, watermarkSrc, onClick, showFavourite = true, showTenantFav = false, isStudioPick = false, atFavouriteLimit = false, frozen = false, view = 'masonry', onDelete, onHardDelete }) {
   // Storage/compressed size is only relevant to the studio side — clients browsing
   // their own gallery (showFavourite without showTenantFav) don't need to see it.
   const hideSize = showFavourite && !showTenantFav
   if (view === 'list') {
     return <ListView media={media} eventId={eventId} watermarkSrc={watermarkSrc}
       onClick={onClick} showFavourite={showFavourite} showTenantFav={showTenantFav}
-      isStudioPick={isStudioPick} hideSize={hideSize} atFavouriteLimit={atFavouriteLimit}
+      isStudioPick={isStudioPick} hideSize={hideSize} atFavouriteLimit={atFavouriteLimit} frozen={frozen}
       onDelete={onDelete} onHardDelete={onHardDelete} />
   }
   return (
     <CardView media={media} eventId={eventId} watermarkSrc={watermarkSrc}
       onClick={onClick} showFavourite={showFavourite} showTenantFav={showTenantFav}
-      isStudioPick={isStudioPick} hideSize={hideSize} atFavouriteLimit={atFavouriteLimit}
+      isStudioPick={isStudioPick} hideSize={hideSize} atFavouriteLimit={atFavouriteLimit} frozen={frozen}
       square={view === 'grid'} onDelete={onDelete} onHardDelete={onHardDelete} />
   )
 }

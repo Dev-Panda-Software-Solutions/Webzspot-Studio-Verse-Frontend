@@ -4,7 +4,8 @@ import { gsap } from 'gsap'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft, Users, UserPlus, UserCheck,
-  Calendar, Ban, CheckCircle2, ChevronDown, ChevronUp, Search, HardDrive, Download, Trash2
+  Calendar, Ban, CheckCircle2, ChevronDown, ChevronUp, Search, HardDrive, Download, Trash2,
+  Lock, Send, Unlock
 } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GoldButton from '../../components/ui/GoldButton'
@@ -17,9 +18,9 @@ import Avatar from '../../components/ui/Avatar'
 import Modal from '../../components/ui/Modal'
 import GoldInput from '../../components/ui/GoldInput'
 import PasswordStrength from '../../components/ui/PasswordStrength'
-import { getEventById, getEventFavouritesGrouped, getEventUsers, assignUserToEvent, updateEventUserMapping } from '../../api/events'
+import { getEventById, getEventFavouritesGrouped, getEventUsers, assignUserToEvent, updateEventUserMapping, hardDeleteUserFromEvent } from '../../api/events'
 import { getMediaByEvent, deleteMedia } from '../../api/media'
-import { createUserInEvent, getUsers, deleteUser, restoreUser, hardDeleteUser } from '../../api/users'
+import { createUserInEvent, getUsers } from '../../api/users'
 import { downloadFavouritesZip, downloadStudioFavouritesZip } from '../../api/media'
 import { getTenantSettings } from '../../api/tenants'
 import { getTenantFavouritesForEvent } from '../../api/favourites'
@@ -125,9 +126,10 @@ function AccessPanel({ mapping, onUpdate }) {
 }
 
 /* ── Client row ──────────────────────────────────────────── */
-function ClientRow({ mapping, onUpdate, onRevokeUser, onRestoreUser, onHardDeleteUser }) {
+function ClientRow({ mapping, onUpdate, onRevokeToggle, onHardDelete, onToggleSubmission }) {
   const u = mapping.user
-  const isRevoked = !u.isactive
+  const isRevoked = !mapping.isactive
+  const isSubmitted = !!mapping.favourites_submitted_at
   return (
     <div className="flex items-start gap-4 px-5 py-4 border-b transition-colors"
       style={{ borderColor: 'var(--border-subtle)' }}
@@ -139,31 +141,43 @@ function ClientRow({ mapping, onUpdate, onRevokeUser, onRestoreUser, onHardDelet
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{u.user_name}</p>
-          <AccessBadge access_expires={mapping.access_expires} isactive={u.isactive} />
+          <AccessBadge access_expires={mapping.access_expires} isactive={mapping.isactive} />
+          {isSubmitted ? (
+            <Badge variant="success"><Lock size={9} className="inline mr-0.5" />Submitted</Badge>
+          ) : (
+            <Badge variant="info">Not submitted</Badge>
+          )}
         </div>
         <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
           {u.user_email_id || u.user_phone_number || '—'}
         </p>
-        <div className="mt-1.5">
+        <div className="mt-1.5 flex items-center gap-3 flex-wrap">
           <AccessPanel mapping={mapping} onUpdate={onUpdate} />
+          <button
+            onClick={() => onToggleSubmission(mapping.event_user_id, isSubmitted, u.user_name)}
+            className="flex items-center gap-1 text-xs transition-colors"
+            style={{ color: isSubmitted ? '#FBBF24' : '#34D399' }}
+          >
+            {isSubmitted ? <><Unlock size={11} /> Unlock for editing</> : <><Send size={11} /> Submit for client</>}
+          </button>
         </div>
       </div>
 
-      {/* Revoke/Restore (disables or restores login system-wide) + permanent delete — always visible */}
+      {/* Revoke/Restore this event's access only (doesn't touch login or other events) + permanent removal — always visible */}
       <div className="flex-shrink-0 flex items-center gap-1">
         <button
-          onClick={() => isRevoked ? onRestoreUser(u.user_id, u.user_name) : onRevokeUser(u.user_id, u.user_name)}
+          onClick={() => onRevokeToggle(mapping.event_user_id, isRevoked, u.user_name)}
           className="p-1.5 rounded-lg transition-colors"
           style={{ color: isRevoked ? '#34D399' : '#F87171', background: isRevoked ? 'rgba(52,211,153,0.12)' : 'rgba(248,113,113,0.12)' }}
-          title={isRevoked ? 'Restore client (re-enable login)' : 'Revoke client (disable login everywhere)'}
+          title={isRevoked ? 'Restore access to this event' : 'Revoke access to this event (login and other events unaffected)'}
         >
           {isRevoked ? <CheckCircle2 size={14} /> : <Ban size={14} />}
         </button>
         <button
-          onClick={() => onHardDeleteUser(u.user_id, u.user_name)}
+          onClick={() => onHardDelete(mapping.event_user_id, u.user_name)}
           className="p-1.5 rounded-lg transition-colors"
           style={{ color: '#F87171', background: 'rgba(248,113,113,0.08)' }}
-          title="Permanently delete client"
+          title="Permanently remove this client from this event"
         >
           <Trash2 size={14} />
         </button>
@@ -204,7 +218,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
     setNewClient({ user_name: '', username: '', password: '', user_email_id: '', user_phone_number: '' })
   }
 
-  const handleClose = () => { reset(); onClose() }
+  const handleClose = () => { reset(); setMode('existing'); onClose() }
 
   const handleAssignExisting = async () => {
     if (!selected) return
@@ -257,6 +271,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
         ].map(({ key, label, icon: Icon }) => (
           <button
             key={key}
+            type="button"
             onClick={() => setMode(key)}
             className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all"
             style={{
@@ -296,6 +311,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
             ) : filtered.map(u => (
               <button
                 key={u.user_id}
+                type="button"
                 onClick={() => setSelected(selected?.user_id === u.user_id ? null : u)}
                 className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
                 style={{
@@ -465,10 +481,10 @@ export default function StudioEventDetail() {
   const favsGrouped = favsData?.data || []
   const tenantFavs = tenantFavsData?.data || []
 
-  // "Revoked" reflects the client's account itself (User.isactive) — revoking
-  // disables their login everywhere, not just access to this one event.
-  const activeClients = allMappings.filter(m => m.user?.isactive)
-  const revokedClients = allMappings.filter(m => !m.user?.isactive)
+  // "Revoked" reflects access to THIS event only (EventUserMapping.isactive) —
+  // it never touches the client's login or their access to other events.
+  const activeClients = allMappings.filter(m => m.isactive)
+  const revokedClients = allMappings.filter(m => !m.isactive)
 
   const handleUpdateAccess = async (mappingId, data) => {
     try {
@@ -479,31 +495,35 @@ export default function StudioEventDetail() {
     }
   }
 
-  const handleRevokeUser = async (userId, userName) => {
-    if (!window.confirm(`Revoke "${userName}"? They will be immediately unable to log in to the portal at all — not just this event.`)) return
+  const handleRevokeToggle = async (mappingId, restore, userName) => {
+    const action = restore ? 'Restore' : 'Revoke'
+    if (!window.confirm(`${action} "${userName}"'s access to this event? Their login and other events are unaffected.`)) return
     try {
-      await deleteUser(userId)
-      toast.success('Client revoked — login disabled')
+      await updateEventUserMapping(mappingId, { isactive: restore })
+      toast.success(`Access to this event ${restore ? 'restored' : 'revoked'}`)
       qc.invalidateQueries(['event-users', id])
-    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to revoke client') }
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to update access') }
   }
 
-  const handleRestoreUser = async (userId, userName) => {
-    if (!window.confirm(`Restore "${userName}"? They will regain login access immediately.`)) return
+  const handleHardDeleteMapping = async (mappingId, userName) => {
+    if (!window.confirm(`Permanently remove "${userName}" from this event? Their account and other events are unaffected. This cannot be undone.`)) return
     try {
-      await restoreUser(userId)
-      toast.success('Client restored')
+      await hardDeleteUserFromEvent(mappingId)
+      toast.success('Client removed from this event')
       qc.invalidateQueries(['event-users', id])
-    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to restore client') }
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to remove client') }
   }
 
-  const handleHardDeleteUser = async (userId, userName) => {
-    if (!window.confirm(`Permanently delete "${userName}"? This removes their account and login entirely and cannot be undone.`)) return
+  const handleToggleSubmission = async (mappingId, isSubmitted, userName) => {
+    const msg = isSubmitted
+      ? `Unlock "${userName}"'s favourites for editing? They'll be able to change their selection again, and you'll need to have them (or you) submit again when done.`
+      : `Submit favourites for "${userName}" now? This locks their current selection as final, as if they submitted it themselves.`
+    if (!window.confirm(msg)) return
     try {
-      await hardDeleteUser(userId)
-      toast.success('Client permanently deleted')
+      await updateEventUserMapping(mappingId, { favourites_submitted: !isSubmitted })
+      toast.success(isSubmitted ? 'Unlocked for editing' : 'Submitted on behalf of client')
       qc.invalidateQueries(['event-users', id])
-    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to delete client') }
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to update submission state') }
   }
 
   const handleDeleteMedia = async (mediaId, mediaName) => {
@@ -746,9 +766,9 @@ export default function StudioEventDetail() {
                         key={mapping.event_user_id}
                         mapping={mapping}
                         onUpdate={handleUpdateAccess}
-                        onRevokeUser={handleRevokeUser}
-                        onRestoreUser={handleRestoreUser}
-                        onHardDeleteUser={handleHardDeleteUser}
+                        onRevokeToggle={handleRevokeToggle}
+                        onHardDelete={handleHardDeleteMapping}
+                        onToggleSubmission={handleToggleSubmission}
                       />
                     ))}
                   </GlassCard>
@@ -774,9 +794,9 @@ export default function StudioEventDetail() {
                             key={mapping.event_user_id}
                             mapping={mapping}
                             onUpdate={handleUpdateAccess}
-                            onRevokeUser={handleRevokeUser}
-                            onRestoreUser={handleRestoreUser}
-                            onHardDeleteUser={handleHardDeleteUser}
+                            onRevokeToggle={handleRevokeToggle}
+                            onHardDelete={handleHardDeleteMapping}
+                            onToggleSubmission={handleToggleSubmission}
                           />
                         ))}
                       </GlassCard>

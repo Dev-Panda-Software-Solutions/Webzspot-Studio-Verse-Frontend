@@ -1,15 +1,16 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { gsap } from 'gsap'
-import { useQuery } from '@tanstack/react-query'
-import { Heart, Camera, Clock, Lock, ChevronDown, ChevronUp } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Heart, Camera, Clock, Lock, ArrowLeft, CheckCircle2, Send } from 'lucide-react'
 import PhotoGrid from '../../components/gallery/PhotoGrid'
+import EventFolderGrid from '../../components/gallery/EventFolderGrid'
 import FavouritesDrawer from '../../components/gallery/FavouritesDrawer'
 import ThemeToggle from '../../components/ui/ThemeToggle'
 import GoldButton from '../../components/ui/GoldButton'
 import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import { GalleryLoader } from '../../components/ui/StudioLoader'
-import { getEvents, getEventById } from '../../api/events'
+import { getEvents, getEventById, submitFavouritesForEvent } from '../../api/events'
 import { getMediaByEvent } from '../../api/media'
 import { getUserFavourites, getTenantFavouriteIdsForEventAsUser } from '../../api/favourites'
 import { getTenantSettings } from '../../api/tenants'
@@ -22,11 +23,12 @@ import toast from 'react-hot-toast'
 export default function Gallery() {
   const { eventId: paramEventId } = useParams()
   const navigate = useNavigate()
+  const qc = useQueryClient()
   const { user, logout: storeLogout } = useAuthStore()
   const { setFavourites, getFavouritedMediaIds } = useGalleryStore()
   const containerRef = useRef(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [switcherOpen, setSwitcherOpen] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const [mediaPage] = useState(1)
 
   // All events the user is assigned to (active + expired)
@@ -38,11 +40,12 @@ export default function Gallery() {
   const allUserEvents = eventsData?.data?.items || []
   const accessibleEvents = allUserEvents.filter(e => e._access?.has_current_access !== false)
 
-  // Auto-navigate to first accessible event if no URL param
+  // Skip straight to the gallery only when there's exactly one event — with
+  // more than one, land on the folder-grid picker instead of guessing which
+  // event the client meant to open.
   useEffect(() => {
-    if (!paramEventId && eventsData) {
-      const first = accessibleEvents[0]
-      if (first?.event_id) navigate(`/gallery/${first.event_id}`, { replace: true })
+    if (!paramEventId && eventsData && accessibleEvents.length === 1) {
+      navigate(`/gallery/${accessibleEvents[0].event_id}`, { replace: true })
     }
   }, [paramEventId, eventsData])
 
@@ -52,6 +55,7 @@ export default function Gallery() {
   const currentAccess = allUserEvents.find(e => e.event_id === activeEventId)?._access
   const isLocked = currentAccess ? currentAccess.has_current_access === false : false
   const favouriteLimit = currentAccess?.favourite_limit ?? null
+  const isSubmitted = !!currentAccess?.favourites_submitted_at
 
   // Expiry warning (for events that will expire soon but aren't expired yet)
   const expiresDate = currentAccess?.access_expires ? new Date(currentAccess.access_expires) : null
@@ -131,10 +135,24 @@ export default function Gallery() {
     toast.success('Logged out')
   }
 
-  const handleSwitchEvent = (ev) => {
-    if (ev._access?.has_current_access === false) return
-    navigate(`/gallery/${ev.event_id}`)
-    setSwitcherOpen(false)
+  const handleSubmitFavourites = async () => {
+    if (!currentAccess?.event_user_id) return
+    const count = getFavouritedMediaIds().size
+    if (!window.confirm(
+      count > 0
+        ? `Submit your ${count} favourite${count === 1 ? '' : 's'}? Once submitted, you won't be able to change your selection unless your studio unlocks it.`
+        : "Submit with no favourites selected? Once submitted, you won't be able to add any unless your studio unlocks it."
+    )) return
+    setSubmitting(true)
+    try {
+      await submitFavouritesForEvent(currentAccess.event_user_id)
+      toast.success('Favourites submitted!')
+      qc.invalidateQueries(['user-events'])
+    } catch (err) {
+      toast.error(typeof err === 'string' ? err : 'Failed to submit favourites')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   if (eventsLoading || (!paramEventId && !eventsData)) {
@@ -142,6 +160,9 @@ export default function Gallery() {
   }
 
   const hasMultiple = allUserEvents.length > 1
+  // Folder-grid picker shows whenever there isn't exactly one accessible event to
+  // auto-open — either multiple to choose from, or none accessible (all locked).
+  const showFolderGrid = !activeEventId && allUserEvents.length > 0 && accessibleEvents.length !== 1
 
   return (
     <div ref={containerRef} className="min-h-screen grain" style={{ background: 'var(--bg-base)' }}>
@@ -161,81 +182,78 @@ export default function Gallery() {
           )}
         </div>
 
-        {/* Center: event name — dropdown trigger if multiple events */}
-        {hasMultiple ? (
+        {/* Center: event name, with a way back to the folder grid if there's more than one event */}
+        {!showFolderGrid && activeEventId && hasMultiple ? (
           <button
-            onClick={() => setSwitcherOpen(v => !v)}
+            onClick={() => navigate('/gallery')}
             className="font-display italic text-xl text-gold-500 absolute left-1/2 -translate-x-1/2
               flex items-center gap-1.5 hover:text-gold-400 transition-colors whitespace-nowrap"
+            title="Back to all events"
           >
+            <ArrowLeft size={15} />
             {eventName}
-            {switcherOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
-        ) : (
+        ) : !showFolderGrid ? (
           <h1 className="font-display italic text-xl text-gold-500 absolute left-1/2 -translate-x-1/2 whitespace-nowrap">
             {eventName}
+          </h1>
+        ) : (
+          <h1 className="font-display italic text-xl text-gold-500 absolute left-1/2 -translate-x-1/2 whitespace-nowrap">
+            My Events
           </h1>
         )}
 
         {/* Right: favourites + theme + logout */}
         <div className="flex items-center gap-2">
-          {favouriteLimit != null && (
+          {!showFolderGrid && favouriteLimit != null && (
             <span className="text-xs font-medium whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>
               {getFavouritedMediaIds().size} / {favouriteLimit} selected
             </span>
           )}
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="relative p-2 rounded-full hover:bg-[var(--accent-muted)] transition-colors"
-          >
-            <Heart size={18} className="text-[var(--text-secondary)]" />
-            {getFavouritedMediaIds().size > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-gold-500 text-obsidian-base text-xs
-                rounded-full flex items-center justify-center font-bold">
-                {getFavouritedMediaIds().size}
+          {!showFolderGrid && !isLocked && (
+            isSubmitted ? (
+              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap"
+                style={{ background: 'rgba(52,211,153,0.12)', color: '#34D399', border: '1px solid rgba(52,211,153,0.3)' }}>
+                <CheckCircle2 size={12} /> Submitted
               </span>
-            )}
-          </button>
+            ) : (
+              <GoldButton size="sm" icon={<Send size={12} />} loading={submitting} onClick={handleSubmitFavourites}>
+                Submit
+              </GoldButton>
+            )
+          )}
+          {!showFolderGrid && (
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="relative p-2 rounded-full hover:bg-[var(--accent-muted)] transition-colors"
+            >
+              <Heart size={18} className="text-[var(--text-secondary)]" />
+              {getFavouritedMediaIds().size > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-gold-500 text-obsidian-base text-xs
+                  rounded-full flex items-center justify-center font-bold">
+                  {getFavouritedMediaIds().size}
+                </span>
+              )}
+            </button>
+          )}
           <ThemeToggle />
           <GoldButton size="sm" variant="ghost" onClick={handleLogout}>Sign Out</GoldButton>
         </div>
       </header>
 
-      {/* Event switcher panel */}
-      {switcherOpen && hasMultiple && (
-        <div className="sticky top-[65px] z-20 px-4 py-3"
-          style={{ background: 'rgba(10,10,11,0.97)', borderBottom: '1px solid var(--border-subtle)' }}>
-          <p className="text-xs text-[var(--text-tertiary)] mb-2 px-1 uppercase tracking-widest">Your Events</p>
-          <div className="flex flex-wrap gap-2">
-            {allUserEvents.map(ev => {
-              const isCurrent = ev.event_id === activeEventId
-              const locked = ev._access?.has_current_access === false
-              return (
-                <button
-                  key={ev.event_id}
-                  onClick={() => handleSwitchEvent(ev)}
-                  disabled={locked}
-                  title={locked ? 'Access expired — contact your studio' : undefined}
-                  className={[
-                    'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all border',
-                    isCurrent
-                      ? 'border-gold-500 text-gold-500 bg-[rgba(212,175,55,0.12)]'
-                      : locked
-                        ? 'border-[var(--border-subtle)] text-[var(--text-tertiary)] opacity-50 cursor-not-allowed'
-                        : 'border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-gold-500/50 hover:text-gold-500 cursor-pointer',
-                  ].join(' ')}
-                >
-                  {locked && <Lock size={11} />}
-                  {ev.event_name}
-                </button>
-              )
-            })}
-          </div>
+      {/* Submitted banner — favourites are frozen */}
+      {!showFolderGrid && isSubmitted && !isLocked && (
+        <div className="px-6 py-2.5 flex items-center gap-3"
+          style={{ background: 'rgba(52,211,153,0.08)', borderBottom: '1px solid rgba(52,211,153,0.2)' }}>
+          <CheckCircle2 size={14} style={{ color: '#34D399', flexShrink: 0 }} />
+          <p className="text-xs" style={{ color: '#34D399' }}>
+            Your favourites have been submitted and are locked. Contact your studio if you need to make changes.
+          </p>
         </div>
       )}
 
       {/* Expiry warning (soon but not yet expired) */}
-      {expiringSoon && !isLocked && (
+      {!showFolderGrid && expiringSoon && !isLocked && (
         <div className="px-6 py-2.5 flex items-center gap-3"
           style={{ background: 'rgba(251,191,36,0.10)', borderBottom: '1px solid rgba(251,191,36,0.25)' }}>
           <Clock size={14} style={{ color: '#FBBF24', flexShrink: 0 }} />
@@ -258,6 +276,11 @@ export default function Gallery() {
           </div>
         )}
 
+        {/* Folder grid — pick which event to open */}
+        {showFolderGrid && (
+          <EventFolderGrid events={allUserEvents} onOpen={(id) => navigate(`/gallery/${id}`)} />
+        )}
+
         {/* Access expired for this event */}
         {activeEventId && isLocked && (
           <div className="py-24 flex flex-col items-center text-center">
@@ -269,10 +292,8 @@ export default function Gallery() {
             <p className="text-[var(--text-secondary)] max-w-sm mb-6">
               Your access to this event has expired. Contact your studio to renew it.
             </p>
-            {accessibleEvents.length > 0 && (
-              <GoldButton onClick={() => navigate(`/gallery/${accessibleEvents[0].event_id}`)}>
-                View {accessibleEvents[0].event_name}
-              </GoldButton>
+            {hasMultiple && (
+              <GoldButton onClick={() => navigate('/gallery')}>View Your Events</GoldButton>
             )}
           </div>
         )}
@@ -288,6 +309,7 @@ export default function Gallery() {
             studioFavouriteIds={studioFavouriteIds}
             favouriteLimit={favouriteLimit}
             favouritedCount={getFavouritedMediaIds().size}
+            frozen={isSubmitted}
           />
         )}
 

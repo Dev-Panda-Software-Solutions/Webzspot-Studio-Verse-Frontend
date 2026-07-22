@@ -11,6 +11,8 @@ export const getEventUsers = (eventId) => api.get(`/event-user-mapping/event/${e
 export const assignUserToEvent = (data) => api.post('/event-user-mapping', data)
 export const updateEventUserMapping = (id, data) => api.patch(`/event-user-mapping/${id}`, data)
 export const removeUserFromEvent = (id) => api.delete(`/event-user-mapping/${id}`)
+export const hardDeleteUserFromEvent = (id) => api.delete(`/event-user-mapping/hard/${id}`)
+export const submitFavouritesForEvent = (mappingId) => api.post(`/event-user-mapping/${mappingId}/submit`)
 
 export const getEventFavouritesGrouped = (eventId) => api.get(`/favourites/event/${eventId}/grouped`)
 export const getEventStats = () => api.get('/events/stats')

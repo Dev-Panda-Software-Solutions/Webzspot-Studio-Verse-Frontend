@@ -42,20 +42,20 @@ function ConfettiPiece({ angle, distance, rect, w, h, color }) {
   )
 }
 
-export default function FavouriteButton({ mediaId, eventId, size = 16, atLimit = false }) {
+export default function FavouriteButton({ mediaId, eventId, size = 16, atLimit = false, frozen = false }) {
   const { isFavourited, getFavId, addFavourite: addLocal, removeFavourite: removeLocal } = useGalleryStore()
   const [burst, setBurst] = useState(false)
   const heartRef = useRef(null)
   // Ref-based lock prevents double-tap creating duplicate DB rows before React batches state
   const pendingRef = useRef(false)
   const fav = isFavourited(mediaId)
-  const blocked = atLimit && !fav
+  const blocked = frozen || (atLimit && !fav)
 
   const handleClick = async (e) => {
     e.stopPropagation()
     if (pendingRef.current) return
     if (blocked) {
-      toast.error('Favourite limit reached for this event')
+      toast.error(frozen ? 'Your favourites have been submitted and are locked' : 'Favourite limit reached for this event')
       return
     }
     pendingRef.current = true
@@ -100,7 +100,7 @@ export default function FavouriteButton({ mediaId, eventId, size = 16, atLimit =
         ref={heartRef}
         onClick={handleClick}
         onKeyDown={(e) => { if (e.key === ' ') e.preventDefault() }}
-        title={blocked ? 'Favourite limit reached for this event' : undefined}
+        title={blocked ? (frozen ? 'Favourites submitted — locked' : 'Favourite limit reached for this event') : undefined}
         className={`p-2 rounded-full transition-all duration-200
           ${fav ? 'bg-gold-500/20' : 'bg-black/30 hover:bg-black/50'} ${blocked ? 'opacity-40 cursor-not-allowed' : ''}`}
       >
