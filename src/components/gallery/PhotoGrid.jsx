@@ -26,6 +26,7 @@ export default function PhotoGrid({
   favouritedCount = 0,
   frozen = false,
   onDelete,
+  onRestore,
   onHardDelete,
 }) {
   const atFavouriteLimit = favouriteLimit != null && favouritedCount >= favouriteLimit
@@ -91,6 +92,7 @@ export default function PhotoGrid({
     atFavouriteLimit,
     frozen,
     onDelete,
+    onRestore,
     onHardDelete,
     onClick: (m) => setLightboxIndex(displayList.findIndex(x => x.media_id === m.media_id)),
   })

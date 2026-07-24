@@ -19,7 +19,7 @@ import Modal from '../../components/ui/Modal'
 import GoldInput from '../../components/ui/GoldInput'
 import PasswordStrength from '../../components/ui/PasswordStrength'
 import { getEventById, getEventFavouritesGrouped, getEventUsers, assignUserToEvent, updateEventUserMapping, hardDeleteUserFromEvent } from '../../api/events'
-import { getMediaByEvent, deleteMedia } from '../../api/media'
+import { getMediaByEvent, deleteMedia, restoreMedia, hardDeleteMedia } from '../../api/media'
 import { createUserInEvent, getUsers } from '../../api/users'
 import { downloadFavouritesZip, downloadStudioFavouritesZip } from '../../api/media'
 import { getTenantSettings } from '../../api/tenants'
@@ -416,6 +416,7 @@ export default function StudioEventDetail() {
   const [tab, setTab] = useState('Media')
   const [addClientOpen, setAddClientOpen] = useState(false)
   const [mediaPage, setMediaPage] = useState(1)
+  const [mediaStatus, setMediaStatus] = useState('active')
   const [showRevoked, setShowRevoked] = useState(false)
   const [dlProgress, setDlProgress] = useState(null) // { label, percent, speedMBps, etaSec }
 
@@ -424,8 +425,8 @@ export default function StudioEventDetail() {
     queryFn: () => getEventById(id)
   })
   const { data: mediaData, isLoading: mediaLoading, refetch: refetchMedia } = useQuery({
-    queryKey: ['event-media', id, mediaPage],
-    queryFn: () => getMediaByEvent(id, { page: mediaPage, limit: 30 }),
+    queryKey: ['event-media', id, mediaPage, mediaStatus],
+    queryFn: () => getMediaByEvent(id, { page: mediaPage, limit: 30, status: mediaStatus }),
     // Pre-signed S3 URLs expire after ~30s — refetch ahead of that while this tab is visible.
     refetchInterval: tab === 'Media' ? 25_000 : false,
   })
@@ -534,6 +535,25 @@ export default function StudioEventDetail() {
       refetchMedia()
       qc.invalidateQueries(['event-media', id])
     } catch { toast.error('Failed to archive file') }
+  }
+
+  const handleRestoreMedia = async (mediaId, mediaName) => {
+    try {
+      await restoreMedia(mediaId)
+      toast.success(`"${mediaName || 'File'}" restored`)
+      refetchMedia()
+      qc.invalidateQueries(['event-media', id])
+    } catch { toast.error('Failed to restore file') }
+  }
+
+  const handleHardDeleteMedia = async (mediaId, mediaName) => {
+    if (!window.confirm(`Permanently delete "${mediaName || 'this file'}"? This cannot be undone.`)) return
+    try {
+      await hardDeleteMedia(mediaId)
+      toast.success('File permanently deleted')
+      refetchMedia()
+      qc.invalidateQueries(['event-media', id])
+    } catch { toast.error('Failed to permanently delete file') }
   }
 
   const sanitizeForFilename = (name) =>
@@ -708,6 +728,28 @@ export default function StudioEventDetail() {
             <div className="mb-6">
               <UploadDropzone eventId={id} onComplete={() => { refetchMedia(); qc.invalidateQueries(['event-media', id]); qc.invalidateQueries(['tenant-subscription']) }} />
             </div>
+
+            <div className="flex gap-1 p-1 rounded-xl mb-5 w-fit" style={{ background: 'var(--bg-elevated)' }}>
+              {[
+                { key: 'active', label: 'Active' },
+                { key: 'archived', label: 'Archived' },
+                { key: 'all', label: 'All' },
+              ].map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => { setMediaStatus(key); setMediaPage(1) }}
+                  className="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
+                  style={{
+                    background: mediaStatus === key ? 'var(--bg-surface)' : 'transparent',
+                    color: mediaStatus === key ? '#F59E0B' : 'var(--text-secondary)',
+                    boxShadow: mediaStatus === key ? '0 1px 3px rgba(0,0,0,0.2)' : 'none',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
             <PhotoGrid
               mediaList={mediaList}
               eventId={id}
@@ -716,6 +758,8 @@ export default function StudioEventDetail() {
               showFavourite={false}
               showTenantFav={true}
               onDelete={handleDeleteMedia}
+              onRestore={handleRestoreMedia}
+              onHardDelete={handleHardDeleteMedia}
             />
           </div>
         )}

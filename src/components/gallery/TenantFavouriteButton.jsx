@@ -42,47 +42,51 @@ function ConfettiPiece({ angle, distance, rect, w, h, color }) {
 }
 
 export default function TenantFavouriteButton({ mediaId, eventId, size = 16 }) {
-  const { isFavourited, getFavId, add, remove } = useTenantFavouriteStore()
+  const { isFavourited, getFavId, add, remove, isPending, setPending } = useTenantFavouriteStore()
   const [burst, setBurst] = useState(false)
-  const [pending, setPending] = useState(false)
   const heartRef = useRef(null)
   const fav = isFavourited(mediaId)
+  // Shared with the Lightbox's spacebar handler (tenantFavouriteStore.pendingIds)
+  // so a click and a space-press on the same photo serialize instead of racing.
+  const pending = isPending(mediaId)
 
   const handleClick = async (e) => {
     e.stopPropagation()
     if (pending) return
-    setPending(true)
+    setPending(mediaId, true)
 
-    if (fav) {
-      const favId = getFavId(mediaId)
-      remove(mediaId)
-      try {
-        await removeTenantFavourite(favId)
-      } catch {
-        add(mediaId, favId)
-        toast.error('Could not remove favourite')
-      }
-    } else {
-      const tempId = `temp-${mediaId}`
-      add(mediaId, tempId)
-      setBurst(true)
-      setTimeout(() => setBurst(false), 700)
-      gsap.fromTo(heartRef.current,
-        { scale: 1 },
-        { scale: 1.6, duration: 0.18, yoyo: true, repeat: 1, ease: 'power2.out' }
-      )
-      try {
-        const res = await addTenantFavourite({ event_id: eventId, media_id: mediaId })
-        // res is already the JSON body { success, data: favourite, message }
-        const realId = res?.data?.tenant_favourite_id
-        if (realId) add(mediaId, realId)
-      } catch {
+    try {
+      if (fav) {
+        const favId = getFavId(mediaId)
         remove(mediaId)
-        toast.error('Could not add favourite')
+        try {
+          await removeTenantFavourite(favId)
+        } catch {
+          add(mediaId, favId)
+          toast.error('Could not remove favourite')
+        }
+      } else {
+        const tempId = `temp-${mediaId}`
+        add(mediaId, tempId)
+        setBurst(true)
+        setTimeout(() => setBurst(false), 700)
+        gsap.fromTo(heartRef.current,
+          { scale: 1 },
+          { scale: 1.6, duration: 0.18, yoyo: true, repeat: 1, ease: 'power2.out' }
+        )
+        try {
+          const res = await addTenantFavourite({ event_id: eventId, media_id: mediaId })
+          // res is already the JSON body { success, data: favourite, message }
+          const realId = res?.data?.tenant_favourite_id
+          if (realId) add(mediaId, realId)
+        } catch {
+          remove(mediaId)
+          toast.error('Could not add favourite')
+        }
       }
+    } finally {
+      setPending(mediaId, false)
     }
-
-    setPending(false)
   }
 
   return (

@@ -43,22 +43,23 @@ function ConfettiPiece({ angle, distance, rect, w, h, color }) {
 }
 
 export default function FavouriteButton({ mediaId, eventId, size = 16, atLimit = false, frozen = false }) {
-  const { isFavourited, getFavId, addFavourite: addLocal, removeFavourite: removeLocal } = useGalleryStore()
+  const { isFavourited, getFavId, addFavourite: addLocal, removeFavourite: removeLocal, isPending, setPending } = useGalleryStore()
   const [burst, setBurst] = useState(false)
   const heartRef = useRef(null)
-  // Ref-based lock prevents double-tap creating duplicate DB rows before React batches state
-  const pendingRef = useRef(false)
   const fav = isFavourited(mediaId)
+  // Shared with the Lightbox's spacebar handler (galleryStore.pendingIds) so a
+  // click and a space-press on the same photo serialize instead of racing.
+  const pending = isPending(mediaId)
   const blocked = frozen || (atLimit && !fav)
 
   const handleClick = async (e) => {
     e.stopPropagation()
-    if (pendingRef.current) return
+    if (pending) return
     if (blocked) {
       toast.error(frozen ? 'Your favourites have been submitted and are locked' : 'Favourite limit reached for this event')
       return
     }
-    pendingRef.current = true
+    setPending(mediaId, true)
 
     try {
       if (fav) {
@@ -89,7 +90,7 @@ export default function FavouriteButton({ mediaId, eventId, size = 16, atLimit =
         }
       }
     } finally {
-      pendingRef.current = false
+      setPending(mediaId, false)
     }
   }
 

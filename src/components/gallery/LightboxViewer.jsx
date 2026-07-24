@@ -74,17 +74,30 @@ function HeartFlash({ adding }) {
 
 function LightboxImage({ media, watermarkSrc }) {
   const mediaId = media?.media_id
-  const { token } = useMediaToken(media?.media_url ? null : mediaId)
+  // Prefer the direct pre-signed S3 url; fall back to the token-serve path (fetched
+  // fresh, so it can't be stale) if that url has expired or otherwise fails to load —
+  // a photo left open in the lightbox can easily outlive the ~30s presigned URL.
+  const [useFallback, setUseFallback] = useState(false)
+  const { token } = useMediaToken(useFallback || !media?.media_url ? mediaId : null)
   const [loaded, setLoaded] = useState(false)
+  const [errored, setErrored] = useState(false)
 
-  useEffect(() => { setLoaded(false) }, [mediaId])
+  useEffect(() => { setLoaded(false); setUseFallback(false); setErrored(false) }, [mediaId])
 
-  const src = media?.media_url || (token ? mediaViewUrl(token) : null)
+  const src = (!useFallback && media?.media_url) || (token ? mediaViewUrl(token) : null)
+
+  const handleError = () => {
+    if (!useFallback) { setUseFallback(true); return }
+    setErrored(true)
+  }
 
   return (
     <div className="relative flex items-center justify-center select-none">
-      {!loaded && <div className="skeleton rounded-lg" style={{ width: 500, height: 380 }} />}
-      {src && (
+      {!loaded && !errored && <div className="skeleton rounded-lg" style={{ width: 500, height: 380 }} />}
+      {errored && (
+        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Couldn't load this photo. Try again in a moment.</p>
+      )}
+      {src && !errored && (
         <div className="relative" onContextMenu={(e) => e.preventDefault()}>
           <img
             src={src}
@@ -92,6 +105,7 @@ function LightboxImage({ media, watermarkSrc }) {
             draggable={false}
             onContextMenu={(e) => e.preventDefault()}
             onLoad={() => setLoaded(true)}
+            onError={handleError}
             className={`max-h-[80vh] max-w-[85vw] object-contain rounded-lg
               transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
             style={{ pointerEvents: 'none', userSelect: 'none', WebkitUserSelect: 'none' }}
@@ -110,15 +124,27 @@ function LightboxImage({ media, watermarkSrc }) {
 
 function LightboxVideo({ media, watermarkSrc }) {
   const mediaId = media?.media_id
-  const { token } = useMediaToken(media?.media_url ? null : mediaId)
-  const src = media?.media_url || (token ? mediaViewUrl(token) : null)
+  const [useFallback, setUseFallback] = useState(false)
+  const { token } = useMediaToken(useFallback || !media?.media_url ? mediaId : null)
+  const [errored, setErrored] = useState(false)
+
+  useEffect(() => { setUseFallback(false); setErrored(false) }, [mediaId])
+
+  const src = (!useFallback && media?.media_url) || (token ? mediaViewUrl(token) : null)
+
+  const handleError = () => {
+    if (!useFallback) { setUseFallback(true); return }
+    setErrored(true)
+  }
 
   return (
     <div
       className="relative flex items-center justify-center select-none"
       onContextMenu={(e) => e.preventDefault()}
     >
-      {src ? (
+      {errored ? (
+        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>Couldn't load this video. Try again in a moment.</p>
+      ) : src ? (
         <div className="relative" onContextMenu={(e) => e.preventDefault()}>
           <video
             key={src}
@@ -130,6 +156,7 @@ function LightboxVideo({ media, watermarkSrc }) {
             disablePictureInPicture
             disableRemotePlayback
             onContextMenu={(e) => e.preventDefault()}
+            onError={handleError}
             style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
           />
           <div className="absolute inset-0 pointer-events-none select-none"
@@ -158,7 +185,6 @@ export default function LightboxViewer({
 }) {
   const hideSize = showFavourite && !showTenantFav
   const panelRef = useRef(null)
-  const pendingFav = useRef(false)
   const [heartFlash, setHeartFlash] = useState(null) // null | { adding: bool, key: number }
   const flashHeart = (adding) => {
     setHeartFlash({ adding, key: Date.now() })
@@ -203,12 +229,16 @@ export default function LightboxViewer({
         e.preventDefault()
         if (!media || isVideo(media)) return
         if (!showFavourite && !showTenantFav) return
-        if (pendingFav.current) return
-        pendingFav.current = true
+
+        // Shared lock with the heart button's own click handler (same store) so a
+        // click and a space-press on the same photo serialize instead of racing.
+        const store = showTenantFav ? useTenantFavouriteStore.getState() : useGalleryStore.getState()
+        if (store.isPending(media.media_id)) return
+        store.setPending(media.media_id, true)
 
         try {
           if (showTenantFav) {
-            const ts = useTenantFavouriteStore.getState()
+            const ts = store
             const fav = ts.isFavourited(media.media_id)
             if (fav) {
               const favId = ts.getFavId(media.media_id)
@@ -236,9 +266,10 @@ export default function LightboxViewer({
           } else if (showFavourite) {
             if (frozen) {
               toast.error('Your favourites have been submitted and are locked')
+              store.setPending(media.media_id, false)
               return
             }
-            const gs = useGalleryStore.getState()
+            const gs = store
             const fav = gs.isFavourited(media.media_id)
             if (fav) {
               // Use the stored favourite record ID — NOT media_id (backend lookup by PK)
@@ -268,7 +299,7 @@ export default function LightboxViewer({
             }
           }
         } finally {
-          pendingFav.current = false
+          store.setPending(media.media_id, false)
         }
       }
     }

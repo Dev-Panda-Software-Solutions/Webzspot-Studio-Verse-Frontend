@@ -77,6 +77,7 @@ export const uploadLargeMedia = async ({ eventId, file, onProgress }) => {
   }
 }
 export const deleteMedia = (id) => api.delete(`/uploaded-media/${id}`)
+export const restoreMedia = (id) => api.put(`/uploaded-media/${id}/restore`)
 export const hardDeleteMedia = (id) => api.delete(`/uploaded-media/hard/${id}`)
 
 export const getMediaToken = (mediaId) => api.get(`/media/token/${mediaId}`)

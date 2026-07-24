@@ -10,6 +10,18 @@ const useGalleryStore = create((set, get) => ({
   // Derived Set kept in sync — backward compat for components using .has() / .size
   favouriteIds: new Set(),
 
+  // Shared in-flight lock per media_id — the heart button (click) and the
+  // Lightbox (spacebar) both toggle the same favourite but previously used
+  // separate local refs, so a click and a space-press in quick succession
+  // could race each other instead of serializing. This makes them share one lock.
+  pendingIds: new Set(),
+  isPending: (mediaId) => get().pendingIds.has(mediaId),
+  setPending: (mediaId, pending) => set(s => {
+    const next = new Set(s.pendingIds)
+    if (pending) next.add(mediaId); else next.delete(mediaId)
+    return { pendingIds: next }
+  }),
+
   setToken: (mediaId, token) => set(s => ({
     tokens: { ...s.tokens, [mediaId]: { token, issuedAt: Date.now() } }
   })),
@@ -46,7 +58,7 @@ const useGalleryStore = create((set, get) => ({
   getFavId: (mediaId) => get().favourites[mediaId],
   getFavouritedMediaIds: () => new Set(Object.keys(get().favourites)),
 
-  reset: () => set({ tokens: {}, favourites: {}, favouriteIds: new Set() }),
+  reset: () => set({ tokens: {}, favourites: {}, favouriteIds: new Set(), pendingIds: new Set() }),
 }))
 
 export default useGalleryStore
