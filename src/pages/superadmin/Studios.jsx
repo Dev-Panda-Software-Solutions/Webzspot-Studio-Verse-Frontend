@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, Archive, Trash2, RotateCcw } from 'lucide-react'
+import { Building2, Archive, Trash2, RotateCcw, Copy, CheckCircle2, HardDriveDownload } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import PageHeader from '../../components/layout/PageHeader'
 import GlassCard from '../../components/ui/GlassCard'
@@ -9,27 +9,45 @@ import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import Badge from '../../components/ui/Badge'
 import Modal from '../../components/ui/Modal'
 import GoldInput from '../../components/ui/GoldInput'
-import PasswordStrength from '../../components/ui/PasswordStrength'
-import { getTenants, createTenant, deleteTenant, hardDeleteTenant, restoreTenant } from '../../api/tenants'
-import { formatDate } from '../../utils/formatters'
+import { getTenants, createTenant, deleteTenant, hardDeleteTenant, restoreTenant, deleteTenantStorage } from '../../api/tenants'
+import { getDashboardAnalytics } from '../../api/events'
+import { formatDate, formatFileSize, planLabel, planStatusVariant } from '../../utils/formatters'
 import toast from 'react-hot-toast'
+
+const formatStorageKb = (kb = 0) => formatFileSize((Number(kb) || 0) * 1024)
+
+const BLANK_FORM = { tenant_studio_name: '', tenant_name: '', tenant_email_id: '', tenant_phone_number: '', tenant_studio_address: '', username: '' }
 
 export default function AdminStudios() {
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
   const [status, setStatus] = useState('active')
   const [createOpen, setCreateOpen] = useState(false)
-  const [form, setForm] = useState({ tenant_studio_name: '', tenant_name: '', tenant_email_id: '', tenant_phone_number: '', username: '', password: '' })
+  const [form, setForm] = useState(BLANK_FORM)
   const [creating, setCreating] = useState(false)
+  // One-time reveal of the auto-generated login password for a just-created studio —
+  // the super admin no longer sets a password on this form (moved to Settings for
+  // account-level password changes), so the backend mints one and we show it once.
+  const [generatedCreds, setGeneratedCreds] = useState(null)
+  const [copied, setCopied] = useState(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['tenants', page, status],
     queryFn: () => getTenants({ page, limit: 10, status })
   })
+  // Storage-per-studio isn't tracked on the tenant row itself — reuse the
+  // same aggregation the Dashboard already computes rather than duplicating it.
+  const { data: analyticsData } = useQuery({
+    queryKey: ['super-admin-analytics'],
+    queryFn: getDashboardAnalytics,
+    staleTime: 60_000,
+  })
 
   const items = data?.data?.items || []
   const total = data?.data?.total || 0
   const pages = data?.data?.pages || 1
+  const storageByStudio = analyticsData?.data?.storage_summary?.by_studio || []
+  const storageByTenantId = Object.fromEntries(storageByStudio.map(s => [s.tenant_id, s]))
 
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -37,13 +55,25 @@ export default function AdminStudios() {
     e.preventDefault()
     setCreating(true)
     try {
-      await createTenant(form)
+      const res = await createTenant(form)
       toast.success('Studio created')
       qc.invalidateQueries(['tenants'])
       setCreateOpen(false)
-      setForm({ tenant_studio_name: '', tenant_name: '', tenant_email_id: '', tenant_phone_number: '', username: '', password: '' })
+      setForm(BLANK_FORM)
+      const generatedPassword = res?.data?.generated_password
+      if (generatedPassword) {
+        setGeneratedCreds({ username: form.username, password: generatedPassword })
+        setCopied(false)
+      }
     } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to create studio') }
     finally { setCreating(false) }
+  }
+
+  const copyCreds = () => {
+    if (!generatedCreds) return
+    navigator.clipboard.writeText(`Username: ${generatedCreds.username}\nPassword: ${generatedCreds.password}`)
+      .then(() => { setCopied(true); toast.success('Copied to clipboard') })
+      .catch(() => toast.error('Could not copy — copy manually'))
   }
 
   const handleArchive = async (tenantId, studioName) => {
@@ -71,6 +101,15 @@ export default function AdminStudios() {
       toast.success('Studio permanently deleted')
       qc.invalidateQueries(['tenants'])
     } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed') }
+  }
+
+  const handleDeleteStorage = async (tenantId, studioName) => {
+    if (!window.confirm(`Delete ALL uploaded photos/videos for "${studioName}"? This frees up their storage but cannot be undone — the studio and its events stay intact.`)) return
+    try {
+      const res = await deleteTenantStorage(tenantId)
+      toast.success(res?.message || 'Storage deleted')
+      qc.invalidateQueries(['super-admin-analytics'])
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to delete storage') }
   }
 
   return (
@@ -106,7 +145,7 @@ export default function AdminStudios() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
-                {['Studio', 'Owner', 'Email', 'Created', 'Status', ''].map(h => (
+                {['Studio', 'Owner', 'Plan', 'Storage', 'Created', 'Status', ''].map(h => (
                   <th key={h} className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">
                     {h}
                   </th>
@@ -115,10 +154,12 @@ export default function AdminStudios() {
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={6} className="p-4">
+                <tr><td colSpan={7} className="p-4">
                   {[...Array(5)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}
                 </td></tr>
-              ) : items.map(t => (
+              ) : items.map(t => {
+                const storageEntry = storageByTenantId[t.tenant_id]
+                return (
                 <tr key={t.tenant_id}
                   className="border-b hover:bg-[var(--bg-elevated)] transition-colors group"
                   style={{ borderColor: 'var(--border-subtle)' }}>
@@ -129,18 +170,33 @@ export default function AdminStudios() {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-[var(--text-primary)]">{t.tenant_studio_name}</p>
-                        <p className="text-xs text-[var(--text-tertiary)]">{t.tenant_name}</p>
+                        <p className="text-xs text-[var(--text-tertiary)]">{t.tenant_email_id || '—'}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{t.tenant_name}</td>
-                  <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{t.tenant_email_id || '—'}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="gold">{planLabel(t.subscription)}</Badge>
+                      {t.subscription && <Badge variant={planStatusVariant(t.subscription.status)}>{t.subscription.status}</Badge>}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
+                    {storageEntry ? formatStorageKb(storageEntry.stored_kb) : '—'}
+                  </td>
                   <td className="px-6 py-4 text-sm text-[var(--text-tertiary)]">{formatDate(t.createdAt)}</td>
                   <td className="px-6 py-4">
                     <Badge variant={t.isactive ? 'success' : 'error'}>{t.isactive ? 'Active' : 'Archived'}</Badge>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {storageEntry?.stored_kb > 0 && (
+                        <button onClick={() => handleDeleteStorage(t.tenant_id, t.tenant_studio_name)}
+                          title="Delete studio's storage/files"
+                          className="p-1.5 text-[var(--text-tertiary)] hover:text-orange-400 transition-colors">
+                          <HardDriveDownload size={14} />
+                        </button>
+                      )}
                       {t.isactive ? (
                         <button onClick={() => handleArchive(t.tenant_id, t.tenant_studio_name)}
                           title="Archive studio"
@@ -162,7 +218,7 @@ export default function AdminStudios() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         </div>
@@ -182,16 +238,40 @@ export default function AdminStudios() {
         <form onSubmit={handleCreate}>
           <GoldInput label="Studio Name *" name="tenant_studio_name" value={form.tenant_studio_name} onChange={e => update('tenant_studio_name', e.target.value)} />
           <GoldInput label="Owner Name *" name="tenant_name" value={form.tenant_name} onChange={e => update('tenant_name', e.target.value)} />
-          <GoldInput label="Email" name="tenant_email_id" type="email" value={form.tenant_email_id} onChange={e => update('tenant_email_id', e.target.value)} />
-          <GoldInput label="Phone" name="tenant_phone_number" value={form.tenant_phone_number} onChange={e => update('tenant_phone_number', e.target.value)} />
+          <GoldInput label="Email *" name="tenant_email_id" type="email" value={form.tenant_email_id} onChange={e => update('tenant_email_id', e.target.value)} />
+          <GoldInput label="Phone *" name="tenant_phone_number" value={form.tenant_phone_number} onChange={e => update('tenant_phone_number', e.target.value)} />
+          <GoldInput label="Studio Address *" name="tenant_studio_address" value={form.tenant_studio_address} onChange={e => update('tenant_studio_address', e.target.value)} />
           <GoldInput label="Username *" name="username" value={form.username} onChange={e => update('username', e.target.value)} />
-          <GoldInput label="Password *" name="password" type="password" value={form.password} onChange={e => update('password', e.target.value)} />
-          <PasswordStrength value={form.password} />
+          <p className="text-xs -mt-2 mb-3" style={{ color: 'var(--text-tertiary)' }}>
+            A login password is generated automatically — you'll see it once after the studio is created.
+          </p>
           <div className="flex gap-3 pt-2">
             <GoldButton type="submit" loading={creating} className="flex-1">Create</GoldButton>
             <GoldButton type="button" variant="ghost" onClick={() => setCreateOpen(false)}>Cancel</GoldButton>
           </div>
         </form>
+      </Modal>
+
+      <Modal open={!!generatedCreds} onClose={() => setGeneratedCreds(null)} title="Studio Login Created">
+        <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+          Share these credentials with the studio owner. This password won't be shown again — the owner can change it after logging in.
+        </p>
+        <div className="rounded-xl p-4 mb-4 space-y-2" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[var(--text-tertiary)]">Username</span>
+            <span className="text-sm font-mono text-[var(--text-primary)]">{generatedCreds?.username}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[var(--text-tertiary)]">Password</span>
+            <span className="text-sm font-mono text-[var(--text-primary)]">{generatedCreds?.password}</span>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <GoldButton type="button" onClick={copyCreds} className="flex-1">
+            {copied ? <><CheckCircle2 size={14} className="inline mr-1.5" />Copied</> : <><Copy size={14} className="inline mr-1.5" />Copy Credentials</>}
+          </GoldButton>
+          <GoldButton type="button" variant="ghost" onClick={() => setGeneratedCreds(null)}>Done</GoldButton>
+        </div>
       </Modal>
     </AppLayout>
   )

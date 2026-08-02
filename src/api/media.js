@@ -3,16 +3,41 @@ import { apiUrl, mediaViewUrl } from '../utils/apiUrl'
 
 export const getMediaByEvent = (eventId, params) => api.get(`/uploaded-media/event/${eventId}`, { params })
 
+export const ALLOWED_MEDIA_EXTS = ['.jpeg', '.jpg', '.png', '.gif', '.mp4', '.mov', '.avi', '.mkv', '.mp3', '.wav']
+export const ALLOWED_MEDIA_MIMES = [
+  'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
+  'video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska',
+  'audio/mpeg', 'audio/wav', 'audio/x-wav',
+]
+
+const fileExt = (name = '') => {
+  const dot = name.lastIndexOf('.')
+  return dot >= 0 ? name.slice(dot).toLowerCase() : ''
+}
+
+export const validateMediaFile = (file) => {
+  const ext = fileExt(file?.name)
+  const mime = file?.type || ''
+  if (ALLOWED_MEDIA_EXTS.includes(ext) && ALLOWED_MEDIA_MIMES.includes(mime)) return null
+  return 'File type not allowed. Only images (jpeg, jpg, png, gif), videos (mp4, mov, avi, mkv) and audio (mp3, wav) are accepted.'
+}
+
 // Do NOT set Content-Type manually for FormData — axios auto-sets it with the correct boundary
-export const uploadMedia = (formData, onProgress) => api.post('/uploaded-media/upload', formData, {
+export const uploadMedia = (formData, onProgress, signal) => api.post('/uploaded-media/upload', formData, {
   onUploadProgress: onProgress,
+  signal,
 })
 
 export const LARGE_UPLOAD_THRESHOLD = 100 * 1024 * 1024
 export const LARGE_UPLOAD_MAX_SIZE = 5 * 1024 * 1024 * 1024
 const CHUNK_SIZE = 8 * 1024 * 1024
 
-export const uploadLargeMedia = async ({ eventId, file, onProgress }) => {
+export const uploadLargeMedia = async ({ eventId, file, onProgress, signal }) => {
+  const typeError = validateMediaFile(file)
+  if (typeError) {
+    throw new Error(typeError)
+  }
+
   if (file.size > LARGE_UPLOAD_MAX_SIZE) {
     throw new Error('File too large. Maximum allowed is 5GB per file.')
   }
@@ -22,7 +47,7 @@ export const uploadLargeMedia = async ({ eventId, file, onProgress }) => {
     file_name: file.name,
     file_type: file.type || 'application/octet-stream',
     file_size: file.size,
-  })
+  }, { signal })
 
   const session = init.data
   const parts = []
@@ -45,6 +70,7 @@ export const uploadLargeMedia = async ({ eventId, file, onProgress }) => {
         },
         headers: { 'Content-Type': 'application/octet-stream' },
         timeout: 0,
+        signal,
         onUploadProgress: (e) => {
           const current = uploaded + (e.loaded || 0)
           onProgress?.({ loaded: current, total: file.size })
@@ -65,8 +91,11 @@ export const uploadLargeMedia = async ({ eventId, file, onProgress }) => {
       file_type: file.type || 'application/octet-stream',
       file_size: file.size,
       parts,
-    })
+    }, { signal })
   } catch (err) {
+    // Always fire the cleanup call (no signal) even if the failure was us
+    // deliberately aborting — an aborted multipart session still needs its
+    // in-progress parts released on the storage backend.
     await api.post('/uploaded-media/large/abort', {
       event_id: eventId,
       stage_id: session.stage_id,

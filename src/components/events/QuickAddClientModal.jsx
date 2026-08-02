@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Search, CheckCircle2, UserCheck, UserPlus } from 'lucide-react'
+import { Search, CheckCircle2, UserCheck, UserPlus, AlertTriangle } from 'lucide-react'
 import Modal from '../ui/Modal'
 import GoldButton from '../ui/GoldButton'
 import GoldInput from '../ui/GoldInput'
 import PasswordStrength from '../ui/PasswordStrength'
 import Avatar from '../ui/Avatar'
 import { getEvents, assignUserToEvent } from '../../api/events'
-import { getUsers, createUserInEvent } from '../../api/users'
+import { getUsers, createUserInEvent, checkDuplicateClient } from '../../api/users'
 import { clientDisplayName } from '../../utils/formatters'
 import toast from 'react-hot-toast'
 
@@ -26,6 +26,10 @@ export default function QuickAddClientModal({ open, onClose }) {
   const [assigning, setAssigning] = useState(false)
   const [newClient, setNewClient] = useState(EMPTY_NEW_CLIENT)
   const [creating, setCreating] = useState(false)
+  // null = not checked yet against this name/phone/email combo; [] = checked,
+  // no matches; non-empty = matches found and creation is paused on them.
+  const [duplicates, setDuplicates] = useState(null)
+  const [checkingDuplicates, setCheckingDuplicates] = useState(false)
 
   const { data: eventsData, isLoading: eventsLoading } = useQuery({
     queryKey: ['quick-add-events'],
@@ -53,9 +57,18 @@ export default function QuickAddClientModal({ open, onClose }) {
     setSelected(null)
     setAccessExpires('')
     setNewClient(EMPTY_NEW_CLIENT)
+    setDuplicates(null)
   }
 
   const handleClose = () => { reset(); onClose() }
+
+  // Any edit to the identifying fields invalidates whatever duplicate check
+  // already ran — a stale "no matches" result shouldn't wave through a name
+  // that was just changed to collide with an existing client.
+  const updateNewClient = (key, value) => {
+    setNewClient(f => ({ ...f, [key]: value }))
+    setDuplicates(null)
+  }
 
   const handleAssignExisting = async () => {
     if (!selected || !eventId) return
@@ -69,9 +82,7 @@ export default function QuickAddClientModal({ open, onClose }) {
     finally { setAssigning(false) }
   }
 
-  const handleCreateNew = async (e) => {
-    e.preventDefault()
-    if (!eventId) return
+  const doCreate = async () => {
     setCreating(true)
     try {
       await createUserInEvent({
@@ -92,6 +103,43 @@ export default function QuickAddClientModal({ open, onClose }) {
       handleClose()
     } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to create client') }
     finally { setCreating(false) }
+  }
+
+  const handleCreateNew = async (e) => {
+    e.preventDefault()
+    if (!eventId) return
+
+    if (duplicates === null) {
+      setCheckingDuplicates(true)
+      try {
+        const res = await checkDuplicateClient({
+          name: newClient.user_name,
+          phone: newClient.user_phone_number,
+          email: newClient.user_email_id,
+        })
+        const matches = res?.data || []
+        setDuplicates(matches)
+        if (matches.length > 0) { setCheckingDuplicates(false); return }
+      } catch {
+        // Fail open — a broken duplicate check shouldn't block client creation.
+        setDuplicates([])
+      }
+      setCheckingDuplicates(false)
+    }
+
+    await doCreate()
+  }
+
+  const assignDuplicateInstead = async (user) => {
+    if (!eventId) return
+    setAssigning(true)
+    try {
+      await assignUserToEvent({ event_id: eventId, user_id: user.user_id, access_expires: accessExpires || undefined })
+      toast.success(`${user.user_name} added to event`)
+      qc.invalidateQueries(['event-users', eventId])
+      handleClose()
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to assign client') }
+    finally { setAssigning(false) }
   }
 
   return (
@@ -211,11 +259,11 @@ export default function QuickAddClientModal({ open, onClose }) {
           {mode === 'new' && (
             <form onSubmit={handleCreateNew}>
               <GoldInput label="Full Name *" name="user_name" value={newClient.user_name}
-                onChange={e => setNewClient(f => ({ ...f, user_name: e.target.value }))} />
+                onChange={e => updateNewClient('user_name', e.target.value)} />
               <GoldInput label="Email" name="user_email_id" type="email" value={newClient.user_email_id}
-                onChange={e => setNewClient(f => ({ ...f, user_email_id: e.target.value }))} />
+                onChange={e => updateNewClient('user_email_id', e.target.value)} />
               <GoldInput label="Phone" name="user_phone_number" value={newClient.user_phone_number}
-                onChange={e => setNewClient(f => ({ ...f, user_phone_number: e.target.value }))} />
+                onChange={e => updateNewClient('user_phone_number', e.target.value)} />
               <GoldInput label="Login Username *" name="username" value={newClient.username}
                 onChange={e => setNewClient(f => ({ ...f, username: e.target.value }))} />
               <GoldInput label="Password *" name="password" type="password" value={newClient.password}
@@ -235,10 +283,51 @@ export default function QuickAddClientModal({ open, onClose }) {
                 />
               </div>
 
-              <div className="flex gap-3 pt-1">
-                <GoldButton type="submit" loading={creating} className="flex-1">Create &amp; Add to Event</GoldButton>
-                <GoldButton type="button" variant="ghost" onClick={handleClose}>Cancel</GoldButton>
-              </div>
+              {duplicates && duplicates.length > 0 && (
+                <div className="mb-4 rounded-xl p-3" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)' }}>
+                  <div className="flex items-start gap-2 mb-2">
+                    <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" style={{ color: '#F59E0B' }} />
+                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                      {duplicates.length === 1 ? 'A client with matching details already exists' : `${duplicates.length} clients with matching details already exist`} — assign one instead, or create a new client anyway.
+                    </p>
+                  </div>
+                  <div className="space-y-1.5 mb-3">
+                    {duplicates.map(u => (
+                      <div key={u.user_id} className="flex items-center gap-2 rounded-lg px-2.5 py-2" style={{ background: 'var(--bg-surface)' }}>
+                        <Avatar name={u.user_name} size="xs" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium truncate" style={{ color: 'var(--text-primary)' }}>{clientDisplayName(u)}</p>
+                          <p className="text-[11px] truncate" style={{ color: 'var(--text-tertiary)' }}>{u.user_email_id || u.user_phone_number || '—'}</p>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={assigning}
+                          onClick={() => assignDuplicateInstead(u)}
+                          className="text-xs font-semibold rounded-lg px-2.5 py-1.5 disabled:opacity-50 flex-shrink-0"
+                          style={{ background: 'var(--accent-muted)', color: '#F59E0B' }}
+                        >
+                          Use this client
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-3">
+                    <GoldButton type="submit" variant="outline" loading={creating} className="flex-1 justify-center">
+                      Create new client anyway
+                    </GoldButton>
+                    <GoldButton type="button" variant="ghost" onClick={handleClose}>Cancel</GoldButton>
+                  </div>
+                </div>
+              )}
+
+              {(!duplicates || duplicates.length === 0) && (
+                <div className="flex gap-3 pt-1">
+                  <GoldButton type="submit" loading={creating || checkingDuplicates} className="flex-1">
+                    Create &amp; Add to Event
+                  </GoldButton>
+                  <GoldButton type="button" variant="ghost" onClick={handleClose}>Cancel</GoldButton>
+                </div>
+              )}
             </form>
           )}
         </>

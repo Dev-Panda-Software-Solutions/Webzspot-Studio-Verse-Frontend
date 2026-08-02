@@ -73,6 +73,11 @@ const emptyForm = {
   photo_quota: '', price: '', wallet_credits: '', wallet_tier: 'TOPUP', ai_credit_cost_per_photo: ''
 }
 
+const selectOptionStyle = {
+  backgroundColor: '#111113',
+  color: '#F5F5F7'
+}
+
 export default function Plans() {
   const qc = useQueryClient()
   const [modalOpen, setModalOpen] = useState(false)
@@ -285,8 +290,8 @@ export default function Plans() {
               onChange={e => update('plan_type', e.target.value)}
               className="w-full bg-transparent border-b-2 pb-2 text-sm text-[var(--text-primary)] focus:outline-none border-[var(--border-default)] focus:border-[var(--accent-primary)]"
             >
-              <option value="SUBSCRIPTION">Subscription (Basic / Pro)</option>
-              <option value="WALLET">Wallet</option>
+              <option style={selectOptionStyle} value="SUBSCRIPTION">Subscription (Basic / Pro)</option>
+              <option style={selectOptionStyle} value="WALLET">Wallet</option>
             </select>
           </div>
 
@@ -302,9 +307,9 @@ export default function Plans() {
                   onChange={e => update('duration_unit', e.target.value)}
                   className="w-full bg-transparent border-b-2 pb-2 text-sm text-[var(--text-primary)] focus:outline-none border-[var(--border-default)] focus:border-[var(--accent-primary)]"
                 >
-                  <option value="DAYS">Days</option>
-                  <option value="MONTHS">Months</option>
-                  <option value="YEARS">Years</option>
+                  <option style={selectOptionStyle} value="DAYS">Days</option>
+                  <option style={selectOptionStyle} value="MONTHS">Months</option>
+                  <option style={selectOptionStyle} value="YEARS">Years</option>
                 </select>
               </div>
               <GoldInput label="Photo Quota *" name="photo_quota" type="number" value={form.photo_quota} onChange={e => update('photo_quota', e.target.value)} />
@@ -318,8 +323,8 @@ export default function Plans() {
                   onChange={e => update('wallet_tier', e.target.value)}
                   className="w-full bg-transparent border-b-2 pb-2 text-sm text-[var(--text-primary)] focus:outline-none border-[var(--border-default)] focus:border-[var(--accent-primary)]"
                 >
-                  <option value="INITIAL">Initial Purchase (first-time only)</option>
-                  <option value="TOPUP">Top-up (repeatable recharge)</option>
+                  <option style={selectOptionStyle} value="INITIAL">Initial Purchase (first-time only)</option>
+                  <option style={selectOptionStyle} value="TOPUP">Top-up (repeatable recharge)</option>
                 </select>
                 <p className="text-xs mt-1.5" style={{ color: 'var(--text-tertiary)' }}>
                   A studio must buy an Initial plan once before Top-up amounts become available.

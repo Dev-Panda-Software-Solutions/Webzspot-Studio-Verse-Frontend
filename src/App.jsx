@@ -19,12 +19,14 @@ const StudioDashboard = lazy(() => import('./pages/studio/Dashboard'))
 const StudioEventDetail = lazy(() => import('./pages/studio/EventDetail'))
 const StudioSettings = lazy(() => import('./pages/studio/Settings'))
 const StudioAccessBoard = lazy(() => import('./pages/studio/AccessBoard'))
+const StudioClients = lazy(() => import('./pages/studio/Clients'))
 const StudioBilling = lazy(() => import('./pages/studio/Billing'))
 
 const Gallery = lazy(() => import('./pages/gallery/Gallery'))
 const GalleryFavourites = lazy(() => import('./pages/gallery/Favourites'))
 
 const AccountSettings = lazy(() => import('./pages/shared/AccountSettings'))
+const Support = lazy(() => import('./pages/shared/Support'))
 const NotFound = lazy(() => import('./pages/shared/NotFound'))
 const Unauthorized = lazy(() => import('./pages/shared/Unauthorized'))
 
@@ -73,6 +75,7 @@ export default function App() {
           {/* Studio (Admin) */}
           <Route path="/studio" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioDashboard /></ProtectedRoute>} />
           <Route path="/studio/access" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioAccessBoard /></ProtectedRoute>} />
+          <Route path="/studio/clients" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioClients /></ProtectedRoute>} />
           <Route path="/studio/events/:id" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioEventDetail /></ProtectedRoute>} />
           <Route path="/studio/settings" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioSettings /></ProtectedRoute>} />
           <Route path="/studio/billing" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioBilling /></ProtectedRoute>} />
@@ -84,6 +87,7 @@ export default function App() {
 
           {/* Shared */}
           <Route path="/settings" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN','ADMIN','USER']}><AccountSettings /></ProtectedRoute>} />
+          <Route path="/support" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN','ADMIN','USER']}><Support /></ProtectedRoute>} />
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Heart, Camera, Clock, Lock, ArrowLeft, CheckCircle2, Send } from 'lucide-react'
+import { Heart, Camera, Clock, Lock, ArrowLeft, CheckCircle2, Send, LifeBuoy } from 'lucide-react'
 import PhotoGrid from '../../components/gallery/PhotoGrid'
 import EventFolderGrid from '../../components/gallery/EventFolderGrid'
 import FavouritesDrawer from '../../components/gallery/FavouritesDrawer'
@@ -236,6 +236,13 @@ export default function Gallery() {
               )}
             </button>
           )}
+          <button
+            onClick={() => navigate('/support')}
+            title="Help & Support"
+            className="p-2 rounded-full hover:bg-[var(--accent-muted)] transition-colors"
+          >
+            <LifeBuoy size={18} className="text-[var(--text-secondary)]" />
+          </button>
           <ThemeToggle />
           <GoldButton size="sm" variant="ghost" onClick={handleLogout}>Sign Out</GoldButton>
         </div>

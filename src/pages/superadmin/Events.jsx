@@ -1,14 +1,17 @@
 import React, { useState, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, Trash2, Archive, ChevronDown, ChevronUp, Pencil } from 'lucide-react'
+import { CalendarDays, Trash2, Archive, ChevronRight, Pencil, Users, History } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GlassCard from '../../components/ui/GlassCard'
 import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import Badge from '../../components/ui/Badge'
 import GoldButton from '../../components/ui/GoldButton'
+import Modal from '../../components/ui/Modal'
 import CreateEventModal from '../../components/events/CreateEventModal'
 import { getEvents, deleteEvent, hardDeleteEvent } from '../../api/events'
-import { formatDate } from '../../utils/formatters'
+import { getTenantSummary } from '../../api/tenants'
+import { getTenantSubscriptionHistory } from '../../api/billing'
+import { formatDate, planLabel, planStatusVariant } from '../../utils/formatters'
 import toast from 'react-hot-toast'
 
 function EventRow({ event, onEdit, onSoftDelete, onHardDelete }) {
@@ -74,41 +77,109 @@ function EventRow({ event, onEdit, onSoftDelete, onHardDelete }) {
   )
 }
 
-function StudioGroup({ studio, events, onEdit, onSoftDelete, onHardDelete }) {
-  const [open, setOpen] = useState(true)
+function StudioCard({ studio, events, onOpen }) {
   return (
-    <GlassCard hover={false} className="p-0 overflow-hidden mb-4">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center gap-3 px-5 py-4 text-left transition-colors"
-        style={{ borderBottom: open ? '1px solid var(--border-subtle)' : 'none' }}
-        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-      >
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-sm"
+    <button
+      onClick={() => onOpen(studio)}
+      className="w-full text-left"
+    >
+      <GlassCard hover className="flex items-center gap-3 px-5 py-4">
+        <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-sm"
           style={{ background: 'rgba(245,158,11,0.12)', color: '#F59E0B' }}>
-          {(studio[0] || '?').toUpperCase()}
+          {(studio.name[0] || '?').toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{studio}</p>
+          <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{studio.name}</p>
           <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
             {events.length} {events.length === 1 ? 'event' : 'events'}
           </p>
         </div>
-        {open ? <ChevronUp size={14} style={{ color: 'var(--text-tertiary)' }} />
-               : <ChevronDown size={14} style={{ color: 'var(--text-tertiary)' }} />}
-      </button>
+        <ChevronRight size={16} style={{ color: 'var(--text-tertiary)' }} />
+      </GlassCard>
+    </button>
+  )
+}
 
-      {open && events.map(ev => (
-        <EventRow
-          key={ev.event_id}
-          event={ev}
-          onEdit={onEdit}
-          onSoftDelete={onSoftDelete}
-          onHardDelete={onHardDelete}
-        />
-      ))}
-    </GlassCard>
+function StudioDetailModal({ studio, events, onClose, onEdit, onSoftDelete, onHardDelete }) {
+  const { data: summaryRes, isLoading } = useQuery({
+    queryKey: ['tenant-summary', studio?.tenant_id],
+    queryFn: () => getTenantSummary(studio.tenant_id),
+    enabled: !!studio?.tenant_id,
+  })
+  const summary = summaryRes?.data
+
+  const { data: historyRes, isLoading: historyLoading } = useQuery({
+    queryKey: ['tenant-subscription-history', studio?.tenant_id],
+    queryFn: () => getTenantSubscriptionHistory(studio.tenant_id),
+    enabled: !!studio?.tenant_id,
+  })
+  const history = historyRes?.data || []
+
+  return (
+    <Modal open={!!studio} onClose={onClose} title={studio?.name || 'Studio'} size="xl">
+      <div className="grid grid-cols-2 gap-3 mb-5">
+        <div className="rounded-xl p-4 flex items-center gap-3" style={{ background: 'var(--bg-elevated)' }}>
+          <div className="p-2 rounded-lg" style={{ background: 'rgba(245,158,11,0.12)' }}>
+            <Users size={16} className="text-gold-500" />
+          </div>
+          <div>
+            <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Clients</p>
+            <p className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {isLoading ? '…' : summary?.user_count ?? '—'}
+            </p>
+          </div>
+        </div>
+        <div className="rounded-xl p-4 flex items-center gap-3" style={{ background: 'var(--bg-elevated)' }}>
+          <div className="p-2 rounded-lg" style={{ background: 'rgba(245,158,11,0.12)' }}>
+            <CalendarDays size={16} className="text-gold-500" />
+          </div>
+          <div>
+            <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Events</p>
+            <p className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {isLoading ? '…' : summary?.event_count ?? events.length}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
+        Events
+      </p>
+      <div className="rounded-xl overflow-hidden max-h-[35vh] overflow-y-auto mb-5" style={{ border: '1px solid var(--border-subtle)' }}>
+        {events.map(ev => (
+          <EventRow
+            key={ev.event_id}
+            event={ev}
+            onEdit={onEdit}
+            onSoftDelete={onSoftDelete}
+            onHardDelete={onHardDelete}
+          />
+        ))}
+      </div>
+
+      <p className="text-xs font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: 'var(--text-tertiary)' }}>
+        <History size={12} /> Purchased Plans History
+      </p>
+      <div className="rounded-xl overflow-hidden max-h-[30vh] overflow-y-auto" style={{ border: '1px solid var(--border-subtle)' }}>
+        {historyLoading ? (
+          <div className="p-4"><SkeletonLoader type="table-row" /></div>
+        ) : history.length === 0 ? (
+          <p className="text-sm p-4 text-center" style={{ color: 'var(--text-tertiary)' }}>No plans purchased yet.</p>
+        ) : history.map(h => (
+          <div key={h.tenant_subscription_id}
+            className="flex items-center justify-between gap-3 px-4 py-2.5 border-b last:border-b-0"
+            style={{ borderColor: 'var(--border-subtle)' }}>
+            <div>
+              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{planLabel(h)}</p>
+              <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                {formatDate(h.starts_at)}{h.expires_at ? ` – ${formatDate(h.expires_at)}` : ''}
+              </p>
+            </div>
+            <Badge variant={planStatusVariant(h.status)}>{h.status}</Badge>
+          </div>
+        ))}
+      </div>
+    </Modal>
   )
 }
 
@@ -116,6 +187,7 @@ export default function AdminEvents() {
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
   const [editingEvent, setEditingEvent] = useState(null)
+  const [openStudio, setOpenStudio] = useState(null)
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-events', page],
@@ -126,17 +198,21 @@ export default function AdminEvents() {
   const total = data?.data?.total || 0
   const pages = data?.data?.pages || 1
 
-  // Group events by studio name
+  // Group events by studio — clicking a studio opens its detail (client count,
+  // event count, event list) instead of dumping every studio's events on screen
+  // pre-expanded, which was the "confusing" part.
   const groups = useMemo(() => {
     const map = new Map()
     for (const ev of items) {
+      const tenantId = ev.owner_studio?.tenant_id || 'unassigned'
       const studioName = ev.owner_studio?.tenant_studio_name || 'Unassigned'
-      if (!map.has(studioName)) map.set(studioName, [])
-      map.get(studioName).push(ev)
+      if (!map.has(tenantId)) map.set(tenantId, { tenant_id: ev.owner_studio?.tenant_id || null, name: studioName, events: [] })
+      map.get(tenantId).events.push(ev)
     }
-    // Sort groups alphabetically
-    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]))
+    return [...map.values()].sort((a, b) => a.name.localeCompare(b.name))
   }, [items])
+
+  const openGroup = groups.find(g => g.tenant_id === openStudio?.tenant_id)
 
   const handleSoftDelete = async (eventId, eventName) => {
     if (!window.confirm(`Archive "${eventName}"?`)) return
@@ -170,16 +246,16 @@ export default function AdminEvents() {
         </div>
       ) : (
         <>
-          {groups.map(([studio, events]) => (
-            <StudioGroup
-              key={studio}
-              studio={studio}
-              events={events}
-              onEdit={ev => setEditingEvent(ev)}
-              onSoftDelete={handleSoftDelete}
-              onHardDelete={handleHardDelete}
-            />
-          ))}
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3 mb-4">
+            {groups.map(g => (
+              <StudioCard
+                key={g.tenant_id || g.name}
+                studio={g}
+                events={g.events}
+                onOpen={setOpenStudio}
+              />
+            ))}
+          </div>
 
           {pages > 1 && (
             <div className="flex items-center justify-between mt-4">
@@ -191,6 +267,17 @@ export default function AdminEvents() {
             </div>
           )}
         </>
+      )}
+
+      {openGroup && (
+        <StudioDetailModal
+          studio={openStudio}
+          events={openGroup.events}
+          onClose={() => setOpenStudio(null)}
+          onEdit={ev => setEditingEvent(ev)}
+          onSoftDelete={handleSoftDelete}
+          onHardDelete={handleHardDelete}
+        />
       )}
 
       <CreateEventModal

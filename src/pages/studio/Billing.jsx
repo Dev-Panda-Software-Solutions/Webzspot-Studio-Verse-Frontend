@@ -1,12 +1,14 @@
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Wallet, CreditCard, Clock, ImagePlus, Gift } from 'lucide-react'
+import { Wallet, CreditCard, Clock, ImagePlus, Gift, History } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
 import Badge from '../../components/ui/Badge'
+import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import { getPlans } from '../../api/plans'
-import { getMySubscription, subscribeToPlan, rechargeWallet, activateTrial } from '../../api/billing'
+import { getMySubscription, getMySubscriptionHistory, subscribeToPlan, rechargeWallet, activateTrial } from '../../api/billing'
+import { formatDate, planLabel, planStatusVariant } from '../../utils/formatters'
 import toast from 'react-hot-toast'
 
 const GOLD = '#F59E0B'
@@ -40,6 +42,12 @@ export default function Billing() {
     queryKey: ['plans'],
     queryFn: () => getPlans({ page: 1, limit: 100 })
   })
+
+  const { data: historyData, isLoading: historyLoading } = useQuery({
+    queryKey: ['tenant-subscription-history'],
+    queryFn: getMySubscriptionHistory
+  })
+  const history = historyData?.data || []
 
   const subscription = subData?.data?.subscription
   const wallet = subData?.data?.wallet
@@ -231,6 +239,47 @@ export default function Billing() {
               </GlassCard>
             ))}
           </div>
+        </div>
+
+        <div>
+          <h3 className="font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+            <History size={16} style={{ color: 'var(--accent-primary)' }} />
+            Purchased Plans History
+          </h3>
+          <GlassCard hover={false} className="p-0 overflow-hidden">
+            {historyLoading ? (
+              <div className="p-4 space-y-2">
+                {[...Array(3)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}
+              </div>
+            ) : history.length === 0 ? (
+              <p className="text-sm p-6 text-center" style={{ color: 'var(--text-tertiary)' }}>No plans purchased yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
+                      {['Plan', 'Status', 'Price', 'Started', 'Expires'].map(h => (
+                        <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {history.map(h => (
+                      <tr key={h.tenant_subscription_id} className="border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
+                        <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-primary)' }}>{planLabel(h)}</td>
+                        <td className="px-5 py-3"><Badge variant={planStatusVariant(h.status)}>{h.status}</Badge></td>
+                        <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                          {h.locked_price != null ? `₹${Number(h.locked_price).toLocaleString()}` : '—'}
+                        </td>
+                        <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{formatDate(h.starts_at)}</td>
+                        <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{h.expires_at ? formatDate(h.expires_at) : '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </GlassCard>
         </div>
       </div>
     </AppLayout>

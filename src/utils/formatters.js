@@ -35,3 +35,23 @@ export const clientDisplayName = (user) => {
   const eventName = user?.event_names?.[0]
   return eventName ? `${eventName} - ${user.user_name}` : (user?.user_name || 'Unnamed client')
 }
+
+// A tenant's `subscription` (from getAllTenants/getTenantSummary) has a raw
+// plan record attached — collapse it to the short label the user actually
+// wants to see: "Trial", "Wallet", "Monthly", "Annual", or the plan's own name.
+export const planLabel = (subscription) => {
+  if (!subscription) return 'No Plan'
+  if (subscription.status === 'TRIAL') return 'Trial'
+  const plan = subscription.plan
+  if (!plan) return subscription.status || 'No Plan'
+  if (plan.plan_type === 'WALLET') return 'Wallet'
+  if (plan.duration_unit === 'MONTHS' && plan.duration_value === 1) return 'Monthly'
+  if (plan.duration_unit === 'YEARS') return 'Annual'
+  return plan.plan_name || 'Subscription'
+}
+
+export const planStatusVariant = (status) => {
+  if (status === 'ACTIVE' || status === 'TRIAL') return 'success'
+  if (status === 'EXPIRED' || status === 'CANCELLED') return 'error'
+  return 'default'
+}

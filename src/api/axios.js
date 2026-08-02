@@ -17,6 +17,12 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
   res => res.data,
   err => {
+    // Preserve cancellation errors as-is (name/code intact) so callers can
+    // tell "I aborted this on purpose" apart from a real failure — collapsing
+    // it to a plain string here would make that distinction impossible.
+    if (axios.isCancel(err) || err.code === 'ERR_CANCELED') {
+      return Promise.reject(err)
+    }
     const isLoginRequest = err.config?.url?.includes('/auth/login')
     if (err.response?.status === 401 && !isLoginRequest) {
       localStorage.removeItem('sv-auth')

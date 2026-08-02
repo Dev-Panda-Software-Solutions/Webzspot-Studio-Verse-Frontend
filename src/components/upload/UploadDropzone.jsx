@@ -5,7 +5,14 @@ import {
   UploadCloud, X, CheckCircle2, XCircle, Clock,
   Zap, Image, FileVideo, AlertCircle, Loader2, RotateCcw
 } from 'lucide-react'
-import { LARGE_UPLOAD_MAX_SIZE, LARGE_UPLOAD_THRESHOLD, uploadLargeMedia, uploadMedia } from '../../api/media'
+import {
+  ALLOWED_MEDIA_EXTS,
+  LARGE_UPLOAD_MAX_SIZE,
+  LARGE_UPLOAD_THRESHOLD,
+  uploadLargeMedia,
+  uploadMedia,
+  validateMediaFile,
+} from '../../api/media'
 import { getMySubscription } from '../../api/billing'
 import ApertureSpinner, { UploadLoader } from '../ui/StudioLoader'
 import toast from 'react-hot-toast'
@@ -31,6 +38,7 @@ const fmtTime = (ms) => {
 }
 const isVideoFile = (f) => f.type?.startsWith('video/')
 const errorText = (err, fallback) => typeof err === 'string' ? err : fallback
+const MEDIA_ACCEPT = ALLOWED_MEDIA_EXTS.join(',')
 
 /* ─── Per-file row in Status tab ─── */
 function FileRow({ item, onRetry, retryDisabled }) {
@@ -139,6 +147,15 @@ export default function UploadDropzone({ eventId, onComplete }) {
   const zoneRef = useRef(null)
   const inputRef = useRef(null)
 
+  // Background tabs get throttled/suspended by the browser (esp. mid multi-
+  // minute video uploads), which can silently stall or kill the in-flight
+  // request without ever calling onUploadProgress or the error handler again —
+  // the row just freezes. These refs let a watchdog detect that and recover.
+  const queueRef = useRef(queue)
+  useEffect(() => { queueRef.current = queue }, [queue])
+  const lastProgressRef = useRef({})   // item.id -> timestamp of last progress event
+  const controllersRef = useRef({})    // item.id -> AbortController for the in-flight request
+
   /* ── Elapsed timer ── */
   useEffect(() => {
     if (!uploading || !startTime) return
@@ -159,6 +176,7 @@ export default function UploadDropzone({ eventId, onComplete }) {
   /* ── Upload speed tracking ── */
   const updateProgress = useCallback((id, loaded, total) => {
     const now = Date.now()
+    lastProgressRef.current[id] = now
     setQueue(q => q.map(item => {
       if (item.id !== id) return item
       const dt = item._prevTime ? (now - item._prevTime) / 1000 : 0
@@ -195,6 +213,10 @@ export default function UploadDropzone({ eventId, onComplete }) {
       _prevLoaded: 0,
       _prevTime: 0,
     })
+    lastProgressRef.current[item.id] = Date.now()
+
+    const controller = new AbortController()
+    controllersRef.current[item.id] = controller
 
     try {
       if (item.file.size >= LARGE_UPLOAD_THRESHOLD) {
@@ -202,27 +224,73 @@ export default function UploadDropzone({ eventId, onComplete }) {
           eventId,
           file: item.file,
           onProgress: (e) => updateProgress(item.id, e.loaded, e.total),
+          signal: controller.signal,
         })
       } else {
         const fd = new FormData()
         fd.append('event_id', eventId)
         fd.append('file', item.file)
-        await uploadMedia(fd, (e) => updateProgress(item.id, e.loaded, e.total))
+        await uploadMedia(fd, (e) => updateProgress(item.id, e.loaded, e.total), controller.signal)
       }
       updateStatus(item.id, 'done', { error: null, progress: 100, loaded: item.file.size })
       return true
     } catch (err) {
+      // A cancellation we triggered ourselves (stall watchdog) isn't a real
+      // failure — the item is about to be retried, so stay silent.
+      if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') {
+        return false
+      }
       const message = errorText(err, `Failed: ${item.file.name}`)
       updateStatus(item.id, 'error', { error: message })
       toast.error(message)
       return false
+    } finally {
+      delete controllersRef.current[item.id]
     }
   }, [eventId, updateProgress, updateStatus])
+
+  /* ── Stall watchdog ──
+     If a tab is backgrounded during a long video upload, the browser can
+     throttle/suspend it hard enough that the request stalls without ever
+     firing another progress or error event — the row just freezes forever.
+     Poll for items stuck on "uploading" with no progress for a while and
+     silently abort + restart them (this fires almost immediately after the
+     tab regains focus, since the interval itself was throttled too). */
+  useEffect(() => {
+    const STALL_MS = 25000
+    const iv = setInterval(() => {
+      const now = Date.now()
+      queueRef.current.forEach(item => {
+        if (item.status !== 'uploading') return
+        const last = lastProgressRef.current[item.id] || 0
+        if (now - last <= STALL_MS) return
+        lastProgressRef.current[item.id] = now // avoid re-triggering before the retry lands
+        controllersRef.current[item.id]?.abort()
+        uploadQueueItem(item).then(ok => { if (ok) onComplete?.() })
+      })
+    }, 5000)
+    return () => clearInterval(iv)
+  }, [uploadQueueItem, onComplete])
 
   /* ── File processing ── */
   const processFiles = async (files) => {
     const fileList = Array.from(files)
     if (fileList.length === 0) return
+
+    const acceptedFiles = []
+    const rejectedFiles = []
+    fileList.forEach(file => {
+      const error = validateMediaFile(file)
+      if (error) rejectedFiles.push({ file, error })
+      else acceptedFiles.push(file)
+    })
+
+    if (rejectedFiles.length > 0) {
+      const names = rejectedFiles.slice(0, 3).map(item => item.file.name).join(', ')
+      const extra = rejectedFiles.length > 3 ? ` +${rejectedFiles.length - 3} more` : ''
+      toast.error(`${rejectedFiles[0].error} Rejected: ${names}${extra}`)
+    }
+    if (acceptedFiles.length === 0) return
 
     // Check remaining quota BEFORE queuing anything — catches the shortfall up
     // front instead of letting files fail one-by-one partway through the batch.
@@ -235,8 +303,8 @@ export default function UploadDropzone({ eventId, onComplete }) {
           toast.error('Your photo upload quota is used up. Upgrade your plan to upload more.')
           return
         }
-        if (fileList.length > remaining) {
-          toast.error(`Only ${remaining} photo${remaining === 1 ? '' : 's'} left in your quota — you selected ${fileList.length}. Select ${remaining} or fewer.`)
+        if (acceptedFiles.length > remaining) {
+          toast.error(`Only ${remaining} photo${remaining === 1 ? '' : 's'} left in your quota — you selected ${acceptedFiles.length}. Select ${remaining} or fewer.`)
           return
         }
       }
@@ -244,7 +312,7 @@ export default function UploadDropzone({ eventId, onComplete }) {
       // Quota check failing shouldn't block upload entirely — the backend still enforces it per-file.
     }
 
-    const newItems = fileList.map(file => ({
+    const newItems = acceptedFiles.map(file => ({
       id: `${file.name}-${file.size}-${Date.now()}-${Math.random()}`,
       file,
       status: 'pending',
@@ -441,7 +509,7 @@ export default function UploadDropzone({ eventId, onComplete }) {
                   }}
                 >
                   <input ref={inputRef} type="file" multiple className="hidden"
-                    accept="image/*,video/*" onChange={e => processFiles(e.target.files)} />
+                    accept={MEDIA_ACCEPT} onChange={e => processFiles(e.target.files)} />
 
                   {uploading ? (
                     <UploadLoader
@@ -460,7 +528,7 @@ export default function UploadDropzone({ eventId, onComplete }) {
                           {dragging ? 'Drop to upload' : 'Drag & drop photos here'}
                         </p>
                         <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
-                          or click to browse — JPG, PNG, MP4, MOV · max 5GB each
+                          or click to browse — JPG, PNG, MP4, MOV, MP3, WAV · max 5GB each
                         </p>
                       </div>
                       <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-tertiary)' }}>

@@ -1,6 +1,6 @@
 import React, { useRef } from 'react'
 import { gsap } from 'gsap'
-import { Calendar, ArrowRight, Aperture, Trash2, Pencil } from 'lucide-react'
+import { Calendar, ArrowRight, Aperture, Archive, RotateCcw, Pencil } from 'lucide-react'
 import { formatDate } from '../../utils/formatters'
 import { useShutterNavigate } from '../../context/ShutterContext'
 import { backendAssetUrl } from '../../utils/apiUrl'
@@ -19,7 +19,7 @@ function Bracket({ corner }) {
   )
 }
 
-export default function EventCard({ event, eventId, isNew = false, onCreate, onDelete, onEdit }) {
+export default function EventCard({ event, eventId, isNew = false, onCreate, onDelete, onArchive, onRestore, onEdit }) {
   const shutterNavigate = useShutterNavigate()
   const cardRef = useRef(null)
   const ringRef = useRef(null)
@@ -139,7 +139,7 @@ export default function EventCard({ event, eventId, isNew = false, onCreate, onD
           -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
 
         {/* Action buttons — only show if handlers provided */}
-        {(onEdit || onDelete) && (
+        {(onEdit || onDelete || onArchive || onRestore) && (
           <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
             {onEdit && (
               <button
@@ -153,17 +153,32 @@ export default function EventCard({ event, eventId, isNew = false, onCreate, onD
                 <Pencil size={12} />
               </button>
             )}
-            {onDelete && (
-              <button
-                onClick={e => { e.stopPropagation(); onDelete(resolvedId, event?.event_name) }}
-                title="Delete event"
-                className="w-7 h-7 rounded-lg flex items-center justify-center"
-                style={{ background: 'rgba(0,0,0,0.55)', color: '#F87171', backdropFilter: 'blur(4px)' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.25)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.55)'}
-              >
-                <Trash2 size={13} />
-              </button>
+            {event?.isactive === false ? (
+              onRestore && (
+                <button
+                  onClick={e => { e.stopPropagation(); onRestore(resolvedId, event?.event_name) }}
+                  title="Restore event — clients regain access"
+                  className="w-7 h-7 rounded-lg flex items-center justify-center"
+                  style={{ background: 'rgba(0,0,0,0.55)', color: '#34D399', backdropFilter: 'blur(4px)' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(16,185,129,0.25)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.55)'}
+                >
+                  <RotateCcw size={13} />
+                </button>
+              )
+            ) : (
+              (onArchive || onDelete) && (
+                <button
+                  onClick={e => { e.stopPropagation(); (onArchive || onDelete)(resolvedId, event?.event_name) }}
+                  title="Archive event — hides it and its photos from clients"
+                  className="w-7 h-7 rounded-lg flex items-center justify-center"
+                  style={{ background: 'rgba(0,0,0,0.55)', color: '#FBBF24', backdropFilter: 'blur(4px)' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.25)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.55)'}
+                >
+                  <Archive size={13} />
+                </button>
+              )
             )}
           </div>
         )}

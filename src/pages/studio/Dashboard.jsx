@@ -14,7 +14,7 @@ import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
 import Modal from '../../components/ui/Modal'
-import { getEvents, getDashboardAnalytics, deleteEvent } from '../../api/events'
+import { getEvents, getDashboardAnalytics, deleteEvent, restoreEvent } from '../../api/events'
 import { getMySubscription } from '../../api/billing'
 import useAuthStore from '../../stores/authStore'
 import { greetingTime } from '../../utils/formatters'
@@ -192,20 +192,31 @@ export default function StudioDashboard() {
   const [createOpen, setCreateOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
   const [page, setPage] = useState(1)
+  const [statusFilter, setStatusFilter] = useState('active')
 
-  const handleDeleteEvent = async (eventId, eventName) => {
-    if (!window.confirm(`Delete "${eventName}"? Clients will lose access.`)) return
+  const handleArchiveEvent = async (eventId, eventName) => {
+    if (!window.confirm(`Archive "${eventName}"? Clients will immediately lose access and all its photos/videos will be hidden — nothing is deleted, and you can restore it any time.`)) return
     try {
       await deleteEvent(eventId)
-      toast.success('Event deleted')
+      toast.success('Event archived')
       qc.invalidateQueries(['events'])
       qc.invalidateQueries(['dashboard-analytics'])
-    } catch { toast.error('Failed to delete event') }
+    } catch { toast.error('Failed to archive event') }
+  }
+
+  const handleRestoreEvent = async (eventId, eventName) => {
+    if (!window.confirm(`Restore "${eventName}"? Clients will regain access to it and its photos/videos.`)) return
+    try {
+      await restoreEvent(eventId)
+      toast.success('Event restored')
+      qc.invalidateQueries(['events'])
+      qc.invalidateQueries(['dashboard-analytics'])
+    } catch { toast.error('Failed to restore event') }
   }
 
   const { data, isLoading } = useQuery({
-    queryKey: ['events', page],
-    queryFn: () => getEvents({ page, limit: 8 })
+    queryKey: ['events', page, statusFilter],
+    queryFn: () => getEvents({ page, limit: 8, status: statusFilter })
   })
 
   const { data: analyticsData, isLoading: aLoading } = useQuery({
@@ -436,10 +447,29 @@ export default function StudioDashboard() {
 
         {/* ── Events Grid ─── */}
         <div className="chart-section">
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
             <div>
               <h2 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>Your Events</h2>
               <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>{total} total</p>
+            </div>
+            <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: 'var(--bg-elevated)' }}>
+              {[
+                { key: 'active', label: 'Active' },
+                { key: 'archived', label: 'Archived' },
+                { key: 'all', label: 'All' },
+              ].map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => { setStatusFilter(key); setPage(1) }}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                  style={{
+                    background: statusFilter === key ? 'var(--bg-surface)' : 'transparent',
+                    color: statusFilter === key ? '#F59E0B' : 'var(--text-secondary)',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
             {pages > 1 && (
               <div className="flex items-center gap-2">
@@ -462,10 +492,11 @@ export default function StudioDashboard() {
                   event={item}
                   eventId={item.event_id}
                   onEdit={ev => setEditingEvent(ev)}
-                  onDelete={handleDeleteEvent}
+                  onArchive={handleArchiveEvent}
+                  onRestore={handleRestoreEvent}
                 />
               ))}
-              <EventCard isNew onCreate={() => setCreateOpen(true)} />
+              {statusFilter !== 'archived' && <EventCard isNew onCreate={() => setCreateOpen(true)} />}
             </div>
           )}
         </div>

@@ -18,7 +18,7 @@ import Badge from '../../components/ui/Badge'
 import { getTenants, unlockAccount, resetPassword } from '../../api/tenants'
 import { getUsers } from '../../api/users'
 import { getDashboardAnalytics } from '../../api/events'
-import { formatDate } from '../../utils/formatters'
+import { formatDate, planLabel } from '../../utils/formatters'
 import toast from 'react-hot-toast'
 
 /* ── Shared chart theme ─────────────────────────────────────── */
@@ -124,6 +124,12 @@ export default function AdminDashboard() {
     queryKey: ['tenants'],
     queryFn: () => getTenants({ page: 1, limit: 6 })
   })
+  // Studios list defaults to active-only — a separate all-status count is
+  // needed to distinguish "Total Studios" from "Active Studios".
+  const { data: allTenantRes } = useQuery({
+    queryKey: ['tenants-all-count'],
+    queryFn: () => getTenants({ page: 1, limit: 1, status: 'all' })
+  })
   const { data: userRes } = useQuery({
     queryKey: ['admin-users'],
     queryFn: () => getUsers({ page: 1, limit: 5 })
@@ -144,7 +150,8 @@ export default function AdminDashboard() {
   }, [])
 
   const tenants = tenantRes?.data?.items || []
-  const totalTenants = tenantRes?.data?.total || 0
+  const activeTenants = tenantRes?.data?.total || 0
+  const totalTenants = allTenantRes?.data?.total || activeTenants
   const totalUsers = userRes?.data?.total || 0
   const analytics = analyticsData?.data || {}
   const totals = analytics.totals || {}
@@ -194,8 +201,9 @@ export default function AdminDashboard() {
       <div ref={containerRef}>
 
         {/* ── Stat Cards ─── */}
-        <div className="stat-row grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+        <div className="stat-row grid grid-cols-2 xl:grid-cols-5 gap-4 mb-8">
           <StatCard label="Total Studios" value={totalTenants} icon={Building2} />
+          <StatCard label="Active Studios" value={activeTenants} icon={Building2} />
           <StatCard label="Total Clients" value={totalUsers} icon={Users} />
           <StatCard label="Events" value={totals.events ?? 0} icon={CalendarDays} />
           <StatCard label="Media Files" value={totals.media ?? 0} icon={ImageIcon}
@@ -341,6 +349,7 @@ export default function AdminDashboard() {
                         <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{t.tenant_studio_name}</p>
                         <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{t.tenant_name}</p>
                       </div>
+                      <Badge variant="gold">{planLabel(t.subscription)}</Badge>
                       <p className="text-xs hidden md:block" style={{ color: 'var(--text-tertiary)' }}>{formatDate(t.createdAt)}</p>
                       <Badge variant={t.isactive ? 'success' : 'error'}>{t.isactive ? 'Active' : 'Inactive'}</Badge>
                     </div>
