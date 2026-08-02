@@ -70,7 +70,8 @@ function TrialSettingsCard() {
 
 const emptyForm = {
   plan_name: '', plan_type: 'SUBSCRIPTION', duration_value: '', duration_unit: 'MONTHS',
-  photo_quota: '', price: '', wallet_credits: '', wallet_tier: 'TOPUP', ai_credit_cost_per_photo: ''
+  photo_quota: '', price: '', wallet_credits: '', wallet_tier: 'TOPUP', ai_credit_cost_per_photo: '',
+  includes_ai_media: false
 }
 
 const selectOptionStyle = {
@@ -109,7 +110,8 @@ export default function Plans() {
       price: plan.price,
       wallet_credits: plan.wallet_credits || '',
       wallet_tier: plan.wallet_tier || 'TOPUP',
-      ai_credit_cost_per_photo: plan.ai_credit_cost_per_photo || ''
+      ai_credit_cost_per_photo: plan.ai_credit_cost_per_photo || '',
+      includes_ai_media: Boolean(plan.includes_ai_media)
     })
     setModalOpen(true)
   }
@@ -151,7 +153,7 @@ export default function Plans() {
         plan_type: form.plan_type,
         price: Number(form.price),
         ...(form.plan_type === 'SUBSCRIPTION'
-          ? { duration_value: Number(form.duration_value), duration_unit: form.duration_unit, photo_quota: Number(form.photo_quota) }
+          ? { duration_value: Number(form.duration_value), duration_unit: form.duration_unit, photo_quota: Number(form.photo_quota), includes_ai_media: form.includes_ai_media }
           : { wallet_credits: Number(form.wallet_credits), wallet_tier: form.wallet_tier, ai_credit_cost_per_photo: Number(form.ai_credit_cost_per_photo) || 0 })
       }
       if (editingId) await updatePlan(editingId, payload)
@@ -248,6 +250,11 @@ export default function Plans() {
                           {p.wallet_tier === 'INITIAL' ? 'Initial' : 'Top-up'}
                         </Badge>
                       )}
+                      {p.plan_type === 'SUBSCRIPTION' && (
+                        <Badge variant={p.includes_ai_media ? 'gold' : 'default'}>
+                          {p.includes_ai_media ? 'AI Media' : 'Photo Selection only'}
+                        </Badge>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
@@ -313,6 +320,23 @@ export default function Plans() {
                 </select>
               </div>
               <GoldInput label="Photo Quota *" name="photo_quota" type="number" value={form.photo_quota} onChange={e => update('photo_quota', e.target.value)} />
+              <div
+                className="flex items-center justify-between gap-3 mb-6 p-3 rounded-xl"
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}
+              >
+                <div>
+                  <label className="text-sm cursor-pointer" style={{ color: 'var(--text-primary)' }}>Includes AI Media</label>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+                    Studios on this plan get an AI Media gallery + guest QR registration on every event, alongside Photo Selection.
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={form.includes_ai_media}
+                  onChange={e => update('includes_ai_media', e.target.checked)}
+                  className="w-4 h-4 flex-shrink-0 accent-[var(--accent-primary)]"
+                />
+              </div>
             </>
           ) : (
             <>

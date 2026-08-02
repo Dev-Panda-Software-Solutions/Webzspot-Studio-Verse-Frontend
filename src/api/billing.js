@@ -5,5 +5,6 @@ export const getTenantSubscription = (tenantId) => api.get(`/billing/tenant/${te
 export const getMySubscriptionHistory = () => api.get('/billing/my-subscription/history')
 export const getTenantSubscriptionHistory = (tenantId) => api.get(`/billing/tenant/${tenantId}/history`)
 export const subscribeToPlan = (subscription_plan_id) => api.post('/billing/subscribe', { subscription_plan_id })
+export const upgradePlan = (subscription_plan_id) => api.post('/billing/upgrade', { subscription_plan_id })
 export const rechargeWallet = (subscription_plan_id) => api.post('/billing/recharge', { subscription_plan_id })
 export const activateTrial = () => api.post('/billing/activate-trial')

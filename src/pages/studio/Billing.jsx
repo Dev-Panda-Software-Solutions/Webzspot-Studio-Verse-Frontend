@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Wallet, CreditCard, Clock, ImagePlus, Gift, History } from 'lucide-react'
+import { Wallet, CreditCard, Clock, ImagePlus, Gift, History, AlertTriangle } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
 import Badge from '../../components/ui/Badge'
 import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import { getPlans } from '../../api/plans'
-import { getMySubscription, getMySubscriptionHistory, subscribeToPlan, rechargeWallet, activateTrial } from '../../api/billing'
+import { getMySubscription, getMySubscriptionHistory, subscribeToPlan, upgradePlan, rechargeWallet, activateTrial } from '../../api/billing'
 import { formatDate, planLabel, planStatusVariant } from '../../utils/formatters'
 import toast from 'react-hot-toast'
 
@@ -79,7 +79,19 @@ export default function Billing() {
       await subscribeToPlan(planId)
       toast.success('Plan updated')
       qc.invalidateQueries(['tenant-subscription'])
+      qc.invalidateQueries(['tenant-subscription-history'])
     } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to subscribe') }
+    finally { setActingId(null) }
+  }
+
+  const handleUpgrade = async (planId, planName) => {
+    setActingId(planId)
+    try {
+      const res = await upgradePlan(planId)
+      const amount = res?.data?.amount_charged
+      toast.success(amount != null ? `Upgraded to ${planName} — ₹${amount} charged` : `Upgraded to ${planName}`)
+      qc.invalidateQueries(['tenant-subscription'])
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to upgrade') }
     finally { setActingId(null) }
   }
 
@@ -97,6 +109,35 @@ export default function Billing() {
     <AppLayout title="Billing" subtitle="Manage your plan, photo quota, and wallet credits">
       <div className="space-y-6 max-w-4xl">
 
+        {subscription?.status === 'GRACE' && (
+          <div className="rounded-xl p-4 flex items-start gap-3" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.35)' }}>
+            <AlertTriangle size={18} className="mt-0.5 flex-shrink-0" style={{ color: '#F59E0B' }} />
+            <div>
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                Your billing period ended — you're in the grace period
+              </p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                Uploads are disabled, but your existing events and photos are still visible to clients.
+                {subscription.grace_ends_at && (
+                  <> Renew within <strong>{daysLeft(subscription.grace_ends_at)} day{daysLeft(subscription.grace_ends_at) === 1 ? '' : 's'}</strong> or all events, photos, and shared links will be permanently deleted.</>
+                )}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {!subscription && !subLoading && history[0]?.status === 'EXPIRED' && (
+          <div className="rounded-xl p-4 flex items-start gap-3" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.35)' }}>
+            <AlertTriangle size={18} className="mt-0.5 flex-shrink-0" style={{ color: '#F87171' }} />
+            <div>
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Your last subscription expired</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                Its grace period lapsed without renewal, so its events, photos, and shared links were permanently deleted. Subscribe to a plan below to start fresh.
+              </p>
+            </div>
+          </div>
+        )}
+
         {!subLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <GlassCard hover={false}>
@@ -110,7 +151,7 @@ export default function Billing() {
                     <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                       {subscription.plan?.plan_name || 'Free Trial'}
                     </p>
-                    <Badge variant={subscription.status === 'ACTIVE' ? 'success' : subscription.status === 'TRIAL' ? 'gold' : 'error'}>
+                    <Badge variant={planStatusVariant(subscription.status)}>
                       {subscription.status}
                     </Badge>
                   </div>
@@ -122,9 +163,13 @@ export default function Billing() {
                       <UsageBar used={subscription.photo_quota_used} total={subscription.photo_quota_total} />
                     </>
                   )}
-                  {subscription.expires_at && (
+                  {subscription.status === 'GRACE' && subscription.grace_ends_at ? (
+                    <p className="text-xs mt-3 flex items-center gap-1" style={{ color: '#F59E0B' }}>
+                      <Clock size={12} /> {daysLeft(subscription.grace_ends_at)} day(s) left before data is deleted
+                    </p>
+                  ) : subscription.expires_at && (
                     <p className="text-xs mt-3 flex items-center gap-1" style={{ color: 'var(--text-tertiary)' }}>
-                      <Clock size={12} /> {daysLeft(subscription.expires_at)} day(s) remaining
+                      <Clock size={12} /> {daysLeft(subscription.expires_at)} day(s) until renewal is due
                     </p>
                   )}
                 </>
@@ -173,6 +218,21 @@ export default function Billing() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {subscriptionPlans.map(plan => {
               const isCurrent = subscription?.subscription_plan_id === plan.subscription_plan_id
+              // Upgrading (same billing interval, higher price, subscription
+              // currently ACTIVE/TRIAL) keeps the quota already used and the
+              // billing period — only charges the price difference. Anything
+              // else (no active sub, GRACE, EXPIRED, different interval) goes
+              // through subscribe instead, which starts a fresh period.
+              const canUpgrade = !isCurrent && subscription
+                && ['ACTIVE', 'TRIAL'].includes(subscription.status)
+                && subscription.plan?.plan_type === 'SUBSCRIPTION'
+                && subscription.plan?.duration_unit === plan.duration_unit
+                && Number(plan.price) > (subscription.locked_price != null ? Number(subscription.locked_price) : Number(subscription.plan?.price || 0))
+              const upgradeAmount = canUpgrade
+                ? Number(plan.price) - (subscription.locked_price != null ? Number(subscription.locked_price) : Number(subscription.plan?.price || 0))
+                : null
+              const isRenewal = ['GRACE', 'EXPIRED'].includes(subscription?.status)
+
               return (
                 <GlassCard key={plan.subscription_plan_id} hover={false} className="flex flex-col">
                   <div className="flex items-center justify-between mb-2">
@@ -189,9 +249,9 @@ export default function Billing() {
                     variant={isCurrent ? 'ghost' : 'outline'}
                     disabled={isCurrent}
                     loading={actingId === plan.subscription_plan_id}
-                    onClick={() => handleSubscribe(plan.subscription_plan_id)}
+                    onClick={() => canUpgrade ? handleUpgrade(plan.subscription_plan_id, plan.plan_name) : handleSubscribe(plan.subscription_plan_id)}
                   >
-                    {isCurrent ? 'Current Plan' : 'Subscribe'}
+                    {isCurrent ? 'Current Plan' : canUpgrade ? `Upgrade (+₹${upgradeAmount.toLocaleString()})` : isRenewal ? 'Renew' : 'Subscribe'}
                   </GoldButton>
                 </GlassCard>
               )

@@ -27,6 +27,7 @@ const GalleryFavourites = lazy(() => import('./pages/gallery/Favourites'))
 
 const AccountSettings = lazy(() => import('./pages/shared/AccountSettings'))
 const Support = lazy(() => import('./pages/shared/Support'))
+const GuestRegister = lazy(() => import('./pages/public/GuestRegister'))
 const NotFound = lazy(() => import('./pages/shared/NotFound'))
 const Unauthorized = lazy(() => import('./pages/shared/Unauthorized'))
 
@@ -64,6 +65,7 @@ export default function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
           <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
+          <Route path="/register/:eventId" element={<GuestRegister />} />
 
           {/* Super Admin */}
           <Route path="/admin" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><AdminDashboard /></ProtectedRoute>} />

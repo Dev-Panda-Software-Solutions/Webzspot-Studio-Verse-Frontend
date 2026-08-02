@@ -14,7 +14,6 @@ const EMPTY = {
   event_name: '', event_date: '', event_time: '',
   event_venue: '', event_organizer: '', event_description: '',
   event_organizer_phone_number: '', event_organizer_email_id: '',
-  is_ai_event: false
 }
 
 function toDateInput(val) {
@@ -41,9 +40,9 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
     queryFn: getMySubscription,
     enabled: open
   })
-  // AI events are gated on wallet credits alone — available on ANY active
-  // subscription plan (Basic, Pro, or Wallet), not just a Wallet-type plan.
-  const hasWalletPlan = (subData?.data?.wallet?.balance_credits ?? 0) > 0
+  // Whether the created event gets an AI Media module is decided entirely by
+  // the studio's current plan — not a per-event choice.
+  const planIncludesAi = Boolean(subData?.data?.subscription?.plan?.includes_ai_media)
 
   // Pre-fill form when opening in edit mode
   useEffect(() => {
@@ -57,7 +56,6 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
         event_description: editEvent.event_description || '',
         event_organizer_phone_number: editEvent.event_organizer_phone_number || '',
         event_organizer_email_id: editEvent.event_organizer_email_id || '',
-        is_ai_event: Boolean(editEvent.is_ai_event),
       })
       setCoverPreview(editEvent.profile_url ? backendAssetUrl(editEvent.profile_url) : null)
       setCoverFile(null)
@@ -182,23 +180,17 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
           </div>
         </div>
 
-        <div
-          className="flex items-center justify-between gap-3 mb-6 p-3 rounded-xl"
-          style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}
-          title={hasWalletPlan ? '' : 'Requires wallet credits — recharge your wallet in Billing'}
-        >
-          <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: hasWalletPlan ? 'var(--text-primary)' : 'var(--text-tertiary)' }}>
-            <Sparkles size={15} style={{ color: hasWalletPlan ? 'var(--accent-primary)' : 'var(--text-tertiary)' }} />
-            AI Event
-          </label>
-          <input
-            type="checkbox"
-            checked={form.is_ai_event}
-            disabled={!hasWalletPlan}
-            onChange={e => update('is_ai_event', e.target.checked)}
-            className="w-4 h-4 accent-[var(--accent-primary)] disabled:opacity-40"
-          />
-        </div>
+        {!isEdit && (
+          <div
+            className="flex items-center gap-2 mb-6 p-3 rounded-xl text-sm"
+            style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)', color: 'var(--text-secondary)' }}
+          >
+            <Sparkles size={15} style={{ color: planIncludesAi ? 'var(--accent-primary)' : 'var(--text-tertiary)' }} />
+            {planIncludesAi
+              ? 'Your plan includes AI Media — this event will get both Photo Selection and AI Media galleries.'
+              : 'This event will get a Photo Selection gallery. Upgrade to an AI-enabled plan to add AI Media.'}
+          </div>
+        )}
 
         <div className="flex gap-3 pt-2">
           <GoldButton type="submit" loading={loading} className="flex-1 justify-center">

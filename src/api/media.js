@@ -32,7 +32,7 @@ export const LARGE_UPLOAD_THRESHOLD = 100 * 1024 * 1024
 export const LARGE_UPLOAD_MAX_SIZE = 5 * 1024 * 1024 * 1024
 const CHUNK_SIZE = 8 * 1024 * 1024
 
-export const uploadLargeMedia = async ({ eventId, file, onProgress, signal }) => {
+export const uploadLargeMedia = async ({ eventId, file, onProgress, signal, galleryType }) => {
   const typeError = validateMediaFile(file)
   if (typeError) {
     throw new Error(typeError)
@@ -91,6 +91,7 @@ export const uploadLargeMedia = async ({ eventId, file, onProgress, signal }) =>
       file_type: file.type || 'application/octet-stream',
       file_size: file.size,
       parts,
+      gallery_type: galleryType,
     }, { signal })
   } catch (err) {
     // Always fire the cleanup call (no signal) even if the failure was us
@@ -108,6 +109,7 @@ export const uploadLargeMedia = async ({ eventId, file, onProgress, signal }) =>
 export const deleteMedia = (id) => api.delete(`/uploaded-media/${id}`)
 export const restoreMedia = (id) => api.put(`/uploaded-media/${id}/restore`)
 export const hardDeleteMedia = (id) => api.delete(`/uploaded-media/hard/${id}`)
+export const copyMediaToGallery = (id, target_gallery) => api.post(`/uploaded-media/${id}/copy`, { target_gallery })
 
 export const getMediaToken = (mediaId) => api.get(`/media/token/${mediaId}`)
 export const getMediaViewUrl = (token) => mediaViewUrl(token)

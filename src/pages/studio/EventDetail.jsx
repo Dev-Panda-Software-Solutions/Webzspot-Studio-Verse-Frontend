@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ArrowLeft, Users, UserPlus, UserCheck,
   Calendar, Ban, CheckCircle2, ChevronDown, ChevronUp, Search, HardDrive, Download, Trash2,
-  Lock, Send, Unlock, AlertTriangle
+  Lock, Send, Unlock, AlertTriangle, Sparkles, QrCode, Mail, Rocket
 } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GoldButton from '../../components/ui/GoldButton'
@@ -18,19 +18,21 @@ import Avatar from '../../components/ui/Avatar'
 import Modal from '../../components/ui/Modal'
 import GoldInput from '../../components/ui/GoldInput'
 import PasswordStrength from '../../components/ui/PasswordStrength'
-import { getEventById, getEventFavouritesGrouped, getEventUsers, assignUserToEvent, updateEventUserMapping, hardDeleteUserFromEvent } from '../../api/events'
-import { getMediaByEvent, deleteMedia, restoreMedia, hardDeleteMedia } from '../../api/media'
+import { getEventById, getEventFavouritesGrouped, getEventUsers, assignUserToEvent, updateEventUserMapping, hardDeleteUserFromEvent, publishEvent } from '../../api/events'
+import { getMediaByEvent, deleteMedia, restoreMedia, hardDeleteMedia, copyMediaToGallery } from '../../api/media'
 import { createUserInEvent, getUsers, checkDuplicateClient } from '../../api/users'
 import { downloadFavouritesZip, downloadStudioFavouritesZip } from '../../api/media'
 import { getTenantSettings } from '../../api/tenants'
 import { getTenantFavouritesForEvent } from '../../api/favourites'
+import { getGuestsByEvent } from '../../api/eventGuests'
 import { formatDate, clientDisplayName } from '../../utils/formatters'
 import useAuthStore from '../../stores/authStore'
 import FavouritesGallery from '../../components/gallery/FavouritesGallery'
+import EventQrCode from '../../components/events/EventQrCode'
 import { backendAssetUrl } from '../../utils/apiUrl'
 import toast from 'react-hot-toast'
 
-const TABS = ['Media', 'Clients', 'Favourites']
+const BASE_TABS = ['Photo Selection', 'Clients', 'Favourites']
 
 /* ── Access expiry badge ─────────────────────────────────── */
 function AccessBadge({ access_expires, isactive }) {
@@ -499,22 +501,31 @@ export default function StudioEventDetail() {
   const qc = useQueryClient()
   const { user } = useAuthStore()
   const containerRef = useRef(null)
-  const [tab, setTab] = useState('Media')
+  const [tab, setTab] = useState('Photo Selection')
   const [addClientOpen, setAddClientOpen] = useState(false)
   const [mediaPage, setMediaPage] = useState(1)
   const [mediaStatus, setMediaStatus] = useState('active')
   const [showRevoked, setShowRevoked] = useState(false)
   const [dlProgress, setDlProgress] = useState(null) // { label, percent, speedMBps, etaSec }
+  const [publishing, setPublishing] = useState(false)
+
+  const isGalleryTab = tab === 'Photo Selection' || tab === 'AI Media'
+  const galleryType = tab === 'AI Media' ? 'AI_MEDIA' : 'PHOTO_SELECTION'
 
   const { data: eventData, isLoading: eventLoading } = useQuery({
     queryKey: ['event', id],
     queryFn: () => getEventById(id)
   })
   const { data: mediaData, isLoading: mediaLoading, refetch: refetchMedia } = useQuery({
-    queryKey: ['event-media', id, mediaPage, mediaStatus],
-    queryFn: () => getMediaByEvent(id, { page: mediaPage, limit: 30, status: mediaStatus }),
+    queryKey: ['event-media', id, mediaPage, mediaStatus, galleryType],
+    queryFn: () => getMediaByEvent(id, { page: mediaPage, limit: 30, status: mediaStatus, gallery: galleryType }),
     // Pre-signed S3 URLs expire after ~30s — refetch ahead of that while this tab is visible.
-    refetchInterval: tab === 'Media' ? 25_000 : false,
+    refetchInterval: isGalleryTab ? 25_000 : false,
+  })
+  const { data: guestsData, isLoading: guestsLoading } = useQuery({
+    queryKey: ['event-guests', id],
+    queryFn: () => getGuestsByEvent(id),
+    enabled: tab === 'AI Media' && !!eventData?.data?.is_ai_event
   })
   const { data: usersData, isLoading: usersLoading } = useQuery({
     queryKey: ['event-users', id],
@@ -642,6 +653,30 @@ export default function StudioEventDetail() {
     } catch { toast.error('Failed to permanently delete file') }
   }
 
+  // Copying doesn't re-upload — the destination gallery just gets a second
+  // row pointing at the same stored file.
+  const handleCopyMedia = async (mediaId, mediaName) => {
+    const target = galleryType === 'AI_MEDIA' ? 'PHOTO_SELECTION' : 'AI_MEDIA'
+    try {
+      const res = await copyMediaToGallery(mediaId, target)
+      toast.success(res?.message || `Copied "${mediaName || 'file'}"`)
+      qc.invalidateQueries(['event-media', id])
+    } catch (err) {
+      toast.error(err === 'Already Copied.' ? 'Already Copied.' : (typeof err === 'string' ? err : 'Failed to copy'))
+    }
+  }
+
+  const handlePublish = async () => {
+    if (!window.confirm('Publish this event? This marks uploads as finished.')) return
+    setPublishing(true)
+    try {
+      await publishEvent(id)
+      toast.success('Event published!')
+      qc.invalidateQueries(['event', id])
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to publish event') }
+    finally { setPublishing(false) }
+  }
+
   const sanitizeForFilename = (name) =>
     (name || '').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_')
 
@@ -765,14 +800,26 @@ export default function StudioEventDetail() {
                   {formatDate(event?.event_date)}{event?.event_venue && ` · ${event.event_venue}`}
                 </p>
               </div>
-              <Badge variant="gold">{event?.isactive ? 'Active' : 'Archived'}</Badge>
+              <div className="flex items-center gap-2">
+                {event?.is_ai_event && <Badge variant="gold"><Sparkles size={10} className="inline mr-1" />AI Media</Badge>}
+                <Badge variant={event?.published_at ? 'success' : 'default'}>{event?.published_at ? 'Published' : 'Unpublished'}</Badge>
+                <Badge variant="gold">{event?.isactive ? 'Active' : 'Archived'}</Badge>
+              </div>
             </div>
           </div>
 
+          {!event?.published_at && (
+            <div className="flex justify-end mb-4">
+              <GoldButton size="sm" icon={<Rocket size={13} />} loading={publishing} onClick={handlePublish}>
+                Publish Event
+              </GoldButton>
+            </div>
+          )}
+
           {/* Tabs */}
           <div className="event-tabs flex items-center gap-1 border-b" style={{ borderColor: 'var(--border-default)' }}>
-            {TABS.map(t => (
-              <button key={t} onClick={() => setTab(t)}
+            {(event?.is_ai_event ? [BASE_TABS[0], 'AI Media', ...BASE_TABS.slice(1)] : BASE_TABS).map(t => (
+              <button key={t} onClick={() => { setTab(t); setMediaPage(1) }}
                 className={`px-4 py-2.5 text-sm font-medium transition-all duration-200 border-b-2 -mb-px
                   ${tab === t
                     ? 'border-gold-500 text-gold-500'
@@ -790,8 +837,34 @@ export default function StudioEventDetail() {
           </div>
         </div>
 
-        {/* Tab: Media */}
-        {tab === 'Media' && (
+        {/* Tab: AI Media — QR code + registered guests, on top of its own gallery */}
+        {tab === 'AI Media' && event?.is_ai_event && (
+          <div className="mb-6">
+            <GlassCard hover={false} className="mb-5">
+              <div className="flex flex-wrap items-start gap-6">
+                <div className="flex-shrink-0">
+                  <EventQrCode eventId={id} />
+                </div>
+                <div className="flex-1 min-w-[200px]">
+                  <h3 className="text-sm font-semibold flex items-center gap-1.5 mb-1" style={{ color: 'var(--text-primary)' }}>
+                    <QrCode size={14} className="text-gold-500" /> Guest Registration
+                  </h3>
+                  <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>
+                    Print this QR code at the entrance or on tables. Guests scan it, upload a selfie, and leave their
+                    email — they'll get their matched photos once you publish the event.
+                  </p>
+                  <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                    <Mail size={13} />
+                    {guestsLoading ? 'Loading guests…' : `${guestsData?.data?.length || 0} guest${(guestsData?.data?.length || 0) === 1 ? '' : 's'} registered`}
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+          </div>
+        )}
+
+        {/* Tab: Photo Selection / AI Media gallery */}
+        {isGalleryTab && (
           <div>
             {/* Storage stats */}
             {totalMediaCount > 0 && (
@@ -812,7 +885,11 @@ export default function StudioEventDetail() {
               </div>
             )}
             <div className="mb-6">
-              <UploadDropzone eventId={id} onComplete={() => { refetchMedia(); qc.invalidateQueries(['event-media', id]); qc.invalidateQueries(['tenant-subscription']) }} />
+              <UploadDropzone
+                eventId={id}
+                galleryType={galleryType}
+                onComplete={() => { refetchMedia(); qc.invalidateQueries(['event-media', id]); qc.invalidateQueries(['tenant-subscription']) }}
+              />
             </div>
 
             <div className="flex gap-1 p-1 rounded-xl mb-5 w-fit" style={{ background: 'var(--bg-elevated)' }}>
@@ -846,6 +923,8 @@ export default function StudioEventDetail() {
               onDelete={handleDeleteMedia}
               onRestore={handleRestoreMedia}
               onHardDelete={handleHardDeleteMedia}
+              onCopyToOtherGallery={event?.is_ai_event ? handleCopyMedia : undefined}
+              copyLabel={galleryType === 'AI_MEDIA' ? 'Copy to Photo Selection' : 'Copy to AI Media'}
             />
           </div>
         )}

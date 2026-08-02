@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Expand, Play, FileVideo, Image, Archive, Trash2, Star, RotateCcw } from 'lucide-react'
+import { Expand, Play, FileVideo, Image, Archive, Trash2, Star, RotateCcw, Copy } from 'lucide-react'
 import { useInView } from 'react-intersection-observer'
 import WatermarkOverlay from './WatermarkOverlay'
 import FavouriteButton from './FavouriteButton'
@@ -28,7 +28,7 @@ function FavBtn({ mediaId, eventId, showFavourite, showTenantFav, atFavouriteLim
 }
 
 /* ─── Masonry / Grid card ─── */
-function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTenantFav, isStudioPick, hideSize, atFavouriteLimit, frozen, square, onDelete, onRestore, onHardDelete }) {
+function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTenantFav, isStudioPick, hideSize, atFavouriteLimit, frozen, square, onDelete, onRestore, onHardDelete, onCopyToOtherGallery, copyLabel }) {
   const [loaded, setLoaded] = useState(false)
   const [hovered, setHovered] = useState(false)
   const { ref: inViewRef, inView } = useInView({ triggerOnce: true, rootMargin: '200px' })
@@ -127,11 +127,23 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
       )}
 
       {/* Delete/restore actions — top-right, hover only, only when handlers provided */}
-      {(onDelete || onRestore || onHardDelete) && loaded && (
+      {(onDelete || onRestore || onHardDelete || onCopyToOtherGallery) && loaded && (
         <div
           className={`absolute top-2 right-2 flex gap-1 z-10 transition-opacity duration-200 ${hovered ? 'opacity-100' : 'opacity-0'}`}
           onClick={(e) => e.stopPropagation()}
         >
+          {onCopyToOtherGallery && (
+            <button
+              onClick={() => onCopyToOtherGallery(media.media_id, media.media_name)}
+              title={copyLabel || 'Copy to other gallery'}
+              className="w-6 h-6 flex items-center justify-center rounded-lg"
+              style={{ background: 'rgba(0,0,0,0.6)', color: '#93C5FD' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(59,130,246,0.3)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.6)'}
+            >
+              <Copy size={11} />
+            </button>
+          )}
           {media.isactive === false ? (
             onRestore && (
               <button
@@ -188,7 +200,7 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
 }
 
 /* ─── List row ─── */
-function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTenantFav, isStudioPick, hideSize, atFavouriteLimit, frozen, onDelete, onRestore, onHardDelete }) {
+function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTenantFav, isStudioPick, hideSize, atFavouriteLimit, frozen, onDelete, onRestore, onHardDelete, onCopyToOtherGallery, copyLabel }) {
   const [loaded, setLoaded] = useState(false)
   const { ref: inViewRef, inView } = useInView({ triggerOnce: true, rootMargin: '200px' })
   const video = isVideo(media)
@@ -288,6 +300,16 @@ function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
         >
           <Expand size={14} style={{ color: 'var(--text-secondary)' }} />
         </button>
+        {onCopyToOtherGallery && (
+          <button
+            onClick={() => onCopyToOtherGallery(media.media_id, media.media_name)}
+            title={copyLabel || 'Copy to other gallery'}
+            className="p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+            style={{ background: 'var(--bg-elevated)', color: '#93C5FD' }}
+          >
+            <Copy size={14} />
+          </button>
+        )}
         {media.isactive === false ? (
           onRestore && (
             <button
@@ -327,7 +349,7 @@ function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
 }
 
 /* ─── Exported component ─── */
-export default function PhotoCard({ media, eventId, watermarkSrc, onClick, showFavourite = true, showTenantFav = false, isStudioPick = false, atFavouriteLimit = false, frozen = false, view = 'masonry', onDelete, onRestore, onHardDelete }) {
+export default function PhotoCard({ media, eventId, watermarkSrc, onClick, showFavourite = true, showTenantFav = false, isStudioPick = false, atFavouriteLimit = false, frozen = false, view = 'masonry', onDelete, onRestore, onHardDelete, onCopyToOtherGallery, copyLabel }) {
   // Storage/compressed size is only relevant to the studio side — clients browsing
   // their own gallery (showFavourite without showTenantFav) don't need to see it.
   const hideSize = showFavourite && !showTenantFav
@@ -335,12 +357,14 @@ export default function PhotoCard({ media, eventId, watermarkSrc, onClick, showF
     return <ListView media={media} eventId={eventId} watermarkSrc={watermarkSrc}
       onClick={onClick} showFavourite={showFavourite} showTenantFav={showTenantFav}
       isStudioPick={isStudioPick} hideSize={hideSize} atFavouriteLimit={atFavouriteLimit} frozen={frozen}
-      onDelete={onDelete} onRestore={onRestore} onHardDelete={onHardDelete} />
+      onDelete={onDelete} onRestore={onRestore} onHardDelete={onHardDelete}
+      onCopyToOtherGallery={onCopyToOtherGallery} copyLabel={copyLabel} />
   }
   return (
     <CardView media={media} eventId={eventId} watermarkSrc={watermarkSrc}
       onClick={onClick} showFavourite={showFavourite} showTenantFav={showTenantFav}
       isStudioPick={isStudioPick} hideSize={hideSize} atFavouriteLimit={atFavouriteLimit} frozen={frozen}
-      square={view === 'grid'} onDelete={onDelete} onRestore={onRestore} onHardDelete={onHardDelete} />
+      square={view === 'grid'} onDelete={onDelete} onRestore={onRestore} onHardDelete={onHardDelete}
+      onCopyToOtherGallery={onCopyToOtherGallery} copyLabel={copyLabel} />
   )
 }

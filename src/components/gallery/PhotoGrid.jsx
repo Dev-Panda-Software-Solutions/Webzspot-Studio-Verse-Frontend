@@ -28,6 +28,8 @@ export default function PhotoGrid({
   onDelete,
   onRestore,
   onHardDelete,
+  onCopyToOtherGallery,
+  copyLabel,
 }) {
   const atFavouriteLimit = favouriteLimit != null && favouritedCount >= favouriteLimit
   const [lightboxIndex, setLightboxIndex] = useState(null)
@@ -94,6 +96,8 @@ export default function PhotoGrid({
     onDelete,
     onRestore,
     onHardDelete,
+    onCopyToOtherGallery,
+    copyLabel,
     onClick: (m) => setLightboxIndex(displayList.findIndex(x => x.media_id === m.media_id)),
   })
 

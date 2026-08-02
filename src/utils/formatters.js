@@ -52,6 +52,7 @@ export const planLabel = (subscription) => {
 
 export const planStatusVariant = (status) => {
   if (status === 'ACTIVE' || status === 'TRIAL') return 'success'
+  if (status === 'GRACE') return 'gold'
   if (status === 'EXPIRED' || status === 'CANCELLED') return 'error'
   return 'default'
 }

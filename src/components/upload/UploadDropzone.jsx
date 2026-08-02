@@ -134,7 +134,7 @@ function FileRow({ item, onRetry, retryDisabled }) {
 }
 
 /* ─── Main component ─── */
-export default function UploadDropzone({ eventId, onComplete }) {
+export default function UploadDropzone({ eventId, onComplete, galleryType = 'PHOTO_SELECTION' }) {
   const [open, setOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('upload')
   const [queue, setQueue] = useState([])
@@ -225,11 +225,13 @@ export default function UploadDropzone({ eventId, onComplete }) {
           file: item.file,
           onProgress: (e) => updateProgress(item.id, e.loaded, e.total),
           signal: controller.signal,
+          galleryType,
         })
       } else {
         const fd = new FormData()
         fd.append('event_id', eventId)
         fd.append('file', item.file)
+        fd.append('gallery_type', galleryType)
         await uploadMedia(fd, (e) => updateProgress(item.id, e.loaded, e.total), controller.signal)
       }
       updateStatus(item.id, 'done', { error: null, progress: 100, loaded: item.file.size })
@@ -247,7 +249,7 @@ export default function UploadDropzone({ eventId, onComplete }) {
     } finally {
       delete controllersRef.current[item.id]
     }
-  }, [eventId, updateProgress, updateStatus])
+  }, [eventId, galleryType, updateProgress, updateStatus])
 
   /* ── Stall watchdog ──
      If a tab is backgrounded during a long video upload, the browser can
