@@ -1,7 +1,8 @@
 import React, { useLayoutEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, ImageIcon, Users, Heart, TrendingUp, Camera, Star, Layers, HardDrive } from 'lucide-react'
+import { ImageIcon, Heart, TrendingUp, Camera, Star, Layers, Lock } from 'lucide-react'
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
@@ -18,6 +19,7 @@ import { getEvents, getDashboardAnalytics, deleteEvent, restoreEvent } from '../
 import { getMySubscription } from '../../api/billing'
 import useAuthStore from '../../stores/authStore'
 import { greetingTime } from '../../utils/formatters'
+import { confirmDialog } from '../../components/ui/ConfirmDialog'
 import toast from 'react-hot-toast'
 
 /* ── One-time welcome popup for a brand-new free trial ─────── */
@@ -80,13 +82,6 @@ const axisProps = {
   tick: { fill: '#6B6B76', fontSize: 11 },
   axisLine: false,
   tickLine: false,
-}
-
-const formatStorage = (kb = 0) => {
-  const v = Number(kb) || 0
-  if (v >= 1024 * 1024) return `${(v / 1024 / 1024).toFixed(2)} GB`
-  if (v >= 1024) return `${(v / 1024).toFixed(1)} MB`
-  return `${v.toFixed(1)} KB`
 }
 
 // Format "2026-01" → "Jan"
@@ -187,6 +182,7 @@ function SectionHeader({ title, subtitle }) {
 /* ── Main dashboard ─────────────────────────────────────────── */
 export default function StudioDashboard() {
   const { user } = useAuthStore()
+  const navigate = useNavigate()
   const qc = useQueryClient()
   const containerRef = useRef(null)
   const [createOpen, setCreateOpen] = useState(false)
@@ -195,7 +191,13 @@ export default function StudioDashboard() {
   const [statusFilter, setStatusFilter] = useState('active')
 
   const handleArchiveEvent = async (eventId, eventName) => {
-    if (!window.confirm(`Archive "${eventName}"? Clients will immediately lose access and all its photos/videos will be hidden — nothing is deleted, and you can restore it any time.`)) return
+    const ok = await confirmDialog({
+      title: 'Archive event?',
+      message: `Archive "${eventName}"? Clients will immediately lose access and all its photos/videos will be hidden — nothing is deleted, and you can restore it any time.`,
+      confirmLabel: 'Archive',
+      danger: false,
+    })
+    if (!ok) return
     try {
       await deleteEvent(eventId)
       toast.success('Event archived')
@@ -205,7 +207,13 @@ export default function StudioDashboard() {
   }
 
   const handleRestoreEvent = async (eventId, eventName) => {
-    if (!window.confirm(`Restore "${eventName}"? Clients will regain access to it and its photos/videos.`)) return
+    const ok = await confirmDialog({
+      title: 'Restore event?',
+      message: `Restore "${eventName}"? Clients will regain access to it and its photos/videos.`,
+      confirmLabel: 'Restore',
+      danger: false,
+    })
+    if (!ok) return
     try {
       await restoreEvent(eventId)
       toast.success('Event restored')
@@ -235,7 +243,6 @@ export default function StudioDashboard() {
   const pages = data?.data?.pages || 1
   const analytics = analyticsData?.data || {}
   const totals = analytics.totals || {}
-  const storage = analytics.storage_summary || {}
   const eventsByMonth = (analytics.events_by_month || []).map(d => ({ ...d, label: shortMonth(d.month) }))
   const mediaByMonth = (analytics.media_by_month || []).map(d => ({ ...d, label: shortMonth(d.month) }))
   const topEvents = analytics.top_events || []
@@ -244,6 +251,21 @@ export default function StudioDashboard() {
     { name: 'Active', value: eventStatus.active },
     { name: 'Archived', value: eventStatus.archived },
   ]
+
+  // Trial/plan upload quota fully used up → event creation is blocked by the
+  // backend, so surface an "Upgrade Plan" action instead of "New Event".
+  const subscription = subData?.data?.subscription
+  const quotaUsed = Number(subscription?.photo_quota_used || 0)
+  const quotaTotal = Number(subscription?.photo_quota_total || 0)
+  const quotaFull = quotaTotal > 0 && quotaUsed >= quotaTotal
+
+  const trialExhausted = subscription?.status === 'TRIAL' && quotaFull
+
+  const upgradeAction = (
+    <GoldButton onClick={() => navigate('/studio/billing')} icon={<Lock size={14} />}>
+      Upgrade Plan
+    </GoldButton>
+  )
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -265,18 +287,17 @@ export default function StudioDashboard() {
     <AppLayout
       title={`${greetingTime()}, ${user?.tenant_studio_name || user?.user_name || 'Studio'}`}
       subtitle={new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-      actions={<GoldButton onClick={() => setCreateOpen(true)} icon={<Camera size={14} />}>New Event</GoldButton>}
+      actions={trialExhausted
+        ? upgradeAction
+        : <GoldButton onClick={() => setCreateOpen(true)} icon={<Camera size={14} />}>New Event</GoldButton>}
     >
       <TrialWelcomeModal subscription={subData?.data?.subscription} />
 
       <div ref={containerRef}>
         {/* ── Stat Cards ─── */}
-        <div className="stat-row grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-          <StatCard label="Total Events" value={totals.events ?? total} icon={CalendarDays}
-            sub={<Sparkline data={eventsByMonth} />} />
+        <div className="stat-row grid grid-cols-2 gap-4 mb-8">
           <StatCard label="Media Files" value={totals.media ?? 0} icon={ImageIcon}
             sub={<Sparkline data={mediaByMonth} />} />
-          <StatCard label="Clients" value={totals.clients ?? 0} icon={Users} />
           <StatCard label="Favourites" value={totals.favourites ?? 0} icon={Heart} />
         </div>
 
@@ -364,43 +385,43 @@ export default function StudioDashboard() {
           </GlassCard>
         </div>
 
-        {/* ── Storage Total ─── */}
+        {/* ── Uploads Used ─── */}
         <div className="chart-section mb-6">
           <GlassCard hover={false}>
             <div className="flex items-center gap-2 mb-5">
               <div className="p-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.12)' }}>
-                <HardDrive size={14} className="text-gold-500" />
+                <ImageIcon size={14} className="text-gold-500" />
               </div>
               <div>
-                <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Storage Usage</h3>
-                <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Your studio's private bucket usage</p>
+                <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>Uploads Used</h3>
+                <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Photos &amp; videos uploaded against your plan quota</p>
               </div>
             </div>
-            {aLoading ? (
-              <div className="h-20 skeleton rounded-lg" />
-            ) : (
+            {subData ? (
               <div className="flex flex-wrap gap-4 items-end">
                 <div>
-                  <p className="text-xs uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Total Stored</p>
+                  <p className="text-xs uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Total Uploaded</p>
                   <p className="font-display text-3xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-                    {formatStorage(storage.total_stored_kb)}
+                    {quotaUsed} <span className="text-base font-medium" style={{ color: 'var(--text-tertiary)' }}>/ {quotaTotal}</span>
                   </p>
                 </div>
                 <div className="flex gap-3 flex-wrap">
                   <div className="rounded-lg px-4 py-3" style={{ background: 'var(--bg-elevated)' }}>
-                    <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Originals</p>
+                    <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Remaining</p>
                     <p className="text-sm font-semibold mt-0.5" style={{ color: 'var(--text-primary)' }}>
-                      {formatStorage(storage.total_original_kb)}
+                      {Math.max(0, quotaTotal - quotaUsed)} uploads
                     </p>
                   </div>
                   <div className="rounded-lg px-4 py-3" style={{ background: 'var(--bg-elevated)' }}>
-                    <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Compressed</p>
+                    <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Plan</p>
                     <p className="text-sm font-semibold mt-0.5" style={{ color: 'var(--text-primary)' }}>
-                      {formatStorage(storage.total_compressed_kb)}
+                      {subscription?.plan?.plan_name || '—'}
                     </p>
                   </div>
                 </div>
               </div>
+            ) : (
+              <div className="h-20 skeleton rounded-lg" />
             )}
           </GlassCard>
         </div>
@@ -496,7 +517,30 @@ export default function StudioDashboard() {
                   onRestore={handleRestoreEvent}
                 />
               ))}
-              {statusFilter !== 'archived' && <EventCard isNew onCreate={() => setCreateOpen(true)} />}
+              {statusFilter !== 'archived' && (
+                trialExhausted ? (
+                  <div
+                    className="event-card rounded-xl overflow-hidden group min-h-[220px] flex flex-col justify-center items-center text-center p-6"
+                    style={{ border: '1px dashed var(--border-default)', background: 'var(--bg-surface)' }}
+                  >
+                    <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+                      style={{ background: 'var(--accent-muted)' }}>
+                      <Lock size={26} style={{ color: 'var(--accent-primary)' }} />
+                    </div>
+                    <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
+                      Upload quota used up
+                    </p>
+                    <p className="text-xs mb-4 max-w-[220px]" style={{ color: 'var(--text-tertiary)' }}>
+                      Your trial uploads are finished. Upgrade your plan to keep creating events.
+                    </p>
+                    <GoldButton size="sm" onClick={() => navigate('/studio/billing')}>
+                      Upgrade Plan
+                    </GoldButton>
+                  </div>
+                ) : (
+                  <EventCard isNew onCreate={() => setCreateOpen(true)} />
+                )
+              )}
             </div>
           )}
         </div>
