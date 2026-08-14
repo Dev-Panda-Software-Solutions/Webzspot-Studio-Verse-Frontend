@@ -4,15 +4,14 @@ import { gsap } from 'gsap'
 import { Camera } from 'lucide-react'
 import GoldButton from '../components/ui/GoldButton'
 import GoldInput from '../components/ui/GoldInput'
-import PasswordStrength from '../components/ui/PasswordStrength'
 import { signup } from '../api/auth'
 import toast from 'react-hot-toast'
 
 export default function Signup() {
   const navigate = useNavigate()
   const [form, setForm] = useState({
-    tenant_studio_name: '', tenant_name: '', tenant_email_id: '', tenant_phone_number: '',
-    tenant_studio_address: '', username: '', password: '', confirm_password: ''
+    tenant_studio_name: '', tenant_email_id: '', tenant_phone_number: '',
+    username: '', password: '', confirm_password: ''
   })
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
@@ -34,7 +33,6 @@ export default function Signup() {
   const validate = () => {
     const e = {}
     if (!form.tenant_studio_name.trim()) e.tenant_studio_name = 'Studio name is required'
-    if (!form.tenant_name.trim()) e.tenant_name = 'Owner name is required'
     if (!form.username.trim()) e.username = 'Username is required'
     if (!form.password || form.password.length < 6) e.password = 'Password must be at least 6 characters'
     if (form.password !== form.confirm_password) e.confirm_password = 'Passwords do not match'
@@ -87,10 +85,6 @@ export default function Signup() {
                 onChange={(e) => update('tenant_studio_name', e.target.value)} error={errors.tenant_studio_name} />
             </div>
             <div className="auth-field">
-              <GoldInput label="Owner Name *" name="tenant_name" value={form.tenant_name}
-                onChange={(e) => update('tenant_name', e.target.value)} error={errors.tenant_name} />
-            </div>
-            <div className="auth-field">
               <GoldInput label="Email" name="tenant_email_id" type="email" value={form.tenant_email_id}
                 onChange={(e) => update('tenant_email_id', e.target.value)} />
             </div>
@@ -99,17 +93,12 @@ export default function Signup() {
                 onChange={(e) => update('tenant_phone_number', e.target.value)} />
             </div>
             <div className="auth-field">
-              <GoldInput label="Studio Address" name="tenant_studio_address" value={form.tenant_studio_address}
-                onChange={(e) => update('tenant_studio_address', e.target.value)} />
-            </div>
-            <div className="auth-field">
               <GoldInput label="Username *" name="username" value={form.username}
                 onChange={(e) => update('username', e.target.value)} error={errors.username} />
             </div>
             <div className="auth-field">
               <GoldInput label="Password *" name="password" type="password" value={form.password}
                 onChange={(e) => update('password', e.target.value)} error={errors.password} />
-              <PasswordStrength value={form.password} />
             </div>
             <div className="auth-field">
               <GoldInput label="Confirm Password *" name="confirm_password" type="password"

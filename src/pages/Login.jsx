@@ -45,7 +45,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.username || !form.password) {
-      setError('Please enter your username and password')
+      setError('Please enter your username/email and password')
       shakeForm()
       return
     }
@@ -100,11 +100,12 @@ export default function Login() {
           <form onSubmit={handleSubmit}>
             <div className="auth-field">
               <GoldInput
-                label="Username"
+                label="Username / Email"
                 name="username"
                 value={form.username}
                 onChange={(e) => update('username', e.target.value)}
                 autoComplete="username"
+                placeholder="username or email@studio.com"
               />
             </div>
             <div className="auth-field">
