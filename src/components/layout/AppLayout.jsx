@@ -1,11 +1,23 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import SidebarNav from './SidebarNav'
 import ThemeToggle from '../ui/ThemeToggle'
+import UploadStatusPanel from '../upload/UploadStatusPanel'
+import useAuthStore from '../../stores/authStore'
+import useThemeStore from '../../stores/themeStore'
 
 const getSavedCollapsed = () => localStorage.getItem('sv-sidebar-collapsed') === 'true'
 
 export default function AppLayout({ children, title, subtitle, actions }) {
   const [collapsed, setCollapsed] = useState(getSavedCollapsed)
+  const { user } = useAuthStore()
+  const { setTheme } = useThemeStore()
+
+  // Tenant portal is always light-themed; only superadmin keeps the toggle.
+  const isTenantPortal = user?.role === 'ADMIN'
+
+  useEffect(() => {
+    if (isTenantPortal) setTheme('light')
+  }, [isTenantPortal, setTheme])
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--bg-base)' }}>
@@ -35,7 +47,7 @@ export default function AppLayout({ children, title, subtitle, actions }) {
               )}
             </div>
             <div className="flex items-center gap-3 flex-shrink-0 ml-4">
-              <ThemeToggle />
+              {!isTenantPortal && <ThemeToggle />}
               {actions}
             </div>
           </header>
@@ -45,6 +57,7 @@ export default function AppLayout({ children, title, subtitle, actions }) {
           {children}
         </main>
       </div>
+      <UploadStatusPanel />
     </div>
   )
 }
