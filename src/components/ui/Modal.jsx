@@ -19,7 +19,7 @@ export default function Modal({ open, onClose, title, children, size = 'md' }) {
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
 
-  const widths = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-lg', xl: 'max-w-2xl' }
+  const widths = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-lg', xl: 'max-w-2xl', '2xl': 'max-w-4xl' }
 
   return createPortal(
     <AnimatePresence>

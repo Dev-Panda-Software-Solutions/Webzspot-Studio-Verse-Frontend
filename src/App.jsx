@@ -2,6 +2,7 @@ import React, { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import useAuthStore from './stores/authStore'
 import SkeletonLoader from './components/ui/SkeletonLoader'
+import ConfirmProvider from './components/ui/ConfirmDialog'
 import { ShutterProvider } from './context/ShutterContext'
 
 // Lazy-loaded pages
@@ -11,8 +12,6 @@ const Signup = lazy(() => import('./pages/Signup'))
 
 const AdminDashboard = lazy(() => import('./pages/superadmin/Dashboard'))
 const AdminStudios = lazy(() => import('./pages/superadmin/Studios'))
-const AdminUsers = lazy(() => import('./pages/superadmin/Users'))
-const AdminEvents = lazy(() => import('./pages/superadmin/Events'))
 const AdminPlans = lazy(() => import('./pages/superadmin/Plans'))
 
 const StudioDashboard = lazy(() => import('./pages/studio/Dashboard'))
@@ -58,9 +57,10 @@ const PageFallback = () => (
 
 export default function App() {
   return (
-    <ShutterProvider>
-      <Suspense fallback={<PageFallback />}>
-        <Routes>
+    <ConfirmProvider>
+      <ShutterProvider>
+        <Suspense fallback={<PageFallback />}>
+          <Routes>
           {/* Public */}
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
@@ -70,8 +70,6 @@ export default function App() {
           {/* Super Admin */}
           <Route path="/admin" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/studios" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><AdminStudios /></ProtectedRoute>} />
-          <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><AdminUsers /></ProtectedRoute>} />
-          <Route path="/admin/events" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><AdminEvents /></ProtectedRoute>} />
           <Route path="/admin/plans" element={<ProtectedRoute allowedRoles={['SUPER_ADMIN']}><AdminPlans /></ProtectedRoute>} />
 
           {/* Studio (Admin) */}
@@ -95,5 +93,6 @@ export default function App() {
         </Routes>
       </Suspense>
     </ShutterProvider>
+    </ConfirmProvider>
   )
 }

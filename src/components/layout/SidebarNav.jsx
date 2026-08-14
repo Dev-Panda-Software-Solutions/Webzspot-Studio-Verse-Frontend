@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { gsap } from 'gsap'
 import {
   LayoutDashboard, Building2, Users, Settings, LogOut,
-  Camera, ChevronLeft, ChevronRight, Store, CalendarDays,
+  Camera, ChevronLeft, ChevronRight, Store,
   CreditCard, Wallet, UserPlus, LifeBuoy, LayoutGrid
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -18,8 +18,6 @@ const navItems = {
   SUPER_ADMIN: [
     { to: '/admin',         icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/studios', icon: Building2,       label: 'Studios'   },
-    { to: '/admin/events',  icon: CalendarDays,    label: 'Events'    },
-    { to: '/admin/users',   icon: Users,           label: 'Users'     },
     { to: '/admin/plans',   icon: CreditCard,      label: 'Plans'     },
     { to: '/support',       icon: LifeBuoy,        label: 'Support'   },
   ],
