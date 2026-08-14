@@ -11,6 +11,7 @@ import GoldInput from '../../components/ui/GoldInput'
 import { getPlans, createPlan, updatePlan, deletePlan, reorderPlans, setSpecialAccess } from '../../api/plans'
 import { getPlatformSettings, updatePlatformSettings } from '../../api/platformSettings'
 import { formatDate } from '../../utils/formatters'
+import { confirmDialog } from '../../components/ui/ConfirmDialog'
 import toast from 'react-hot-toast'
 
 function TrialSettingsCard() {
@@ -70,7 +71,7 @@ function TrialSettingsCard() {
 
 const emptyForm = {
   plan_name: '', plan_type: 'SUBSCRIPTION', duration_value: '', duration_unit: 'MONTHS',
-  photo_quota: '', price: '', wallet_credits: '', wallet_tier: 'TOPUP', ai_credit_cost_per_photo: '',
+  photo_quota: '', price: '', wallet_credits: '', wallet_tier: 'TOPUP',
   includes_ai_media: false
 }
 
@@ -110,7 +111,6 @@ export default function Plans() {
       price: plan.price,
       wallet_credits: plan.wallet_credits || '',
       wallet_tier: plan.wallet_tier || 'TOPUP',
-      ai_credit_cost_per_photo: plan.ai_credit_cost_per_photo || '',
       includes_ai_media: Boolean(plan.includes_ai_media)
     })
     setModalOpen(true)
@@ -154,7 +154,7 @@ export default function Plans() {
         price: Number(form.price),
         ...(form.plan_type === 'SUBSCRIPTION'
           ? { duration_value: Number(form.duration_value), duration_unit: form.duration_unit, photo_quota: Number(form.photo_quota), includes_ai_media: form.includes_ai_media }
-          : { wallet_credits: Number(form.wallet_credits), wallet_tier: form.wallet_tier, ai_credit_cost_per_photo: Number(form.ai_credit_cost_per_photo) || 0 })
+          : { wallet_credits: Number(form.wallet_credits), wallet_tier: form.wallet_tier })
       }
       if (editingId) await updatePlan(editingId, payload)
       else await createPlan(payload)
@@ -166,7 +166,8 @@ export default function Plans() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this plan?')) return
+    const ok = await confirmDialog({ title: 'Delete plan?', message: 'Delete this plan? Existing subscribers keep their current plan until renewal.', confirmLabel: 'Delete', danger: true })
+    if (!ok) return
     try {
       await deletePlan(id)
       toast.success('Plan deleted')
@@ -355,7 +356,6 @@ export default function Plans() {
                 </p>
               </div>
               <GoldInput label="Wallet Credits *" name="wallet_credits" type="number" value={form.wallet_credits} onChange={e => update('wallet_credits', e.target.value)} />
-              <GoldInput label="AI Credit Cost / Photo" name="ai_credit_cost_per_photo" type="number" value={form.ai_credit_cost_per_photo} onChange={e => update('ai_credit_cost_per_photo', e.target.value)} />
             </>
           )}
 

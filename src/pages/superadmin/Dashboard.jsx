@@ -1,7 +1,7 @@
-import React, { useLayoutEffect, useRef, useState } from 'react'
+import React, { useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { useQuery } from '@tanstack/react-query'
-import { Building2, Users, CalendarDays, ImageIcon, Lock, KeyRound, HardDrive } from 'lucide-react'
+import { Building2, Users, CalendarDays, ImageIcon, HardDrive } from 'lucide-react'
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell,
@@ -10,16 +10,12 @@ import AppLayout from '../../components/layout/AppLayout'
 import PageHeader from '../../components/layout/PageHeader'
 import StatCard from '../../components/ui/StatCard'
 import GlassCard from '../../components/ui/GlassCard'
-import GoldButton from '../../components/ui/GoldButton'
-import GoldInput from '../../components/ui/GoldInput'
-import PasswordStrength from '../../components/ui/PasswordStrength'
 import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import Badge from '../../components/ui/Badge'
-import { getTenants, unlockAccount, resetPassword } from '../../api/tenants'
+import { getTenants } from '../../api/tenants'
 import { getUsers } from '../../api/users'
 import { getDashboardAnalytics } from '../../api/events'
 import { formatDate, planLabel } from '../../utils/formatters'
-import toast from 'react-hot-toast'
 
 /* ── Shared chart theme ─────────────────────────────────────── */
 const GOLD = '#F59E0B'
@@ -115,10 +111,6 @@ function StorageRow({ name, meta, value, max }) {
 
 export default function AdminDashboard() {
   const containerRef = useRef(null)
-  const [unlockUsername, setUnlockUsername] = useState('')
-  const [resetForm, setResetForm] = useState({ username: '', new_password: '' })
-  const [unlocking, setUnlocking] = useState(false)
-  const [resetting, setResetting] = useState(false)
 
   const { data: tenantRes, isLoading: tLoading } = useQuery({
     queryKey: ['tenants'],
@@ -158,9 +150,7 @@ export default function AdminDashboard() {
   const storage = analytics.storage_summary || {}
   const storageByEvent = storage.by_event || []
   const storageByStudio = storage.by_studio || []
-  const storageByClient = storage.by_client || []
   const maxStudioStorage = Math.max(...storageByStudio.map(item => item.stored_kb || 0), 0)
-  const maxClientStorage = Math.max(...storageByClient.map(item => item.assigned_storage_kb || 0), 0)
 
   const studioGrowth = (analytics.studio_growth || []).map(d => ({ ...d, label: shortMonth(d.month) }))
   const userGrowth = (analytics.user_growth || []).map(d => ({ ...d, label: shortMonth(d.month) }))
@@ -171,30 +161,6 @@ export default function AdminDashboard() {
     studios: d.count,
     users: userGrowth[i]?.count || 0,
   }))
-
-  const handleUnlock = async (e) => {
-    e.preventDefault()
-    if (!unlockUsername.trim()) return
-    setUnlocking(true)
-    try {
-      await unlockAccount({ username: unlockUsername })
-      toast.success(`Account "${unlockUsername}" unlocked`)
-      setUnlockUsername('')
-    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to unlock account') }
-    finally { setUnlocking(false) }
-  }
-
-  const handleReset = async (e) => {
-    e.preventDefault()
-    if (!resetForm.username || !resetForm.new_password) return
-    setResetting(true)
-    try {
-      await resetPassword(resetForm)
-      toast.success('Password reset successfully')
-      setResetForm({ username: '', new_password: '' })
-    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to reset password') }
-    finally { setResetting(false) }
-  }
 
   return (
     <AppLayout title="Platform Overview" subtitle="Studios, clients and events at a glance">
@@ -318,7 +284,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* ── Studios + Storage by Studio ─── */}
-        <div className="chart-section grid xl:grid-cols-3 gap-6 mb-6">
+        <div className="chart-section grid xl:grid-cols-3 gap-6">
           {/* Recent Studios */}
           <div className="xl:col-span-2">
             <GlassCard hover={false} className="p-0 overflow-hidden">
@@ -373,75 +339,6 @@ export default function AdminDashboard() {
                 max={maxStudioStorage}
               />
             ))}
-          </GlassCard>
-        </div>
-
-        {/* ── Storage by Client + Quick Actions ─── */}
-        <div className="chart-section grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
-          {/* Storage by Client */}
-          <GlassCard hover={false}>
-            <SectionHeader title="Storage by Client" subtitle="Assigned event storage" />
-            {storageByClient.length === 0 ? (
-              <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No assigned client storage yet</p>
-            ) : storageByClient.slice(0, 5).map(item => (
-              <StorageRow
-                key={item.user_id}
-                name={item.user_name}
-                meta={`${item.event_count} events · ${item.media_count} files`}
-                value={item.assigned_storage_kb}
-                max={maxClientStorage}
-              />
-            ))}
-          </GlassCard>
-
-          {/* Unlock Account */}
-          <GlassCard hover={false}>
-            <div className="flex items-center gap-2 mb-5">
-              <div className="p-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.12)' }}>
-                <Lock size={14} className="text-gold-500" />
-              </div>
-              <h3 className="font-semibold text-[var(--text-primary)]">Unlock Account</h3>
-            </div>
-            <form onSubmit={handleUnlock} className="space-y-3">
-              <GoldInput
-                label="Username"
-                name="unlock_username"
-                value={unlockUsername}
-                onChange={(e) => setUnlockUsername(e.target.value)}
-              />
-              <GoldButton type="submit" loading={unlocking} size="sm" className="w-full justify-center">
-                Unlock
-              </GoldButton>
-            </form>
-          </GlassCard>
-
-          {/* Reset Password */}
-          <GlassCard hover={false}>
-            <div className="flex items-center gap-2 mb-5">
-              <div className="p-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.12)' }}>
-                <KeyRound size={14} className="text-gold-500" />
-              </div>
-              <h3 className="font-semibold text-[var(--text-primary)]">Reset Password</h3>
-            </div>
-            <form onSubmit={handleReset} className="space-y-3">
-              <GoldInput
-                label="Username"
-                name="reset_username"
-                value={resetForm.username}
-                onChange={(e) => setResetForm(f => ({ ...f, username: e.target.value }))}
-              />
-              <GoldInput
-                label="New Password"
-                name="new_password"
-                type="password"
-                value={resetForm.new_password}
-                onChange={(e) => setResetForm(f => ({ ...f, new_password: e.target.value }))}
-              />
-              <PasswordStrength value={resetForm.new_password} />
-              <GoldButton type="submit" loading={resetting} size="sm" className="w-full justify-center">
-                Reset
-              </GoldButton>
-            </form>
           </GlassCard>
         </div>
       </div>

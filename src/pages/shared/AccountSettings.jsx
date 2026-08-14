@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Lock, KeyRound } from 'lucide-react'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
 import GoldInput from '../../components/ui/GoldInput'
@@ -9,17 +9,21 @@ import ThemeToggle from '../../components/ui/ThemeToggle'
 import useAuthStore from '../../stores/authStore'
 import useThemeStore from '../../stores/themeStore'
 import { changePassword } from '../../api/auth'
+import { unlockAccount, resetPassword } from '../../api/tenants'
 import toast from 'react-hot-toast'
-
-const TABS = ['Password', 'Appearance']
 
 export default function AccountSettings() {
   const navigate = useNavigate()
   const { user, role, logout } = useAuthStore()
   const { theme } = useThemeStore()
+  const tabs = role === 'SUPER_ADMIN' ? ['Password', 'Accounts', 'Appearance'] : ['Password', 'Appearance']
   const [tab, setTab] = useState('Password')
   const [pwForm, setPwForm] = useState({ current_password: '', new_password: '', confirm: '' })
   const [changingPw, setChangingPw] = useState(false)
+  const [unlockUsername, setUnlockUsername] = useState('')
+  const [unlocking, setUnlocking] = useState(false)
+  const [resetForm, setResetForm] = useState({ username: '', new_password: '' })
+  const [resetting, setResetting] = useState(false)
 
   const backPath = role === 'SUPER_ADMIN' ? '/admin' : role === 'ADMIN' ? '/studio' : '/gallery'
 
@@ -38,6 +42,30 @@ export default function AccountSettings() {
     } finally { setChangingPw(false) }
   }
 
+  const handleUnlock = async (e) => {
+    e.preventDefault()
+    if (!unlockUsername.trim()) return
+    setUnlocking(true)
+    try {
+      await unlockAccount({ username: unlockUsername })
+      toast.success(`Account "${unlockUsername}" unlocked`)
+      setUnlockUsername('')
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to unlock account') }
+    finally { setUnlocking(false) }
+  }
+
+  const handleReset = async (e) => {
+    e.preventDefault()
+    if (!resetForm.username || !resetForm.new_password) return
+    setResetting(true)
+    try {
+      await resetPassword(resetForm)
+      toast.success('Password reset successfully')
+      setResetForm({ username: '', new_password: '' })
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to reset password') }
+    finally { setResetting(false) }
+  }
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
       <div className="max-w-xl mx-auto px-4 py-10">
@@ -49,7 +77,7 @@ export default function AccountSettings() {
         <h1 className="font-display text-2xl font-semibold text-[var(--text-primary)] mb-6">Account Settings</h1>
 
         <div className="flex gap-1 mb-6 border-b" style={{ borderColor: 'var(--border-default)' }}>
-          {TABS.map(t => (
+          {tabs.map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-4 py-2.5 text-sm font-medium transition-all duration-200 border-b-2 -mb-px
                 ${tab === t ? 'border-gold-500 text-gold-500' : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}>
@@ -74,6 +102,58 @@ export default function AccountSettings() {
               </GoldButton>
             </form>
           </GlassCard>
+        )}
+
+        {tab === 'Accounts' && (
+          <div className="space-y-6">
+            <GlassCard hover={false}>
+              <div className="flex items-center gap-2 mb-6">
+                <div className="p-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.12)' }}>
+                  <Lock size={14} className="text-gold-500" />
+                </div>
+                <h3 className="font-semibold text-[var(--text-primary)]">Unlock Account</h3>
+              </div>
+              <form onSubmit={handleUnlock} className="space-y-3">
+                <GoldInput
+                  label="Username"
+                  name="unlock_username"
+                  value={unlockUsername}
+                  onChange={(e) => setUnlockUsername(e.target.value)}
+                />
+                <GoldButton type="submit" loading={unlocking} className="w-full justify-center">
+                  Unlock
+                </GoldButton>
+              </form>
+            </GlassCard>
+
+            <GlassCard hover={false}>
+              <div className="flex items-center gap-2 mb-6">
+                <div className="p-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.12)' }}>
+                  <KeyRound size={14} className="text-gold-500" />
+                </div>
+                <h3 className="font-semibold text-[var(--text-primary)]">Reset Password</h3>
+              </div>
+              <form onSubmit={handleReset} className="space-y-3">
+                <GoldInput
+                  label="Username"
+                  name="reset_username"
+                  value={resetForm.username}
+                  onChange={(e) => setResetForm(f => ({ ...f, username: e.target.value }))}
+                />
+                <GoldInput
+                  label="New Password"
+                  name="new_password"
+                  type="password"
+                  value={resetForm.new_password}
+                  onChange={(e) => setResetForm(f => ({ ...f, new_password: e.target.value }))}
+                />
+                <PasswordStrength value={resetForm.new_password} />
+                <GoldButton type="submit" loading={resetting} className="w-full justify-center">
+                  Reset
+                </GoldButton>
+              </form>
+            </GlassCard>
+          </div>
         )}
 
         {tab === 'Appearance' && (
