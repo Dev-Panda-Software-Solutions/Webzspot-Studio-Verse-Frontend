@@ -1,17 +1,31 @@
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Wallet, CreditCard, Clock, ImagePlus, Gift, History, AlertTriangle } from 'lucide-react'
+import { Wallet, CreditCard, Clock, ImagePlus, Gift, History, AlertTriangle, TrendingDown, ArrowUpRight } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
 import Badge from '../../components/ui/Badge'
+import Modal from '../../components/ui/Modal'
 import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import { getPlans } from '../../api/plans'
-import { getMySubscription, getMySubscriptionHistory, subscribeToPlan, upgradePlan, rechargeWallet, activateTrial } from '../../api/billing'
+import { getMySubscription, getMySubscriptionHistory, subscribeToPlan, upgradePlan, downgradePlan, rechargeWallet, activateTrial } from '../../api/billing'
 import { formatDate, planLabel, planStatusVariant } from '../../utils/formatters'
 import toast from 'react-hot-toast'
 
 const GOLD = '#F59E0B'
+
+// Label for the "Change" column in plan history — what created each row.
+const changeLabel = (changeType) => {
+  switch (changeType) {
+    case 'UPGRADE': return { label: 'Upgrade', variant: 'success' }
+    case 'DOWNGRADE': return { label: 'Downgrade', variant: 'gold' }
+    case 'SUBSCRIBE': return { label: 'Subscribe', variant: 'info' }
+    case 'TRIAL': return { label: 'Trial', variant: 'info' }
+    case 'FREE_GRANT': return { label: 'Free Grant', variant: 'gold' }
+    case 'REVOKE': return { label: 'Revoked', variant: 'error' }
+    default: return null
+  }
+}
 
 function UsageBar({ used, total }) {
   const pct = total > 0 ? Math.min(100, (used / total) * 100) : 0
@@ -32,6 +46,7 @@ export default function Billing() {
   const qc = useQueryClient()
   const [actingId, setActingId] = useState(null)
   const [activatingTrial, setActivatingTrial] = useState(false)
+  const [downgradeTarget, setDowngradeTarget] = useState(null)
 
   const { data: subData, isLoading: subLoading } = useQuery({
     queryKey: ['tenant-subscription'],
@@ -91,8 +106,21 @@ export default function Billing() {
       const amount = res?.data?.amount_charged
       toast.success(amount != null ? `Upgraded to ${planName} — ₹${amount} charged` : `Upgraded to ${planName}`)
       qc.invalidateQueries(['tenant-subscription'])
+      qc.invalidateQueries(['tenant-subscription-history'])
     } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to upgrade') }
     finally { setActingId(null) }
+  }
+
+  // Opens the no-refund warning modal; the downgrade only fires after confirm.
+  const handleDowngrade = async (planId, planName) => {
+    setActingId(planId)
+    try {
+      await downgradePlan(planId)
+      toast.success(`Downgraded to ${planName} — no refund issued`)
+      qc.invalidateQueries(['tenant-subscription'])
+      qc.invalidateQueries(['tenant-subscription-history'])
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to downgrade') }
+    finally { setActingId(null); setDowngradeTarget(null) }
   }
 
   const handleRecharge = async (planId) => {
@@ -150,11 +178,21 @@ export default function Billing() {
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                       {subscription.plan?.plan_name || 'Free Trial'}
+                      {subscription.is_free_grant && (
+                        <span className="ml-2 text-[10px] font-bold uppercase tracking-wide text-gold-500">
+                          Free Access
+                        </span>
+                      )}
                     </p>
                     <Badge variant={planStatusVariant(subscription.status)}>
                       {subscription.status}
                     </Badge>
                   </div>
+                  {subscription.is_free_grant && (
+                    <p className="text-xs mt-2" style={{ color: '#F59E0B' }}>
+                      Granted free by the platform{subscription.expires_at ? ` until ${new Date(subscription.expires_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}` : ''}.
+                    </p>
+                  )}
                   {subscription.plan?.plan_type !== 'WALLET' && (
                     <>
                       <p className="text-xs mt-3" style={{ color: 'var(--text-tertiary)' }}>
@@ -218,19 +256,20 @@ export default function Billing() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {subscriptionPlans.map(plan => {
               const isCurrent = subscription?.subscription_plan_id === plan.subscription_plan_id
-              // Upgrading (same billing interval, higher price, subscription
-              // currently ACTIVE/TRIAL) keeps the quota already used and the
-              // billing period — only charges the price difference. Anything
-              // else (no active sub, GRACE, EXPIRED, different interval) goes
-              // through subscribe instead, which starts a fresh period.
-              const canUpgrade = !isCurrent && subscription
+              const currentPrice = subscription
+                ? (subscription.locked_price != null ? Number(subscription.locked_price) : Number(subscription.plan?.price || 0))
+                : 0
+              const planSwapEligible = !isCurrent && subscription
                 && ['ACTIVE', 'TRIAL'].includes(subscription.status)
                 && subscription.plan?.plan_type === 'SUBSCRIPTION'
                 && subscription.plan?.duration_unit === plan.duration_unit
-                && Number(plan.price) > (subscription.locked_price != null ? Number(subscription.locked_price) : Number(subscription.plan?.price || 0))
-              const upgradeAmount = canUpgrade
-                ? Number(plan.price) - (subscription.locked_price != null ? Number(subscription.locked_price) : Number(subscription.plan?.price || 0))
-                : null
+              // Upgrading (same billing interval, higher price) keeps the quota
+              // already used and the billing period — only charges the price
+              // difference. Anything else (no active sub, GRACE, EXPIRED,
+              // different interval) goes through subscribe instead.
+              const canUpgrade = planSwapEligible && Number(plan.price) > currentPrice
+              const canDowngrade = planSwapEligible && Number(plan.price) < currentPrice
+              const upgradeAmount = canUpgrade ? Number(plan.price) - currentPrice : null
               const isRenewal = ['GRACE', 'EXPIRED'].includes(subscription?.status)
 
               return (
@@ -249,9 +288,16 @@ export default function Billing() {
                     variant={isCurrent ? 'ghost' : 'outline'}
                     disabled={isCurrent}
                     loading={actingId === plan.subscription_plan_id}
-                    onClick={() => canUpgrade ? handleUpgrade(plan.subscription_plan_id, plan.plan_name) : handleSubscribe(plan.subscription_plan_id)}
+                    onClick={() => {
+                      if (canUpgrade) handleUpgrade(plan.subscription_plan_id, plan.plan_name)
+                      else if (canDowngrade) setDowngradeTarget({ planId: plan.subscription_plan_id, planName: plan.plan_name, price: Number(plan.price) })
+                      else handleSubscribe(plan.subscription_plan_id)
+                    }}
                   >
-                    {isCurrent ? 'Current Plan' : canUpgrade ? `Upgrade (+₹${upgradeAmount.toLocaleString()})` : isRenewal ? 'Renew' : 'Subscribe'}
+                    {isCurrent ? 'Current Plan'
+                      : canUpgrade ? `Upgrade (+₹${upgradeAmount.toLocaleString()})`
+                      : canDowngrade ? 'Downgrade'
+                      : isRenewal ? 'Renew' : 'Subscribe'}
                   </GoldButton>
                 </GlassCard>
               )
@@ -314,34 +360,76 @@ export default function Billing() {
             ) : history.length === 0 ? (
               <p className="text-sm p-6 text-center" style={{ color: 'var(--text-tertiary)' }}>No plans purchased yet.</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
-                      {['Plan', 'Status', 'Price', 'Started', 'Expires'].map(h => (
-                        <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {history.map(h => (
-                      <tr key={h.tenant_subscription_id} className="border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
-                        <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-primary)' }}>{planLabel(h)}</td>
-                        <td className="px-5 py-3"><Badge variant={planStatusVariant(h.status)}>{h.status}</Badge></td>
-                        <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                          {h.locked_price != null ? `₹${Number(h.locked_price).toLocaleString()}` : '—'}
-                        </td>
-                        <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{formatDate(h.starts_at)}</td>
-                        <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{h.expires_at ? formatDate(h.expires_at) : '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
+                          {['Change', 'Plan', 'Status', 'Price', 'Started', 'Expires'].map(h => (
+                            <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {history.map(h => {
+                          const change = changeLabel(h.change_type)
+                          return (
+                          <tr key={h.tenant_subscription_id} className="border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
+                            <td className="px-5 py-3">
+                              {change ? <Badge variant={change.variant}>{change.label}</Badge> : '—'}
+                            </td>
+                            <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-primary)' }}>{planLabel(h)}</td>
+                            <td className="px-5 py-3"><Badge variant={planStatusVariant(h.status)}>{h.status}</Badge></td>
+                            <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                              {h.locked_price != null ? `₹${Number(h.locked_price).toLocaleString()}` : '—'}
+                            </td>
+                            <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{formatDate(h.starts_at)}</td>
+                            <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{h.expires_at ? formatDate(h.expires_at) : '—'}</td>
+                          </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
             )}
           </GlassCard>
         </div>
       </div>
+
+      {/* ── Downgrade confirmation — no refund warning ── */}
+      <Modal
+        open={!!downgradeTarget}
+        onClose={() => setDowngradeTarget(null)}
+        title="Downgrade Plan"
+      >
+        <div className="rounded-xl p-4 mb-4 flex items-start gap-3" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.35)' }}>
+          <TrendingDown size={18} className="mt-0.5 flex-shrink-0 text-red-400" />
+          <div>
+            <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
+              Downgrade to {downgradeTarget?.planName} (₹{downgradeTarget?.price?.toLocaleString()})?
+            </p>
+            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+              <strong style={{ color: '#F87171' }}>No money will be refunded.</strong> The price difference between your
+              current plan and the lower plan is forfeited, and your billing period continues unchanged.
+            </p>
+          </div>
+        </div>
+        <ul className="text-xs space-y-1.5 mb-5 pl-1" style={{ color: 'var(--text-tertiary)' }}>
+          <li>• Your already-used photo quota is carried over — if it exceeds the new plan's limit, uploads pause until renewal.</li>
+          <li>• The downgrade takes effect immediately and will be recorded in your plan history.</li>
+        </ul>
+        <div className="flex gap-3">
+          <GoldButton
+            variant="danger"
+            className="flex-1"
+            loading={actingId === downgradeTarget?.planId}
+            onClick={() => handleDowngrade(downgradeTarget.planId, downgradeTarget.planName)}
+          >
+            <ArrowUpRight className="rotate-90" size={14} />
+            Confirm Downgrade — No Refund
+          </GoldButton>
+          <GoldButton variant="ghost" onClick={() => setDowngradeTarget(null)}>Cancel</GoldButton>
+        </div>
+      </Modal>
     </AppLayout>
   )
 }
