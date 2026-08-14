@@ -14,10 +14,12 @@ import { getEvents, getEventById, submitFavouritesForEvent } from '../../api/eve
 import { getMediaByEvent } from '../../api/media'
 import { getUserFavourites, getTenantFavouriteIdsForEventAsUser } from '../../api/favourites'
 import { getTenantSettings } from '../../api/tenants'
+import useBrandColours from '../../hooks/useBrandColours'
 import useAuthStore from '../../stores/authStore'
 import useGalleryStore from '../../stores/galleryStore'
 import { logout } from '../../api/auth'
 import { backendAssetUrl } from '../../utils/apiUrl'
+import { confirmDialog } from '../../components/ui/ConfirmDialog'
 import toast from 'react-hot-toast'
 
 export default function Gallery() {
@@ -31,10 +33,14 @@ export default function Gallery() {
   const [submitting, setSubmitting] = useState(false)
   const [mediaPage] = useState(1)
 
-  // All events the user is assigned to (active + expired)
+  // All events the user is assigned to (active + expired). Polls in the
+  // background so revokes/archives from the studio side show up automatically
+  // instead of leaving a stale gallery open.
   const { data: eventsData, isLoading: eventsLoading } = useQuery({
     queryKey: ['user-events'],
     queryFn: () => getEvents({ page: 1, limit: 100 }),
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   })
 
   const allUserEvents = eventsData?.data?.items || []
@@ -95,6 +101,12 @@ export default function Gallery() {
     ? backendAssetUrl(settingsData.data.tenant_watermark_path)
     : null
 
+  useBrandColours(
+    containerRef,
+    settingsData?.data?.primary_color,
+    settingsData?.data?.secondary_color,
+  )
+
   useQuery({
     queryKey: ['user-favs', activeEventId],
     queryFn: async () => {
@@ -138,11 +150,15 @@ export default function Gallery() {
   const handleSubmitFavourites = async () => {
     if (!currentAccess?.event_user_id) return
     const count = getFavouritedMediaIds().size
-    if (!window.confirm(
-      count > 0
+    const ok = await confirmDialog({
+      title: 'Submit favourites?',
+      message: count > 0
         ? `Submit your ${count} favourite${count === 1 ? '' : 's'}? Once submitted, you won't be able to change your selection unless your studio unlocks it.`
-        : "Submit with no favourites selected? Once submitted, you won't be able to add any unless your studio unlocks it."
-    )) return
+        : "Submit with no favourites selected? Once submitted, you won't be able to add any unless your studio unlocks it.",
+      confirmLabel: 'Submit',
+      danger: false,
+    })
+    if (!ok) return
     setSubmitting(true)
     try {
       await submitFavouritesForEvent(currentAccess.event_user_id)
@@ -327,6 +343,8 @@ export default function Gallery() {
         onClose={() => setDrawerOpen(v => !v)}
         mediaList={mediaList}
         eventId={activeEventId}
+        eventName={eventName}
+        allowDownload={event?.allow_download !== false}
       />
     </div>
   )

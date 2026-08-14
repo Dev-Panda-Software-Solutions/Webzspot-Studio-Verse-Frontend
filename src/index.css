@@ -227,3 +227,28 @@ body {
   transform-origin: left;
   pointer-events: none;
 }
+
+/* ─── Brand colours ────────────────────────────────────────
+   Tenant-set brand palette overrides the default gold on client-facing
+   pages. The wrapper (data-brand) carries --brand-primary etc.; these
+   rules remap the Tailwind gold utilities to the brand values. */
+[data-brand] {
+  --accent-primary: var(--brand-primary, var(--accent-primary));
+  --accent-hover: var(--brand-secondary, var(--accent-hover));
+  --accent-muted: var(--brand-primary-12, rgba(245, 158, 11, 0.12));
+}
+[data-brand] .text-gold-500 { color: var(--brand-primary, #F59E0B); }
+[data-brand] .text-gold-400 { color: var(--brand-secondary, #D97706); }
+[data-brand] .bg-gold-500 { background-color: var(--brand-primary, #F59E0B); }
+[data-brand] .bg-gold-400 { background-color: var(--brand-secondary, #D97706); }
+[data-brand] .border-gold-500 { border-color: var(--brand-primary, #F59E0B); }
+[data-brand] .fill-gold-500 { fill: var(--brand-primary, #F59E0B); }
+[data-brand] .ring-gold-500 { --tw-ring-color: var(--brand-primary, #F59E0B); }
+[data-brand] .shadow-gold {
+  box-shadow: 0 0 0 1px var(--brand-primary-30, rgba(245,158,11,0.3)),
+              0 4px 20px var(--brand-primary-15, rgba(245,158,11,0.15));
+}
+[data-brand] .shadow-gold-lg {
+  box-shadow: 0 0 0 1px var(--brand-primary-40, rgba(245,158,11,0.4)),
+              0 8px 40px var(--brand-primary-25, rgba(245,158,11,0.25));
+}

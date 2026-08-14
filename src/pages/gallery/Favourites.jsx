@@ -1,14 +1,18 @@
-import React, { useLayoutEffect, useRef } from 'react'
+import React, { useLayoutEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Heart } from 'lucide-react'
+import { ArrowLeft, Heart, Download } from 'lucide-react'
 import PhotoGrid from '../../components/gallery/PhotoGrid'
-import { getMediaByEvent } from '../../api/media'
+import { getMediaByEvent, downloadFavouritesZip } from '../../api/media'
+import { getEventById } from '../../api/events'
 import { getUserFavourites } from '../../api/favourites'
+import { getTenantSettings } from '../../api/tenants'
+import useBrandColours from '../../hooks/useBrandColours'
 import useAuthStore from '../../stores/authStore'
 import useGalleryStore from '../../stores/galleryStore'
 import GoldButton from '../../components/ui/GoldButton'
+import toast from 'react-hot-toast'
 
 export default function GalleryFavourites() {
   const { eventId } = useParams()
@@ -16,6 +20,27 @@ export default function GalleryFavourites() {
   const { user } = useAuthStore()
   const { setFavourites, getFavouritedMediaIds } = useGalleryStore()
   const containerRef = useRef(null)
+  const [downloading, setDownloading] = useState(false)
+
+  const { data: eventData } = useQuery({
+    queryKey: ['gallery-event', eventId],
+    queryFn: () => getEventById(eventId),
+    enabled: !!eventId,
+  })
+  const allowDownload = eventData?.data?.allow_download !== false
+
+  // tenant_mapping[0] is the OWNER entry — included in USER response specifically for settings fetch
+  const tenantId = eventData?.data?.tenant_mapping?.[0]?.tenant_id || eventData?.data?.tenant_id
+  const { data: settingsData } = useQuery({
+    queryKey: ['gallery-settings', tenantId],
+    queryFn: () => getTenantSettings(tenantId),
+    enabled: !!tenantId,
+  })
+  useBrandColours(
+    containerRef,
+    settingsData?.data?.primary_color,
+    settingsData?.data?.secondary_color,
+  )
 
   const { data: mediaData, isLoading: mediaLoading } = useQuery({
     queryKey: ['gallery-media', eventId],
@@ -48,6 +73,20 @@ export default function GalleryFavourites() {
   const favIds = getFavouritedMediaIds()
   const favouriteMedia = allMedia.filter(m => favIds.has(m.media_id))
 
+  const handleDownload = async () => {
+    if (!eventId || !user?.user_id || favouriteMedia.length === 0) return
+    setDownloading(true)
+    try {
+      const safeName = (eventData?.data?.event_name || 'event').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_') || 'event'
+      await downloadFavouritesZip(eventId, user.user_id, `${safeName}_my_favourites.zip`)
+      toast.success('Download started!')
+    } catch (err) {
+      toast.error(typeof err === 'string' ? err : 'Download failed — downloads may be disabled for this event')
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   return (
     <div ref={containerRef} className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
       <header className="fav-header sticky top-0 z-30 px-6 py-4 flex items-center gap-4"
@@ -59,6 +98,13 @@ export default function GalleryFavourites() {
         <h1 className="font-display italic text-gold-500">
           My Favourites {favIds.size > 0 && `(${favIds.size})`}
         </h1>
+        <div className="ml-auto">
+          {allowDownload && favouriteMedia.length > 0 && (
+            <GoldButton size="sm" variant="outline" icon={<Download size={14} />} loading={downloading} onClick={handleDownload}>
+              Download
+            </GoldButton>
+          )}
+        </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">

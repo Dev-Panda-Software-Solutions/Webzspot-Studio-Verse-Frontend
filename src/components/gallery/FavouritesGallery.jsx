@@ -153,13 +153,14 @@ function DedupedGrid({ groups, eventId, watermarkSrc, view, zoom, onDownload, on
       <div className="flex flex-wrap gap-2 mb-4 pb-4" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
         {groups.map(group => {
           const sz = estimateZipSize(group.items)
+          const count = group.items.length
           return group.isTenant ? (
             <GoldButton key="tenant" size="sm" icon={<Download size={12} />} onClick={onStudioDownload} variant="outline">
-              {group.label}{sz ? ` (${sz})` : ''}
+              {group.label} · {count} fav{sz ? ` (${sz})` : ''}
             </GoldButton>
           ) : group.userId ? (
             <GoldButton key={group.id} size="sm" icon={<Download size={12} />} onClick={() => onDownload(group.userId, group.label)} variant="outline">
-              {group.label}{sz ? ` (${sz})` : ''}
+              {group.label} · {count} fav{sz ? ` (${sz})` : ''}
             </GoldButton>
           ) : null
         })}
