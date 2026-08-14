@@ -14,10 +14,8 @@ import PhotoGrid from '../../components/gallery/PhotoGrid'
 import UploadDropzone from '../../components/upload/UploadDropzone'
 import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import Badge from '../../components/ui/Badge'
-import Avatar from '../../components/ui/Avatar'
 import Modal from '../../components/ui/Modal'
 import GoldInput from '../../components/ui/GoldInput'
-import PasswordStrength from '../../components/ui/PasswordStrength'
 import { getEventById, getEventFavouritesGrouped, getEventUsers, assignUserToEvent, updateEventUserMapping, hardDeleteUserFromEvent, publishEvent } from '../../api/events'
 import { getMediaByEvent, deleteMedia, restoreMedia, hardDeleteMedia, copyMediaToGallery } from '../../api/media'
 import { createUserInEvent, getUsers, checkDuplicateClient } from '../../api/users'
@@ -30,6 +28,7 @@ import useAuthStore from '../../stores/authStore'
 import FavouritesGallery from '../../components/gallery/FavouritesGallery'
 import EventQrCode from '../../components/events/EventQrCode'
 import { backendAssetUrl } from '../../utils/apiUrl'
+import { confirmDialog } from '../../components/ui/ConfirmDialog'
 import toast from 'react-hot-toast'
 
 const BASE_TABS = ['Photo Selection', 'Clients', 'Favourites']
@@ -197,7 +196,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
   const [assigning, setAssigning] = useState(false)
 
   // New client form
-  const [newClient, setNewClient] = useState({ user_name: '', username: '', password: '', user_email_id: '', user_phone_number: '' })
+  const [newClient, setNewClient] = useState({ username: '', password: '' })
   const [creating, setCreating] = useState(false)
   // null = not checked yet against this name/phone/email combo; [] = checked,
   // no matches; non-empty = matches found and creation is paused on them.
@@ -221,15 +220,13 @@ function AddClientModal({ open, onClose, eventId, qc }) {
     setSearch('')
     setSelected(null)
     setAccessExpires('')
-    setNewClient({ user_name: '', username: '', password: '', user_email_id: '', user_phone_number: '' })
+    setNewClient({ username: '', password: '' })
     setDuplicates(null)
   }
 
   const handleClose = () => { reset(); setMode('existing'); onClose() }
 
-  // Any edit to the identifying fields invalidates whatever duplicate check
-  // already ran — a stale "no matches" result shouldn't wave through a name
-  // that was just changed to collide with an existing client.
+  // Any edit to the username invalidates whatever duplicate check already ran
   const updateNewClient = (key, value) => {
     setNewClient(f => ({ ...f, [key]: value }))
     setDuplicates(null)
@@ -255,11 +252,9 @@ function AddClientModal({ open, onClose, eventId, qc }) {
     setCreating(true)
     try {
       await createUserInEvent({
-        user_name: newClient.user_name,
+        user_name: newClient.username,
         username: newClient.username,
         password: newClient.password,
-        ...(newClient.user_email_id?.trim() ? { user_email_id: newClient.user_email_id.trim() } : {}),
-        ...(newClient.user_phone_number?.trim() ? { user_phone_number: newClient.user_phone_number.trim() } : {}),
         event_id: eventId,
         validity_days: 365,
         expiry_date: accessExpires
@@ -280,11 +275,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
     if (duplicates === null) {
       setCheckingDuplicates(true)
       try {
-        const res = await checkDuplicateClient({
-          name: newClient.user_name,
-          phone: newClient.user_phone_number,
-          email: newClient.user_email_id,
-        })
+        const res = await checkDuplicateClient({ username: newClient.username })
         const matches = res?.data || []
         setDuplicates(matches)
         if (matches.length > 0) { setCheckingDuplicates(false); return }
@@ -417,17 +408,10 @@ function AddClientModal({ open, onClose, eventId, qc }) {
       {/* ── New client ── */}
       {mode === 'new' && (
         <form onSubmit={handleCreateNew}>
-          <GoldInput label="Full Name *" name="user_name" value={newClient.user_name}
-            onChange={e => updateNewClient('user_name', e.target.value)} />
-          <GoldInput label="Email" name="user_email_id" type="email" value={newClient.user_email_id}
-            onChange={e => updateNewClient('user_email_id', e.target.value)} />
-          <GoldInput label="Phone" name="user_phone_number" value={newClient.user_phone_number}
-            onChange={e => updateNewClient('user_phone_number', e.target.value)} />
           <GoldInput label="Login Username *" name="username" value={newClient.username}
-            onChange={e => setNewClient(f => ({ ...f, username: e.target.value }))} />
+            onChange={e => updateNewClient('username', e.target.value)} />
           <GoldInput label="Password *" name="password" type="password" value={newClient.password}
             onChange={e => setNewClient(f => ({ ...f, password: e.target.value }))} />
-          <PasswordStrength value={newClient.password} />
 
           <div className="mb-4">
             <label className="text-xs font-medium block mb-1" style={{ color: 'var(--text-secondary)' }}>
@@ -450,7 +434,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
               <div className="flex items-start gap-2 mb-2">
                 <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" style={{ color: '#F59E0B' }} />
                 <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  {duplicates.length === 1 ? 'A client with matching details already exists' : `${duplicates.length} clients with matching details already exist`} — assign one instead, or create a new client anyway.
+                  {duplicates.length === 1 ? 'A client with this username already exists' : `${duplicates.length} clients with this username already exist`} — assign one instead, or create a new client anyway.
                 </p>
               </div>
               <div className="space-y-1.5 mb-3">
@@ -563,17 +547,8 @@ export default function StudioEventDetail() {
     return () => ctx.revert()
   }, [eventData])
 
-  const formatStorage = (kb) => {
-    if (!kb || kb === 0) return '0 KB'
-    if (kb >= 1024 * 1024) return `${(kb / 1024 / 1024).toFixed(2)} GB`
-    if (kb >= 1024) return `${(kb / 1024).toFixed(1)} MB`
-    return `${Math.round(kb)} KB`
-  }
-
   const event = eventData?.data
   const mediaList = mediaData?.data?.items || []
-  const totalOriginalKb = mediaData?.data?.total_original_kb || 0
-  const totalMediaKb = mediaData?.data?.total_media_kb || 0
   const totalMediaCount = mediaData?.data?.total || 0
   const allMappings = usersData?.data || []
   const favsGrouped = favsData?.data || []
@@ -595,7 +570,13 @@ export default function StudioEventDetail() {
 
   const handleRevokeToggle = async (mappingId, restore, userName) => {
     const action = restore ? 'Restore' : 'Revoke'
-    if (!window.confirm(`${action} "${userName}"'s access to this event? Their login and other events are unaffected.`)) return
+    const ok = await confirmDialog({
+      title: `${action} access?`,
+      message: `${action} "${userName}"'s access to this event? Their login and other events are unaffected.`,
+      confirmLabel: action,
+      danger: !restore,
+    })
+    if (!ok) return
     try {
       await updateEventUserMapping(mappingId, { isactive: restore })
       toast.success(`Access to this event ${restore ? 'restored' : 'revoked'}`)
@@ -604,7 +585,13 @@ export default function StudioEventDetail() {
   }
 
   const handleHardDeleteMapping = async (mappingId, userName) => {
-    if (!window.confirm(`Permanently remove "${userName}" from this event? Their account and other events are unaffected. This cannot be undone.`)) return
+    const ok = await confirmDialog({
+      title: 'Remove from event?',
+      message: `Permanently remove "${userName}" from this event? Their account and other events are unaffected. This cannot be undone.`,
+      confirmLabel: 'Remove',
+      danger: true,
+    })
+    if (!ok) return
     try {
       await hardDeleteUserFromEvent(mappingId)
       toast.success('Client removed from this event')
@@ -613,10 +600,15 @@ export default function StudioEventDetail() {
   }
 
   const handleToggleSubmission = async (mappingId, isSubmitted, userName) => {
-    const msg = isSubmitted
-      ? `Unlock "${userName}"'s favourites for editing? They'll be able to change their selection again, and you'll need to have them (or you) submit again when done.`
-      : `Submit favourites for "${userName}" now? This locks their current selection as final, as if they submitted it themselves.`
-    if (!window.confirm(msg)) return
+    const ok = await confirmDialog({
+      title: isSubmitted ? 'Unlock favourites?' : 'Submit favourites?',
+      message: isSubmitted
+        ? `Unlock "${userName}"'s favourites for editing? They'll be able to change their selection again, and you'll need to have them (or you) submit again when done.`
+        : `Submit favourites for "${userName}" now? This locks their current selection as final, as if they submitted it themselves.`,
+      confirmLabel: isSubmitted ? 'Unlock' : 'Submit',
+      danger: false,
+    })
+    if (!ok) return
     try {
       await updateEventUserMapping(mappingId, { favourites_submitted: !isSubmitted })
       toast.success(isSubmitted ? 'Unlocked for editing' : 'Submitted on behalf of client')
@@ -625,7 +617,13 @@ export default function StudioEventDetail() {
   }
 
   const handleDeleteMedia = async (mediaId, mediaName) => {
-    if (!window.confirm(`Archive "${mediaName || 'this file'}"? It will be hidden from clients.`)) return
+    const ok = await confirmDialog({
+      title: 'Archive file?',
+      message: `Archive "${mediaName || 'this file'}"? It will be hidden from clients.`,
+      confirmLabel: 'Archive',
+      danger: false,
+    })
+    if (!ok) return
     try {
       await deleteMedia(mediaId)
       toast.success('File archived')
@@ -644,7 +642,13 @@ export default function StudioEventDetail() {
   }
 
   const handleHardDeleteMedia = async (mediaId, mediaName) => {
-    if (!window.confirm(`Permanently delete "${mediaName || 'this file'}"? This cannot be undone.`)) return
+    const ok = await confirmDialog({
+      title: 'Delete permanently?',
+      message: `Permanently delete "${mediaName || 'this file'}"? This cannot be undone.`,
+      confirmLabel: 'Delete',
+      danger: true,
+    })
+    if (!ok) return
     try {
       await hardDeleteMedia(mediaId)
       toast.success('File permanently deleted')
@@ -667,7 +671,13 @@ export default function StudioEventDetail() {
   }
 
   const handlePublish = async () => {
-    if (!window.confirm('Publish this event? This marks uploads as finished.')) return
+    const ok = await confirmDialog({
+      title: 'Publish event?',
+      message: 'Publish this event? This marks uploads as finished.',
+      confirmLabel: 'Publish',
+      danger: false,
+    })
+    if (!ok) return
     setPublishing(true)
     try {
       await publishEvent(id)
@@ -866,21 +876,13 @@ export default function StudioEventDetail() {
         {/* Tab: Photo Selection / AI Media gallery */}
         {isGalleryTab && (
           <div>
-            {/* Storage stats */}
+            {/* File summary */}
             {totalMediaCount > 0 && (
               <div className="flex flex-wrap items-center gap-4 mb-5 px-4 py-3 rounded-xl"
                 style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
                 <HardDrive size={14} className="text-gold-500 flex-shrink-0" />
                 <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                   <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{totalMediaCount}</span> files
-                </span>
-                <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>·</span>
-                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  Original: <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{formatStorage(totalOriginalKb)}</span>
-                </span>
-                <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>·</span>
-                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  Stored: <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{formatStorage(totalMediaKb)}</span>
                 </span>
               </div>
             )}

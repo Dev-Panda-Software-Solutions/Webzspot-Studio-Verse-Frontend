@@ -24,7 +24,7 @@ const getScore = (value) => {
   return Math.min(4, Math.max(1, passed - 1 + lengthBonus))
 }
 
-export default function PasswordStrength({ value = '', className = '' }) {
+export default function PasswordStrength({ value = '', className = '', showRules = true }) {
   if (!value) return null
 
   const score = getScore(value)
@@ -48,25 +48,27 @@ export default function PasswordStrength({ value = '', className = '' }) {
         </span>
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
-        {rules.map(rule => {
-          const passed = rule.test(value)
-          return (
-            <span
-              key={rule.id}
-              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium"
-              style={{
-                color: passed ? '#34D399' : 'var(--text-tertiary)',
-                background: passed ? 'rgba(52,211,153,0.1)' : 'var(--bg-elevated)',
-                border: `1px solid ${passed ? 'rgba(52,211,153,0.22)' : 'var(--border-subtle)'}`,
-              }}
-            >
-              {passed ? <Check size={10} /> : <Dot size={10} />}
-              {rule.label}
-            </span>
-          )
-        })}
-      </div>
+      {showRules && (
+        <div className="flex flex-wrap gap-1.5">
+          {rules.map(rule => {
+            const passed = rule.test(value)
+            return (
+              <span
+                key={rule.id}
+                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium"
+                style={{
+                  color: passed ? '#34D399' : 'var(--text-tertiary)',
+                  background: passed ? 'rgba(52,211,153,0.1)' : 'var(--bg-elevated)',
+                  border: `1px solid ${passed ? 'rgba(52,211,153,0.22)' : 'var(--border-subtle)'}`,
+                }}
+              >
+                {passed ? <Check size={10} /> : <Dot size={10} />}
+                {rule.label}
+              </span>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

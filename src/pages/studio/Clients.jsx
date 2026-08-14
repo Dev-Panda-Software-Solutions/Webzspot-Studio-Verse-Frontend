@@ -13,6 +13,7 @@ import QuickAddClientModal from '../../components/events/QuickAddClientModal'
 import { getUsers, updateUser, deleteUser, hardDeleteUser, restoreUser } from '../../api/users'
 import { getEventsByUser, updateEventUserMapping } from '../../api/events'
 import { formatDate, isExpired, clientDisplayName } from '../../utils/formatters'
+import { confirmDialog } from '../../components/ui/ConfirmDialog'
 import toast from 'react-hot-toast'
 
 const toDateInput = (value) => value ? new Date(value).toISOString().split('T')[0] : ''
@@ -188,7 +189,13 @@ export default function Clients() {
   const pages = data?.data?.pages || 1
 
   const handleSoftDelete = async (userId, userName) => {
-    if (!window.confirm(`Archive "${userName}"? They will immediately lose access to every event, but nothing is deleted.`)) return
+    const ok = await confirmDialog({
+      title: 'Archive client?',
+      message: `Archive "${userName}"? They will immediately lose access to every event, but nothing is deleted.`,
+      confirmLabel: 'Archive',
+      danger: false,
+    })
+    if (!ok) return
     try {
       await deleteUser(userId)
       toast.success('Client archived')
@@ -197,7 +204,13 @@ export default function Clients() {
   }
 
   const handleRestore = async (userId, userName) => {
-    if (!window.confirm(`Restore "${userName}"? Their account will be reactivated (per-event access is managed separately).`)) return
+    const ok = await confirmDialog({
+      title: 'Restore client?',
+      message: `Restore "${userName}"? Their account will be reactivated (per-event access is managed separately).`,
+      confirmLabel: 'Restore',
+      danger: false,
+    })
+    if (!ok) return
     try {
       await restoreUser(userId)
       toast.success('Client restored')
@@ -206,7 +219,13 @@ export default function Clients() {
   }
 
   const handleHardDelete = async (userId, userName) => {
-    if (!window.confirm(`Permanently delete "${userName}"? This cannot be undone.`)) return
+    const ok = await confirmDialog({
+      title: 'Delete client permanently?',
+      message: `Permanently delete "${userName}"? This cannot be undone.`,
+      confirmLabel: 'Delete',
+      danger: true,
+    })
+    if (!ok) return
     try {
       await hardDeleteUser(userId)
       toast.success('Client permanently deleted')

@@ -1,17 +1,16 @@
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Search, CheckCircle2, UserCheck, UserPlus, AlertTriangle } from 'lucide-react'
+import { X, UserPlus, CheckCircle2, UserCheck, Lock } from 'lucide-react'
 import Modal from '../ui/Modal'
 import GoldButton from '../ui/GoldButton'
 import GoldInput from '../ui/GoldInput'
-import PasswordStrength from '../ui/PasswordStrength'
 import Avatar from '../ui/Avatar'
 import { getEvents, assignUserToEvent } from '../../api/events'
 import { getUsers, createUserInEvent, checkDuplicateClient } from '../../api/users'
 import { clientDisplayName } from '../../utils/formatters'
 import toast from 'react-hot-toast'
 
-const EMPTY_NEW_CLIENT = { user_name: '', username: '', password: '', user_email_id: '', user_phone_number: '' }
+const EMPTY_NEW_CLIENT = { username: '', password: '' }
 
 // Global shortcut version of EventDetail's AddClientModal — adds an event
 // picker up front so it can be triggered from anywhere (the sidebar), not
@@ -62,9 +61,12 @@ export default function QuickAddClientModal({ open, onClose }) {
 
   const handleClose = () => { reset(); onClose() }
 
-  // Any edit to the identifying fields invalidates whatever duplicate check
-  // already ran — a stale "no matches" result shouldn't wave through a name
-  // that was just changed to collide with an existing client.
+  // Any edit to the username invalidates whatever duplicate check already
+  // ran — a stale "no matches" result shouldn't wave through a username that
+  // was just changed to collide with an existing client.
+  // Any edit to the username invalidates whatever duplicate check already
+  // ran — a stale "no matches" result shouldn't wave through a username that
+  // was just changed to collide with an existing client.
   const updateNewClient = (key, value) => {
     setNewClient(f => ({ ...f, [key]: value }))
     setDuplicates(null)
@@ -86,11 +88,9 @@ export default function QuickAddClientModal({ open, onClose }) {
     setCreating(true)
     try {
       await createUserInEvent({
-        user_name: newClient.user_name,
+        user_name: newClient.username,
         username: newClient.username,
         password: newClient.password,
-        ...(newClient.user_email_id?.trim() ? { user_email_id: newClient.user_email_id.trim() } : {}),
-        ...(newClient.user_phone_number?.trim() ? { user_phone_number: newClient.user_phone_number.trim() } : {}),
         event_id: eventId,
         validity_days: 365,
         expiry_date: accessExpires
@@ -112,11 +112,7 @@ export default function QuickAddClientModal({ open, onClose }) {
     if (duplicates === null) {
       setCheckingDuplicates(true)
       try {
-        const res = await checkDuplicateClient({
-          name: newClient.user_name,
-          phone: newClient.user_phone_number,
-          email: newClient.user_email_id,
-        })
+        const res = await checkDuplicateClient({ username: newClient.username })
         const matches = res?.data || []
         setDuplicates(matches)
         if (matches.length > 0) { setCheckingDuplicates(false); return }
@@ -258,17 +254,10 @@ export default function QuickAddClientModal({ open, onClose }) {
 
           {mode === 'new' && (
             <form onSubmit={handleCreateNew}>
-              <GoldInput label="Full Name *" name="user_name" value={newClient.user_name}
-                onChange={e => updateNewClient('user_name', e.target.value)} />
-              <GoldInput label="Email" name="user_email_id" type="email" value={newClient.user_email_id}
-                onChange={e => updateNewClient('user_email_id', e.target.value)} />
-              <GoldInput label="Phone" name="user_phone_number" value={newClient.user_phone_number}
-                onChange={e => updateNewClient('user_phone_number', e.target.value)} />
               <GoldInput label="Login Username *" name="username" value={newClient.username}
-                onChange={e => setNewClient(f => ({ ...f, username: e.target.value }))} />
+                onChange={e => updateNewClient('username', e.target.value)} />
               <GoldInput label="Password *" name="password" type="password" value={newClient.password}
                 onChange={e => setNewClient(f => ({ ...f, password: e.target.value }))} />
-              <PasswordStrength value={newClient.password} />
 
               <div className="mb-4">
                 <label className="text-xs font-medium block mb-1" style={{ color: 'var(--text-secondary)' }}>
@@ -288,7 +277,7 @@ export default function QuickAddClientModal({ open, onClose }) {
                   <div className="flex items-start gap-2 mb-2">
                     <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" style={{ color: '#F59E0B' }} />
                     <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                      {duplicates.length === 1 ? 'A client with matching details already exists' : `${duplicates.length} clients with matching details already exist`} — assign one instead, or create a new client anyway.
+                      {duplicates.length === 1 ? 'A client with this username already exists' : `${duplicates.length} clients with this username already exist`} — assign one instead, or create a new client anyway.
                     </p>
                   </div>
                   <div className="space-y-1.5 mb-3">
