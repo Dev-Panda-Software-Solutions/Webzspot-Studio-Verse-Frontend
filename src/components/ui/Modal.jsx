@@ -25,7 +25,7 @@ export default function Modal({ open, onClose, title, children, size = 'md' }) {
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex justify-center p-4 overflow-y-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -33,7 +33,7 @@ export default function Modal({ open, onClose, title, children, size = 'md' }) {
         >
           <div className="absolute inset-0 bg-black/70" onClick={onClose} />
           <motion.div
-            className={`relative w-full ${widths[size]} rounded-2xl p-6 shadow-modal z-10`}
+            className={`relative w-full ${widths[size]} rounded-2xl p-6 shadow-modal z-10 m-auto max-h-[calc(100vh-2rem)] overflow-y-auto overscroll-contain`}
             style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)' }}
             initial={{ opacity: 0, scale: 0.94, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}

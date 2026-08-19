@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { X, UserPlus, CheckCircle2, UserCheck, Lock } from 'lucide-react'
+import { X, UserPlus, CheckCircle2, UserCheck, Lock, Search, AlertTriangle } from 'lucide-react'
 import Modal from '../ui/Modal'
 import GoldButton from '../ui/GoldButton'
 import GoldInput from '../ui/GoldInput'

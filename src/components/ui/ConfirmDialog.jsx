@@ -37,7 +37,7 @@ export default function ConfirmProvider({ children }) {
         <AnimatePresence>
           {state && (
             <motion.div
-              className="fixed inset-0 z-[9995] flex items-center justify-center p-4"
+              className="fixed inset-0 z-[9995] flex justify-center p-4 overflow-y-auto"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -45,7 +45,7 @@ export default function ConfirmProvider({ children }) {
             >
               <div className="absolute inset-0 bg-black/70" onClick={() => close(false)} />
               <motion.div
-                className="relative w-full max-w-sm rounded-2xl p-6 shadow-modal z-10"
+                className="relative w-full max-w-sm rounded-2xl p-6 shadow-modal z-10 m-auto max-h-[calc(100vh-2rem)] overflow-y-auto overscroll-contain"
                 style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)' }}
                 initial={{ opacity: 0, scale: 0.94, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
