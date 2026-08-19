@@ -135,7 +135,7 @@ export default function Billing() {
 
   return (
     <AppLayout title="Billing" subtitle="Manage your plan, photo quota, and wallet credits">
-      <div className="space-y-6 max-w-4xl">
+      <div className="space-y-6">
 
         {subscription?.status === 'GRACE' && (
           <div className="rounded-xl p-4 flex items-start gap-3" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.35)' }}>

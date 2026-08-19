@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Lock, KeyRound } from 'lucide-react'
+import { Lock, KeyRound } from 'lucide-react'
+import AppLayout from '../../components/layout/AppLayout'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
 import GoldInput from '../../components/ui/GoldInput'
@@ -13,7 +13,6 @@ import { unlockAccount, resetPassword } from '../../api/tenants'
 import toast from 'react-hot-toast'
 
 export default function AccountSettings() {
-  const navigate = useNavigate()
   const { user, role, logout } = useAuthStore()
   const { theme } = useThemeStore()
   const tabs = role === 'SUPER_ADMIN' ? ['Password', 'Accounts', 'Appearance'] : ['Password', 'Appearance']
@@ -24,8 +23,6 @@ export default function AccountSettings() {
   const [unlocking, setUnlocking] = useState(false)
   const [resetForm, setResetForm] = useState({ username: '', new_password: '' })
   const [resetting, setResetting] = useState(false)
-
-  const backPath = role === 'SUPER_ADMIN' ? '/admin' : role === 'ADMIN' ? '/studio' : '/gallery'
 
   const handlePasswordChange = async (e) => {
     e.preventDefault()
@@ -67,15 +64,8 @@ export default function AccountSettings() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
-      <div className="max-w-xl mx-auto px-4 py-10">
-        <button onClick={() => navigate(backPath)}
-          className="flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-gold-500 transition-colors mb-6">
-          <ArrowLeft size={14} /> Back
-        </button>
-
-        <h1 className="font-display text-2xl font-semibold text-[var(--text-primary)] mb-6">Account Settings</h1>
-
+    <AppLayout title="Account Settings">
+      <div className="px-4 py-10">
         <div className="flex gap-1 mb-6 border-b" style={{ borderColor: 'var(--border-default)' }}>
           {tabs.map(t => (
             <button key={t} onClick={() => setTab(t)}
@@ -169,6 +159,6 @@ export default function AccountSettings() {
           </GlassCard>
         )}
       </div>
-    </div>
+    </AppLayout>
   )
 }

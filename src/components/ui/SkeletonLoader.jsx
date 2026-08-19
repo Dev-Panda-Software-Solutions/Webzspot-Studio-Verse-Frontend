@@ -6,7 +6,7 @@ function Bone({ className = '' }) {
 
 export default function SkeletonLoader({ type = 'card', count = 1 }) {
   if (type === 'page') return (
-    <div className="w-full max-w-4xl mx-auto p-8 space-y-6">
+    <div className="w-full p-8 space-y-6">
       <Bone className="h-8 w-64" />
       <div className="grid grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => <Bone key={i} className="h-28 rounded-xl" />)}

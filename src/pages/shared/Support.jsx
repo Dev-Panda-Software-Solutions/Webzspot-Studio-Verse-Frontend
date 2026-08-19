@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, LifeBuoy, Send, Plus } from 'lucide-react'
+import { LifeBuoy, Send, Plus } from 'lucide-react'
+import AppLayout from '../../components/layout/AppLayout'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
 import GoldInput from '../../components/ui/GoldInput'
@@ -140,11 +140,9 @@ function TicketRow({ ticket, onOpen }) {
 }
 
 export default function Support() {
-  const navigate = useNavigate()
   const qc = useQueryClient()
   const { role } = useAuthStore()
   const isSuperAdmin = role === 'SUPER_ADMIN'
-  const backPath = role === 'SUPER_ADMIN' ? '/admin' : role === 'ADMIN' ? '/studio' : '/gallery'
 
   const [createOpen, setCreateOpen] = useState(false)
   const [form, setForm] = useState({ subject: '', description: '' })
@@ -180,21 +178,18 @@ export default function Support() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
-      <div className="max-w-3xl mx-auto px-4 py-10">
-        <button onClick={() => navigate(backPath)}
-          className="flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-gold-500 transition-colors mb-6">
-          <ArrowLeft size={14} /> Back
-        </button>
-
+    <AppLayout
+      title={isSuperAdmin ? 'Support Tickets' : 'Help & Support'}
+      actions={!isSuperAdmin && (
+        <GoldButton onClick={() => setCreateOpen(true)} icon={<Plus size={14} />}>Raise Ticket</GoldButton>
+      )}
+    >
+      <div className="px-4 py-10">
         <div className="flex items-center justify-between mb-6">
           <h1 className="font-display text-2xl font-semibold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
             <LifeBuoy size={22} className="text-gold-500" />
             {isSuperAdmin ? 'Support Tickets' : 'Help & Support'}
           </h1>
-          {!isSuperAdmin && (
-            <GoldButton onClick={() => setCreateOpen(true)} icon={<Plus size={14} />}>Raise Ticket</GoldButton>
-          )}
         </div>
 
         {isSuperAdmin && (
@@ -253,6 +248,6 @@ export default function Support() {
       </Modal>
 
       <TicketDetailModal ticketId={openTicketId} onClose={() => setOpenTicketId(null)} isSuperAdmin={isSuperAdmin} />
-    </div>
+    </AppLayout>
   )
 }

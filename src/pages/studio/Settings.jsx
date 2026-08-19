@@ -144,7 +144,7 @@ export default function StudioSettings() {
   return (
     <AppLayout title="Studio Profile" subtitle="Manage your studio details, watermark and preferences">
 
-      <div ref={pageRef} className="max-w-2xl space-y-6">
+      <div ref={pageRef} className="space-y-6">
 
         {/* ── Studio Profile ── */}
         <GlassCard hover={false} className="settings-section">

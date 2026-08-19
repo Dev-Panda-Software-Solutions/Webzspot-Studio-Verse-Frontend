@@ -30,6 +30,10 @@ const navItems = {
     { to: '/studio/settings', icon: Store,           label: 'Studio Profile' },
     { to: '/support',         icon: LifeBuoy,        label: 'Support'      },
   ],
+  USER: [
+    { to: '/gallery',  icon: Camera,   label: 'My Gallery' },
+    { to: '/support',  icon: LifeBuoy, label: 'Support'    },
+  ],
 }
 
 export default function SidebarNav({ collapsed, onCollapse }) {

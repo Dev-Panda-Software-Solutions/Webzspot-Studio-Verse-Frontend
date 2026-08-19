@@ -2,7 +2,8 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Heart, Camera, Clock, Lock, ArrowLeft, CheckCircle2, Send, LifeBuoy } from 'lucide-react'
+import { Heart, Camera, Clock, Lock, ArrowLeft, CheckCircle2, Send } from 'lucide-react'
+import AppLayout from '../../components/layout/AppLayout'
 import PhotoGrid from '../../components/gallery/PhotoGrid'
 import EventFolderGrid from '../../components/gallery/EventFolderGrid'
 import FavouritesDrawer from '../../components/gallery/FavouritesDrawer'
@@ -17,7 +18,6 @@ import { getTenantSettings } from '../../api/tenants'
 import useBrandColours from '../../hooks/useBrandColours'
 import useAuthStore from '../../stores/authStore'
 import useGalleryStore from '../../stores/galleryStore'
-import { logout } from '../../api/auth'
 import { backendAssetUrl } from '../../utils/apiUrl'
 import { confirmDialog } from '../../components/ui/ConfirmDialog'
 import toast from 'react-hot-toast'
@@ -26,7 +26,7 @@ export default function Gallery() {
   const { eventId: paramEventId } = useParams()
   const navigate = useNavigate()
   const qc = useQueryClient()
-  const { user, logout: storeLogout } = useAuthStore()
+  const { user } = useAuthStore()
   const { setFavourites, getFavouritedMediaIds } = useGalleryStore()
   const containerRef = useRef(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -140,13 +140,6 @@ export default function Gallery() {
     return () => document.removeEventListener('contextmenu', handler)
   }, [])
 
-  const handleLogout = async () => {
-    try { await logout() } catch {}
-    storeLogout()
-    navigate('/login')
-    toast.success('Logged out')
-  }
-
   const handleSubmitFavourites = async () => {
     if (!currentAccess?.event_user_id) return
     const count = getFavouritedMediaIds().size
@@ -181,6 +174,7 @@ export default function Gallery() {
   const showFolderGrid = !activeEventId && allUserEvents.length > 0 && accessibleEvents.length !== 1
 
   return (
+    <AppLayout>
     <div ref={containerRef} className="min-h-screen grain" style={{ background: 'var(--bg-base)' }}>
       {/* Header */}
       <header className="gallery-header sticky top-0 z-30 px-6 py-4 flex items-center justify-between"
@@ -219,7 +213,7 @@ export default function Gallery() {
           </h1>
         )}
 
-        {/* Right: favourites + theme + logout */}
+        {/* Right: favourites + theme */}
         <div className="flex items-center gap-2">
           {!showFolderGrid && favouriteLimit != null && (
             <span className="text-xs font-medium whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>
@@ -239,28 +233,20 @@ export default function Gallery() {
             )
           )}
           {!showFolderGrid && (
-            <button
-              onClick={() => setDrawerOpen(true)}
-              className="relative p-2 rounded-full hover:bg-[var(--accent-muted)] transition-colors"
-            >
-              <Heart size={18} className="text-[var(--text-secondary)]" />
-              {getFavouritedMediaIds().size > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-gold-500 text-obsidian-base text-xs
-                  rounded-full flex items-center justify-center font-bold">
-                  {getFavouritedMediaIds().size}
-                </span>
-              )}
-            </button>
-          )}
           <button
-            onClick={() => navigate('/support')}
-            title="Help & Support"
-            className="p-2 rounded-full hover:bg-[var(--accent-muted)] transition-colors"
+            onClick={() => setDrawerOpen(true)}
+            className="relative p-2 rounded-full hover:bg-[var(--accent-muted)] transition-colors"
           >
-            <LifeBuoy size={18} className="text-[var(--text-secondary)]" />
+            <Heart size={18} className="text-[var(--text-secondary)]" />
+            {getFavouritedMediaIds().size > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-gold-500 text-obsidian-base text-xs
+                rounded-full flex items-center justify-center font-bold">
+                {getFavouritedMediaIds().size}
+              </span>
+            )}
           </button>
+          )}
           <ThemeToggle />
-          <GoldButton size="sm" variant="ghost" onClick={handleLogout}>Sign Out</GoldButton>
         </div>
       </header>
 
@@ -288,7 +274,7 @@ export default function Gallery() {
       )}
 
       {/* Main */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="px-4 py-8">
 
         {/* No events assigned at all */}
         {allUserEvents.length === 0 && (
@@ -347,5 +333,6 @@ export default function Gallery() {
         allowDownload={event?.allow_download !== false}
       />
     </div>
+    </AppLayout>
   )
 }

@@ -141,7 +141,7 @@ export default function Landing() {
 
       {/* Features */}
       <section className="features-section py-24 px-6">
-        <div className="max-w-5xl mx-auto">
+        <div className="w-full">
           <p className="text-xs font-semibold uppercase tracking-widest text-gold-500 text-center mb-3">Features</p>
           <h2 className="text-3xl font-semibold text-center mb-14 text-[var(--text-primary)]">
             Everything a studio needs
@@ -167,7 +167,7 @@ export default function Landing() {
 
       {/* How it works */}
       <section className="steps-section py-24 px-6" style={{ background: 'var(--bg-surface)' }}>
-        <div className="max-w-4xl mx-auto">
+        <div className="w-full">
           <p className="text-xs font-semibold uppercase tracking-widest text-gold-500 text-center mb-3">Process</p>
           <h2 className="text-3xl font-semibold text-center mb-14 text-[var(--text-primary)]">How It Works</h2>
           <div className="grid md:grid-cols-3 gap-8">

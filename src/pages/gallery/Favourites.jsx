@@ -1,8 +1,8 @@
-import React, { useLayoutEffect, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { gsap } from 'gsap'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Heart, Download } from 'lucide-react'
+import { Heart, Download } from 'lucide-react'
+import AppLayout from '../../components/layout/AppLayout'
 import PhotoGrid from '../../components/gallery/PhotoGrid'
 import { getMediaByEvent, downloadFavouritesZip } from '../../api/media'
 import { getEventById } from '../../api/events'
@@ -62,13 +62,6 @@ export default function GalleryFavourites() {
     staleTime: 0,
   })
 
-  useLayoutEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo('.fav-header', { y: -15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' })
-    }, containerRef)
-    return () => ctx.revert()
-  }, [])
-
   const allMedia = mediaData?.data?.items || []
   const favIds = getFavouritedMediaIds()
   const favouriteMedia = allMedia.filter(m => favIds.has(m.media_id))
@@ -88,26 +81,16 @@ export default function GalleryFavourites() {
   }
 
   return (
-    <div ref={containerRef} className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
-      <header className="fav-header sticky top-0 z-30 px-6 py-4 flex items-center gap-4"
-        style={{ background: 'rgba(10,10,11,0.92)', borderBottom: '1px solid var(--border-subtle)' }}>
-        <button onClick={() => navigate(`/gallery/${eventId}`)}
-          className="flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-gold-500 transition-colors">
-          <ArrowLeft size={14} /> Back to Gallery
-        </button>
-        <h1 className="font-display italic text-gold-500">
-          My Favourites {favIds.size > 0 && `(${favIds.size})`}
-        </h1>
-        <div className="ml-auto">
-          {allowDownload && favouriteMedia.length > 0 && (
-            <GoldButton size="sm" variant="outline" icon={<Download size={14} />} loading={downloading} onClick={handleDownload}>
-              Download
-            </GoldButton>
-          )}
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 py-8">
+    <AppLayout
+      title={`My Favourites${favIds.size > 0 ? ` (${favIds.size})` : ''}`}
+      actions={allowDownload && favouriteMedia.length > 0 ? (
+        <GoldButton size="sm" variant="outline" icon={<Download size={14} />} loading={downloading} onClick={handleDownload}>
+          Download
+        </GoldButton>
+      ) : null}
+    >
+      <div ref={containerRef} className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
+        <main className="px-4 py-8">
         {!mediaLoading && favouriteMedia.length === 0 ? (
           <div className="py-24 flex flex-col items-center text-center">
             <Heart size={48} className="text-[var(--text-tertiary)] mb-4 animate-float" />
@@ -125,7 +108,8 @@ export default function GalleryFavourites() {
             showFavourite
           />
         )}
-      </main>
-    </div>
+        </main>
+      </div>
+    </AppLayout>
   )
 }
