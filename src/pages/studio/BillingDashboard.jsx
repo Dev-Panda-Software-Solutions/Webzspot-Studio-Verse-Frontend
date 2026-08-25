@@ -10,6 +10,7 @@ import Avatar from '../../components/ui/Avatar'
 import GstModal from '../../components/billing/GstModal'
 import CreateQuotationModal from '../../components/billing/CreateQuotationModal'
 import { getQuotations } from '../../api/quotations'
+import { getBills } from '../../api/bills'
 import { getTenantSettings, updateTenantSettings } from '../../api/tenants'
 import { formatDate } from '../../utils/formatters'
 import { useShutterNavigate } from '../../context/ShutterContext'
@@ -36,6 +37,7 @@ export default function BillingDashboard() {
   const qc = useQueryClient()
   const shutterNavigate = useShutterNavigate()
   const { user } = useAuthStore()
+  const [tab, setTab] = useState('quotations')
   const [search, setSearch] = useState('')
   const [gstOpen, setGstOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
@@ -53,14 +55,28 @@ export default function BillingDashboard() {
     queryFn: () => getQuotations({ limit: 50 }),
   })
   const quotations = data?.data?.items || []
-  const filtered = quotations.filter(q =>
+  const filteredQuotations = quotations.filter(q =>
     !search.trim() ||
     q.billing_client?.name?.toLowerCase().includes(search.toLowerCase()) ||
     String(q.quotation_number).includes(search)
   )
 
+  const { data: billsData, isLoading: billsLoading } = useQuery({
+    queryKey: ['bills'],
+    queryFn: () => getBills({ limit: 50 }),
+    enabled: tab === 'bills',
+  })
+  const bills = billsData?.data?.items || []
+  const filteredBills = bills.filter(b =>
+    !search.trim() ||
+    b.billing_client?.name?.toLowerCase().includes(search.toLowerCase()) ||
+    String(b.bill_number).includes(search)
+  )
+
   const totalQuoted = quotations.reduce((s, q) => s + q.payable_amount, 0)
   const draftCount = quotations.filter(q => q.status === 'DRAFT').length
+  const BILL_STATUS_LABEL = { UNPAID: 'Unpaid', PARTIALLY_PAID: 'Partially Paid', PAID: 'Paid' }
+  const BILL_STATUS_VARIANT = { UNPAID: 'gold', PARTIALLY_PAID: 'info', PAID: 'success' }
 
   const handleSaveGst = async (form) => {
     setSavingGst(true)
@@ -92,62 +108,131 @@ export default function BillingDashboard() {
         <StatCard icon={Landmark} label="Total Quoted Value" value={money(totalQuoted)} />
       </div>
 
-      <div className="relative mb-4 max-w-sm">
-        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search by client or quotation #…"
-          className="w-full pl-8 pr-3 py-2 text-sm rounded-xl outline-none"
-          style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
-        />
+      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+        <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: 'var(--bg-elevated)' }}>
+          {[
+            { key: 'quotations', label: 'Quotations' },
+            { key: 'bills', label: 'Bills' },
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setTab(key)}
+              className="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
+              style={{
+                background: tab === key ? 'var(--bg-surface)' : 'transparent',
+                color: tab === key ? '#F59E0B' : 'var(--text-secondary)',
+                boxShadow: tab === key ? '0 1px 3px rgba(0,0,0,0.2)' : 'none',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="relative max-w-sm flex-1 min-w-[200px]">
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={tab === 'quotations' ? 'Search by client or quotation #…' : 'Search by client or bill #…'}
+            className="w-full pl-8 pr-3 py-2 text-sm rounded-xl outline-none"
+            style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
+          />
+        </div>
       </div>
 
-      <GlassCard hover={false} className="p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
-                {['Quotation #', 'Client', 'Date', 'Items', 'Payable', 'Status'].map(h => (
-                  <th key={h} className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
-                <tr><td colSpan={6} className="p-4">
-                  {[...Array(5)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}
-                </td></tr>
-              ) : filtered.length === 0 ? (
-                <tr><td colSpan={6} className="py-16 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
-                  No quotations yet — create one to get started.
-                </td></tr>
-              ) : filtered.map(q => (
-                <tr
-                  key={q.quotation_id}
-                  onClick={() => shutterNavigate(`/studio/billing-data/quotations/${q.quotation_id}`)}
-                  className="border-b hover:bg-[var(--bg-elevated)] transition-colors cursor-pointer"
-                  style={{ borderColor: 'var(--border-subtle)' }}
-                >
-                  <td className="px-6 py-4 text-sm font-medium" style={{ color: 'var(--text-primary)' }}>#{q.quotation_number}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <Avatar name={q.billing_client?.name || '?'} size="xs" />
-                      <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{q.billing_client?.name || '—'}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-tertiary)' }}>{formatDate(q.createdAt)}</td>
-                  <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-tertiary)' }}>{q.items?.length || 0}</td>
-                  <td className="px-6 py-4 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{money(q.payable_amount)}</td>
-                  <td className="px-6 py-4">
-                    <Badge variant={q.status === 'CONFIRMED' ? 'success' : 'gold'}>{q.status === 'CONFIRMED' ? 'Confirmed' : 'Draft'}</Badge>
-                  </td>
+      {tab === 'quotations' ? (
+        <GlassCard hover={false} className="p-0 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
+                  {['Quotation #', 'Client', 'Date', 'Items', 'Payable', 'Status'].map(h => (
+                    <th key={h} className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </GlassCard>
+              </thead>
+              <tbody>
+                {isLoading ? (
+                  <tr><td colSpan={6} className="p-4">
+                    {[...Array(5)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}
+                  </td></tr>
+                ) : filteredQuotations.length === 0 ? (
+                  <tr><td colSpan={6} className="py-16 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                    No quotations yet — create one to get started.
+                  </td></tr>
+                ) : filteredQuotations.map(q => (
+                  <tr
+                    key={q.quotation_id}
+                    onClick={() => shutterNavigate(`/studio/billing-data/quotations/${q.quotation_id}`)}
+                    className="border-b hover:bg-[var(--bg-elevated)] transition-colors cursor-pointer"
+                    style={{ borderColor: 'var(--border-subtle)' }}
+                  >
+                    <td className="px-6 py-4 text-sm font-medium" style={{ color: 'var(--text-primary)' }}>#{q.quotation_number}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <Avatar name={q.billing_client?.name || '?'} size="xs" />
+                        <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{q.billing_client?.name || '—'}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-tertiary)' }}>{formatDate(q.createdAt)}</td>
+                    <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-tertiary)' }}>{q.items?.length || 0}</td>
+                    <td className="px-6 py-4 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{money(q.payable_amount)}</td>
+                    <td className="px-6 py-4">
+                      <Badge variant={q.status === 'CONFIRMED' ? 'success' : 'gold'}>{q.status === 'CONFIRMED' ? 'Confirmed' : 'Draft'}</Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </GlassCard>
+      ) : (
+        <GlassCard hover={false} className="p-0 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
+                  {['Bill #', 'Client', 'Payable', 'Paid', 'Balance', 'Status'].map(h => (
+                    <th key={h} className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {billsLoading ? (
+                  <tr><td colSpan={6} className="p-4">
+                    {[...Array(5)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}
+                  </td></tr>
+                ) : filteredBills.length === 0 ? (
+                  <tr><td colSpan={6} className="py-16 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                    No bills yet — confirm a quotation to generate one.
+                  </td></tr>
+                ) : filteredBills.map(b => (
+                  <tr
+                    key={b.bill_id}
+                    onClick={() => shutterNavigate(`/studio/billing-data/bills/${b.bill_id}`)}
+                    className="border-b hover:bg-[var(--bg-elevated)] transition-colors cursor-pointer"
+                    style={{ borderColor: 'var(--border-subtle)' }}
+                  >
+                    <td className="px-6 py-4 text-sm font-medium" style={{ color: 'var(--text-primary)' }}>#{b.bill_number}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <Avatar name={b.billing_client?.name || '?'} size="xs" />
+                        <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{b.billing_client?.name || '—'}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{money(b.payable_amount)}</td>
+                    <td className="px-6 py-4 text-sm" style={{ color: '#34D399' }}>{money(b.paid_amount)}</td>
+                    <td className="px-6 py-4 text-sm" style={{ color: b.balance_due > 0 ? '#F87171' : 'var(--text-tertiary)' }}>{money(b.balance_due)}</td>
+                    <td className="px-6 py-4">
+                      <Badge variant={BILL_STATUS_VARIANT[b.status]}>{BILL_STATUS_LABEL[b.status]}</Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </GlassCard>
+      )}
 
       <GstModal open={gstOpen} onClose={() => setGstOpen(false)} settings={settings} onSave={handleSaveGst} saving={savingGst} />
       <CreateQuotationModal open={createOpen} onClose={() => setCreateOpen(false)} />

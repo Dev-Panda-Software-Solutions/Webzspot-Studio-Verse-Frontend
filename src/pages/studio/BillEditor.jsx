@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Trash2, FileText } from 'lucide-react'
+import { ArrowLeft, Trash2, FileText, Receipt, Plus } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
 import Badge from '../../components/ui/Badge'
 import Avatar from '../../components/ui/Avatar'
 import AddItemsButton from '../../components/billing/AddItemsButton'
+import RecordPaymentModal from '../../components/billing/RecordPaymentModal'
 import { getBillById, updateBill } from '../../api/bills'
+import { formatDate } from '../../utils/formatters'
 import toast from 'react-hot-toast'
 
 const money = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`
@@ -16,6 +18,7 @@ const lineTotal = (item) => (Number(item.price) - Number(item.discount_per_unit 
 
 const STATUS_LABEL = { UNPAID: 'Unpaid', PARTIALLY_PAID: 'Partially Paid', PAID: 'Paid' }
 const STATUS_VARIANT = { UNPAID: 'gold', PARTIALLY_PAID: 'info', PAID: 'success' }
+const METHOD_LABEL = { CASH: 'Cash', GPAY: 'GPay', CARD: 'Card', BANK_TRANSFER: 'Bank Transfer', CHEQUE: 'Cheque' }
 
 export default function BillEditor() {
   const { id } = useParams()
@@ -26,6 +29,7 @@ export default function BillEditor() {
   const [discountAmount, setDiscountAmount] = useState(0)
   const [saving, setSaving] = useState(false)
   const [loaded, setLoaded] = useState(false)
+  const [paymentOpen, setPaymentOpen] = useState(false)
 
   const { data, isLoading } = useQuery({
     queryKey: ['bill', id],
@@ -158,30 +162,85 @@ export default function BillEditor() {
         </div>
       </GlassCard>
 
-      <GlassCard hover={false} className="max-w-sm ml-auto">
-        <div className="flex items-center justify-between mb-3 text-sm">
-          <span style={{ color: 'var(--text-tertiary)' }}>Items Total</span>
-          <span style={{ color: 'var(--text-primary)' }}>{money(itemsTotal)}</span>
-        </div>
-        <div className="flex items-center justify-between mb-4 text-sm gap-3">
-          <span style={{ color: 'var(--text-tertiary)' }}>Overall Discount (₹)</span>
+      <div className="flex flex-col sm:flex-row gap-5 items-start">
+        <GlassCard hover={false} className="w-full sm:max-w-sm">
+          <div className="flex items-center justify-between mb-3 text-sm">
+            <span style={{ color: 'var(--text-tertiary)' }}>Items Total</span>
+            <span style={{ color: 'var(--text-primary)' }}>{money(itemsTotal)}</span>
+          </div>
+          <div className="flex items-center justify-between mb-4 text-sm gap-3">
+            <span style={{ color: 'var(--text-tertiary)' }}>Overall Discount (₹)</span>
+            {editable ? (
+              <input
+                type="number" min="0" step="0.01" value={discountAmount}
+                onChange={e => setDiscountAmount(Number(e.target.value) || 0)}
+                className="w-28 text-sm rounded-lg px-2 py-1.5 outline-none text-right"
+                style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
+              />
+            ) : <span style={{ color: 'var(--text-primary)' }}>{money(discountAmount)}</span>}
+          </div>
+          <div className="flex items-center justify-between mb-3 pt-3 border-t text-sm" style={{ borderColor: 'var(--border-default)' }}>
+            <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>Payable Amount</span>
+            <span className="text-lg font-bold text-gold-500">{money(payable)}</span>
+          </div>
+          {!editable && (
+            <>
+              <div className="flex items-center justify-between mb-1 text-sm">
+                <span style={{ color: 'var(--text-tertiary)' }}>Paid</span>
+                <span style={{ color: '#34D399' }}>{money(bill.paid_amount)}</span>
+              </div>
+              <div className="flex items-center justify-between mb-5 text-sm">
+                <span style={{ color: 'var(--text-tertiary)' }}>Balance Due</span>
+                <span className="font-semibold" style={{ color: bill.balance_due > 0 ? '#F87171' : 'var(--text-primary)' }}>{money(bill.balance_due)}</span>
+              </div>
+            </>
+          )}
+          {editable && <div className="mb-5" />}
           {editable ? (
-            <input
-              type="number" min="0" step="0.01" value={discountAmount}
-              onChange={e => setDiscountAmount(Number(e.target.value) || 0)}
-              className="w-28 text-sm rounded-lg px-2 py-1.5 outline-none text-right"
-              style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
-            />
-          ) : <span style={{ color: 'var(--text-primary)' }}>{money(discountAmount)}</span>}
-        </div>
-        <div className="flex items-center justify-between mb-5 pt-3 border-t" style={{ borderColor: 'var(--border-default)' }}>
-          <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Payable Amount</span>
-          <span className="text-lg font-bold text-gold-500">{money(payable)}</span>
-        </div>
-        {editable && (
-          <GoldButton loading={saving} onClick={handleSave} className="w-full justify-center">Save Changes</GoldButton>
+            <GoldButton loading={saving} onClick={handleSave} className="w-full justify-center">Save Changes</GoldButton>
+          ) : bill.status !== 'PAID' && (
+            <GoldButton icon={<Plus size={14} />} onClick={() => setPaymentOpen(true)} className="w-full justify-center">Record Payment</GoldButton>
+          )}
+        </GlassCard>
+
+        {bill.payments?.length > 0 && (
+          <GlassCard hover={false} className="w-full flex-1 p-0 overflow-hidden">
+            <div className="flex items-center gap-2 px-6 py-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
+              <Receipt size={15} className="text-gold-500" />
+              <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Payments & Receipts</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
+                    {['Receipt #', 'Date', 'Amount', 'Method', 'Remark'].map(h => (
+                      <th key={h} className="px-6 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {bill.payments.map(p => (
+                    <tr key={p.payment_id} className="border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
+                      <td className="px-6 py-3 text-sm font-medium" style={{ color: 'var(--text-primary)' }}>#{p.receipt_number}</td>
+                      <td className="px-6 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{formatDate(p.createdAt)}</td>
+                      <td className="px-6 py-3 text-sm font-semibold" style={{ color: '#34D399' }}>{money(p.amount)}</td>
+                      <td className="px-6 py-3 text-sm" style={{ color: 'var(--text-secondary)' }}>{METHOD_LABEL[p.method]}</td>
+                      <td className="px-6 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{p.remark || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </GlassCard>
         )}
-      </GlassCard>
+      </div>
+
+      <RecordPaymentModal
+        open={paymentOpen}
+        bill={bill}
+        onClose={() => setPaymentOpen(false)}
+        onRecorded={() => { qc.invalidateQueries(['bill', id]); qc.invalidateQueries(['bills']) }}
+      />
     </AppLayout>
   )
 }
