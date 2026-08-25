@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Trash2, FileText, Receipt, Plus } from 'lucide-react'
+import { ArrowLeft, Trash2, FileText, Receipt, Plus, Download } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
@@ -11,6 +11,7 @@ import AddItemsButton from '../../components/billing/AddItemsButton'
 import RecordPaymentModal from '../../components/billing/RecordPaymentModal'
 import { getBillById, updateBill } from '../../api/bills'
 import { formatDate } from '../../utils/formatters'
+import { openBillingPdf } from '../../utils/downloadPdf'
 import toast from 'react-hot-toast'
 
 const money = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`
@@ -77,6 +78,7 @@ export default function BillEditor() {
       actions={
         <div className="flex gap-2">
           <GoldButton variant="ghost" icon={<ArrowLeft size={14} />} onClick={() => navigate('/studio/billing-data')}>Back</GoldButton>
+          <GoldButton variant="outline" icon={<Download size={14} />} onClick={() => openBillingPdf(`/bills/${id}/pdf`)}>PDF</GoldButton>
           <Badge variant={STATUS_VARIANT[bill.status]}>{STATUS_LABEL[bill.status]}</Badge>
         </div>
       }
@@ -213,7 +215,7 @@ export default function BillEditor() {
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
-                    {['Receipt #', 'Date', 'Amount', 'Method', 'Remark'].map(h => (
+                    {['Receipt #', 'Date', 'Amount', 'Method', 'Remark', ''].map(h => (
                       <th key={h} className="px-6 py-2.5 text-left text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{h}</th>
                     ))}
                   </tr>
@@ -226,6 +228,15 @@ export default function BillEditor() {
                       <td className="px-6 py-3 text-sm font-semibold" style={{ color: '#34D399' }}>{money(p.amount)}</td>
                       <td className="px-6 py-3 text-sm" style={{ color: 'var(--text-secondary)' }}>{METHOD_LABEL[p.method]}</td>
                       <td className="px-6 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{p.remark || '—'}</td>
+                      <td className="px-6 py-3">
+                        <button
+                          onClick={() => openBillingPdf(`/payments/${p.payment_id}/pdf`)}
+                          title="Download receipt"
+                          className="p-1.5 rounded text-[var(--text-tertiary)] hover:text-gold-500 transition-colors"
+                        >
+                          <Download size={14} />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

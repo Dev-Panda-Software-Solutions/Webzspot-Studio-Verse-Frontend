@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Trash2, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Trash2, CheckCircle2, Download } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
@@ -12,6 +12,7 @@ import { confirmDialog } from '../../components/ui/ConfirmDialog'
 import { getBillingClients } from '../../api/billingClients'
 import { getQuotationById, createQuotation, updateQuotation, deleteQuotation } from '../../api/quotations'
 import { confirmQuotationToBill } from '../../api/bills'
+import { openBillingPdf } from '../../utils/downloadPdf'
 import toast from 'react-hot-toast'
 
 const money = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`
@@ -139,6 +140,9 @@ export default function QuotationEditor() {
       actions={
         <div className="flex gap-2 items-center">
           <GoldButton variant="ghost" icon={<ArrowLeft size={14} />} onClick={() => navigate('/studio/billing-data')}>Back</GoldButton>
+          {isEdit && (
+            <GoldButton variant="outline" icon={<Download size={14} />} onClick={() => openBillingPdf(`/quotations/${id}/pdf`)}>PDF</GoldButton>
+          )}
           {isConfirmed && <Badge variant="success">Confirmed</Badge>}
           {isEdit && !isConfirmed && <GoldButton variant="danger" icon={<Trash2 size={14} />} onClick={handleDelete}>Delete</GoldButton>}
         </div>
