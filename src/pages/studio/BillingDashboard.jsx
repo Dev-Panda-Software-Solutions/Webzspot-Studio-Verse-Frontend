@@ -137,9 +137,10 @@ export default function BillingDashboard() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['quotations'],
-    queryFn: () => getQuotations({ limit: 50 }),
+    queryFn: () => getQuotations({ limit: 100 }),
   })
   const quotations = data?.data?.items || []
+  const quotationsTotal = data?.data?.total ?? quotations.length
   const filteredQuotations = quotations.filter(q =>
     (statusFilter === 'all' || q.status === statusFilter) &&
     (!search.trim() ||
@@ -149,9 +150,10 @@ export default function BillingDashboard() {
 
   const { data: billsData, isLoading: billsLoading } = useQuery({
     queryKey: ['bills'],
-    queryFn: () => getBills({ limit: 50 }),
+    queryFn: () => getBills({ limit: 100 }),
   })
   const bills = billsData?.data?.items || []
+  const billsTotal = billsData?.data?.total ?? bills.length
   const filteredBills = bills.filter(b =>
     (statusFilter === 'all' || b.status === statusFilter) &&
     (!search.trim() ||
@@ -335,6 +337,11 @@ export default function BillingDashboard() {
               </tbody>
             </table>
           </div>
+          {quotationsTotal > quotations.length && (
+            <p className="px-6 py-3 text-xs border-t" style={{ color: 'var(--text-tertiary)', borderColor: 'var(--border-default)' }}>
+              Showing latest {quotations.length} of {quotationsTotal} quotations — refine your search to find older ones.
+            </p>
+          )}
         </GlassCard>
       ) : (
         <GlassCard hover={false} className="p-0 overflow-hidden">
@@ -381,6 +388,11 @@ export default function BillingDashboard() {
               </tbody>
             </table>
           </div>
+          {billsTotal > bills.length && (
+            <p className="px-6 py-3 text-xs border-t" style={{ color: 'var(--text-tertiary)', borderColor: 'var(--border-default)' }}>
+              Showing latest {bills.length} of {billsTotal} bills — refine your search to find older ones.
+            </p>
+          )}
         </GlassCard>
       )}
 
