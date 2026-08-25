@@ -244,20 +244,38 @@ export default function QuotationEditor() {
         </div>
         <div className="flex items-center justify-between mb-4 text-sm gap-3">
           <span style={{ color: 'var(--text-tertiary)' }}>Overall Discount (₹)</span>
-          <input
-            type="number" min="0" step="0.01" value={discountAmount}
-            onChange={e => setDiscountAmount(Number(e.target.value) || 0)}
-            className="w-28 text-sm rounded-lg px-2 py-1.5 outline-none text-right"
-            style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
-          />
+          {editable ? (
+            <input
+              type="number" min="0" step="0.01" value={discountAmount}
+              onChange={e => setDiscountAmount(Number(e.target.value) || 0)}
+              className="w-28 text-sm rounded-lg px-2 py-1.5 outline-none text-right"
+              style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
+            />
+          ) : <span style={{ color: 'var(--text-primary)' }}>{money(discountAmount)}</span>}
         </div>
         <div className="flex items-center justify-between mb-5 pt-3 border-t" style={{ borderColor: 'var(--border-default)' }}>
           <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Payable Amount</span>
           <span className="text-lg font-bold text-gold-500">{money(payable)}</span>
         </div>
-        <GoldButton loading={saving} onClick={handleSave} className="w-full justify-center">
-          {isEdit ? 'Save Changes' : 'Create Quotation'}
-        </GoldButton>
+        {editable && (
+          <div className="space-y-2">
+            <GoldButton loading={saving} onClick={handleSave} className="w-full justify-center">
+              {isEdit ? 'Save Changes' : 'Create Quotation'}
+            </GoldButton>
+            {isEdit && (
+              <GoldButton
+                variant="outline"
+                icon={<CheckCircle2 size={14} />}
+                loading={confirming}
+                disabled={items.length === 0}
+                onClick={handleConfirm}
+                className="w-full justify-center"
+              >
+                Confirm & Generate Bill
+              </GoldButton>
+            )}
+          </div>
+        )}
       </GlassCard>
     </AppLayout>
   )
