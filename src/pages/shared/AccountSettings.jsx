@@ -1,21 +1,24 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Lock, KeyRound } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
 import GoldInput from '../../components/ui/GoldInput'
 import PasswordStrength from '../../components/ui/PasswordStrength'
-import ThemeToggle from '../../components/ui/ThemeToggle'
+// import ThemeToggle from '../../components/ui/ThemeToggle' // dark/light toggle disabled site-wide
 import useAuthStore from '../../stores/authStore'
-import useThemeStore from '../../stores/themeStore'
+// import useThemeStore from '../../stores/themeStore' // only used by the disabled Appearance tab
 import { changePassword } from '../../api/auth'
 import { unlockAccount, resetPassword } from '../../api/tenants'
 import toast from 'react-hot-toast'
 
 export default function AccountSettings() {
+  const navigate = useNavigate()
   const { user, role, logout } = useAuthStore()
-  const { theme } = useThemeStore()
-  const tabs = role === 'SUPER_ADMIN' ? ['Password', 'Accounts', 'Appearance'] : ['Password', 'Appearance']
+  // const { theme } = useThemeStore() // only used by the disabled Appearance tab
+  const tabs = role === 'SUPER_ADMIN' ? ['Password', 'Accounts'] : ['Password']
+  // const tabs = role === 'SUPER_ADMIN' ? ['Password', 'Accounts', 'Appearance'] : ['Password', 'Appearance']
   const [tab, setTab] = useState('Password')
   const [pwForm, setPwForm] = useState({ current_password: '', new_password: '', confirm: '' })
   const [changingPw, setChangingPw] = useState(false)
@@ -146,6 +149,7 @@ export default function AccountSettings() {
           </div>
         )}
 
+        {/* Appearance tab disabled site-wide — dark/light toggle turned off, default to light.
         {tab === 'Appearance' && (
           <GlassCard hover={false}>
             <h3 className="font-semibold text-[var(--text-primary)] mb-6">Appearance</h3>
@@ -158,6 +162,7 @@ export default function AccountSettings() {
             </div>
           </GlassCard>
         )}
+        */}
       </div>
     </AppLayout>
   )

@@ -7,7 +7,7 @@ import AppLayout from '../../components/layout/AppLayout'
 import PhotoGrid from '../../components/gallery/PhotoGrid'
 import EventFolderGrid from '../../components/gallery/EventFolderGrid'
 import FavouritesDrawer from '../../components/gallery/FavouritesDrawer'
-import ThemeToggle from '../../components/ui/ThemeToggle'
+// import ThemeToggle from '../../components/ui/ThemeToggle' // dark/light toggle disabled site-wide
 import GoldButton from '../../components/ui/GoldButton'
 import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import { GalleryLoader } from '../../components/ui/StudioLoader'
@@ -246,7 +246,7 @@ export default function Gallery() {
             )}
           </button>
           )}
-          <ThemeToggle />
+          {/* <ThemeToggle /> dark/light toggle disabled site-wide */}
         </div>
       </header>
 
