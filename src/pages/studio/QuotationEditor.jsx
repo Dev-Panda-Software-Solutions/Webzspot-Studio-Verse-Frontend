@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Trash2 } from 'lucide-react'
+import { ArrowLeft, Trash2, CheckCircle2 } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
+import Badge from '../../components/ui/Badge'
 import Avatar from '../../components/ui/Avatar'
 import AddItemsButton from '../../components/billing/AddItemsButton'
 import { confirmDialog } from '../../components/ui/ConfirmDialog'
 import { getBillingClients } from '../../api/billingClients'
 import { getQuotationById, createQuotation, updateQuotation, deleteQuotation } from '../../api/quotations'
+import { confirmQuotationToBill } from '../../api/bills'
 import toast from 'react-hot-toast'
 
 const money = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`
@@ -28,6 +30,7 @@ export default function QuotationEditor() {
   const [items, setItems] = useState([])
   const [discountAmount, setDiscountAmount] = useState(0)
   const [saving, setSaving] = useState(false)
+  const [confirming, setConfirming] = useState(false)
   const [loaded, setLoaded] = useState(false)
 
   const { data: existingData, isLoading: loadingExisting } = useQuery({
@@ -59,6 +62,10 @@ export default function QuotationEditor() {
     }
   }, [isEdit, clientId, clientLookup, client])
 
+  const quotation = existingData?.data
+  const isConfirmed = quotation?.status === 'CONFIRMED'
+  const editable = !isConfirmed
+
   const addItem = (item) => setItems(prev => [...prev, item])
   const removeItem = (idx) => setItems(prev => prev.filter((_, i) => i !== idx))
   const updateItem = (idx, patch) => setItems(prev => prev.map((it, i) => i === idx ? { ...it, ...patch } : it))
@@ -85,6 +92,26 @@ export default function QuotationEditor() {
     finally { setSaving(false) }
   }
 
+  const handleConfirm = async () => {
+    const ok = await confirmDialog({
+      title: 'Confirm this quotation?',
+      message: 'A bill will be generated from these items. The quotation can no longer be edited after this.',
+      confirmLabel: 'Confirm & Generate Bill',
+      danger: false,
+    })
+    if (!ok) return
+    setConfirming(true)
+    try {
+      const res = await confirmQuotationToBill(id)
+      toast.success('Bill generated')
+      qc.invalidateQueries(['quotation', id])
+      qc.invalidateQueries(['quotations'])
+      qc.invalidateQueries(['bills'])
+      navigate(`/studio/billing-data/bills/${res.data.bill_id}`)
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to confirm quotation') }
+    finally { setConfirming(false) }
+  }
+
   const handleDelete = async () => {
     const ok = await confirmDialog({
       title: 'Delete quotation?',
@@ -107,12 +134,13 @@ export default function QuotationEditor() {
 
   return (
     <AppLayout
-      title={isEdit ? `Quotation #${existingData?.data?.quotation_number ?? ''}` : 'New Quotation'}
+      title={isEdit ? `Quotation #${quotation?.quotation_number ?? ''}` : 'New Quotation'}
       subtitle={client ? `For ${client.name}` : 'Add products, services or packages'}
       actions={
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           <GoldButton variant="ghost" icon={<ArrowLeft size={14} />} onClick={() => navigate('/studio/billing-data')}>Back</GoldButton>
-          {isEdit && <GoldButton variant="danger" icon={<Trash2 size={14} />} onClick={handleDelete}>Delete</GoldButton>}
+          {isConfirmed && <Badge variant="success">Confirmed</Badge>}
+          {isEdit && !isConfirmed && <GoldButton variant="danger" icon={<Trash2 size={14} />} onClick={handleDelete}>Delete</GoldButton>}
         </div>
       }
     >
@@ -126,10 +154,19 @@ export default function QuotationEditor() {
         </GlassCard>
       )}
 
+      {isConfirmed && quotation?.bill && (
+        <div className="flex items-center justify-between gap-3 mb-5 px-4 py-3 rounded-xl text-sm" style={{ background: 'var(--accent-muted)', color: '#F59E0B' }}>
+          <span>This quotation has been confirmed and is now locked. Edits happen on the generated bill.</span>
+          <GoldButton size="sm" onClick={() => navigate(`/studio/billing-data/bills/${quotation.bill.bill_id}`)}>
+            View Bill #{quotation.bill.bill_number}
+          </GoldButton>
+        </div>
+      )}
+
       <GlassCard hover={false} className="p-0 overflow-hidden mb-5">
         <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
           <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Items</h3>
-          <AddItemsButton onAdd={addItem} />
+          {editable && <AddItemsButton onAdd={addItem} />}
         </div>
 
         {items.length === 0 ? (
@@ -141,7 +178,7 @@ export default function QuotationEditor() {
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
-                  {['Item', 'Price', 'Qty', 'Discount/unit', 'Line Total', ''].map(h => (
+                  {['Item', 'Price', 'Qty', 'Discount/unit', 'Line Total', ...(editable ? [''] : [])].map(h => (
                     <th key={h} className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{h}</th>
                   ))}
                 </tr>
@@ -151,35 +188,43 @@ export default function QuotationEditor() {
                   <tr key={idx} className="border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
                     <td className="px-6 py-3 text-sm" style={{ color: 'var(--text-primary)' }}>{item.name}</td>
                     <td className="px-6 py-3">
-                      <input
-                        type="number" min="0" step="0.01" value={item.price}
-                        onChange={e => updateItem(idx, { price: Number(e.target.value) || 0 })}
-                        className="w-24 text-sm rounded-lg px-2 py-1.5 outline-none"
-                        style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
-                      />
+                      {editable ? (
+                        <input
+                          type="number" min="0" step="0.01" value={item.price}
+                          onChange={e => updateItem(idx, { price: Number(e.target.value) || 0 })}
+                          className="w-24 text-sm rounded-lg px-2 py-1.5 outline-none"
+                          style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
+                        />
+                      ) : <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{money(item.price)}</span>}
                     </td>
                     <td className="px-6 py-3">
-                      <input
-                        type="number" min="1" value={item.quantity}
-                        onChange={e => updateItem(idx, { quantity: Math.max(1, parseInt(e.target.value) || 1) })}
-                        className="w-16 text-sm rounded-lg px-2 py-1.5 outline-none"
-                        style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
-                      />
+                      {editable ? (
+                        <input
+                          type="number" min="1" value={item.quantity}
+                          onChange={e => updateItem(idx, { quantity: Math.max(1, parseInt(e.target.value) || 1) })}
+                          className="w-16 text-sm rounded-lg px-2 py-1.5 outline-none"
+                          style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
+                        />
+                      ) : <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{item.quantity}</span>}
                     </td>
                     <td className="px-6 py-3">
-                      <input
-                        type="number" min="0" step="0.01" value={item.discount_per_unit || 0}
-                        onChange={e => updateItem(idx, { discount_per_unit: Number(e.target.value) || 0 })}
-                        className="w-24 text-sm rounded-lg px-2 py-1.5 outline-none"
-                        style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
-                      />
+                      {editable ? (
+                        <input
+                          type="number" min="0" step="0.01" value={item.discount_per_unit || 0}
+                          onChange={e => updateItem(idx, { discount_per_unit: Number(e.target.value) || 0 })}
+                          className="w-24 text-sm rounded-lg px-2 py-1.5 outline-none"
+                          style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
+                        />
+                      ) : <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{money(item.discount_per_unit)}</span>}
                     </td>
                     <td className="px-6 py-3 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{money(lineTotal(item))}</td>
-                    <td className="px-6 py-3">
-                      <button onClick={() => removeItem(idx)} className="p-1.5 rounded text-[var(--text-tertiary)] hover:text-red-400 transition-colors">
-                        <Trash2 size={14} />
-                      </button>
-                    </td>
+                    {editable && (
+                      <td className="px-6 py-3">
+                        <button onClick={() => removeItem(idx)} className="p-1.5 rounded text-[var(--text-tertiary)] hover:text-red-400 transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
