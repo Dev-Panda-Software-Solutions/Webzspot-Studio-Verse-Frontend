@@ -53,8 +53,8 @@ export default function ConfirmProvider({ children }) {
                 transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
               >
                 <div className="flex items-start gap-3 mb-4">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${danger ? 'bg-red-500/10' : 'bg-yellow-500/10'}`}>
-                    <AlertTriangle size={18} style={{ color: danger ? '#F87171' : '#FBBF24' }} />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${state.danger ? 'bg-red-500/10' : 'bg-yellow-500/10'}`}>
+                    <AlertTriangle size={18} style={{ color: state.danger ? '#F87171' : '#FBBF24' }} />
                   </div>
                   <div className="pt-0.5">
                     <h2 className="text-base font-semibold text-[var(--text-primary)]">{state.title}</h2>
