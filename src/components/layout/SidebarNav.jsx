@@ -4,7 +4,7 @@ import { gsap } from 'gsap'
 import {
   LayoutDashboard, Building2, Users, Settings, LogOut,
   Camera, ChevronLeft, ChevronRight, Store,
-  CreditCard, Wallet, UserPlus, LifeBuoy, LayoutGrid
+  CreditCard, Wallet, UserPlus, LifeBuoy, LayoutGrid, Receipt
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Avatar from '../ui/Avatar'
@@ -27,6 +27,7 @@ const navItems = {
     { to: '/studio/access',   icon: LayoutGrid,      label: 'Access Board' },
     { action: 'add-client',   icon: UserPlus,        label: 'Add Client'   },
     { to: '/studio/billing',  icon: Wallet,          label: 'Billing'      },
+    { to: '/studio/billing-data', icon: Receipt,     label: 'Invoicing'    },
     { to: '/studio/settings', icon: Store,           label: 'Studio Profile' },
     { to: '/support',         icon: LifeBuoy,        label: 'Support'      },
   ],

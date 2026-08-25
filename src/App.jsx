@@ -20,6 +20,8 @@ const StudioSettings = lazy(() => import('./pages/studio/Settings'))
 const StudioAccessBoard = lazy(() => import('./pages/studio/AccessBoard'))
 const StudioClients = lazy(() => import('./pages/studio/Clients'))
 const StudioBilling = lazy(() => import('./pages/studio/Billing'))
+const StudioBillingDashboard = lazy(() => import('./pages/studio/BillingDashboard'))
+const StudioQuotationEditor = lazy(() => import('./pages/studio/QuotationEditor'))
 
 const Gallery = lazy(() => import('./pages/gallery/Gallery'))
 const GalleryFavourites = lazy(() => import('./pages/gallery/Favourites'))
@@ -79,6 +81,9 @@ export default function App() {
           <Route path="/studio/events/:id" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioEventDetail /></ProtectedRoute>} />
           <Route path="/studio/settings" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioSettings /></ProtectedRoute>} />
           <Route path="/studio/billing" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioBilling /></ProtectedRoute>} />
+          <Route path="/studio/billing-data" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioBillingDashboard /></ProtectedRoute>} />
+          <Route path="/studio/billing-data/quotations/new" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioQuotationEditor /></ProtectedRoute>} />
+          <Route path="/studio/billing-data/quotations/:id" element={<ProtectedRoute allowedRoles={['ADMIN']}><StudioQuotationEditor /></ProtectedRoute>} />
 
           {/* Client Gallery */}
           <Route path="/gallery" element={<ProtectedRoute allowedRoles={['USER']}><Gallery /></ProtectedRoute>} />

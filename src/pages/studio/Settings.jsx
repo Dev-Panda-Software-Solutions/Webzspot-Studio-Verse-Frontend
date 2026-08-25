@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { UploadCloud, Save, User, Building2, Phone, Mail, MapPin, CreditCard, Palette } from 'lucide-react'
+import { UploadCloud, Save, User, Building2, Phone, Mail, MapPin, CreditCard, Palette, Package, Plus, Pencil, Trash2, X } from 'lucide-react'
 import { gsap } from 'gsap'
 import AppLayout from '../../components/layout/AppLayout'
 import PageHeader from '../../components/layout/PageHeader'
@@ -10,11 +10,128 @@ import GoldButton from '../../components/ui/GoldButton'
 import GoldInput from '../../components/ui/GoldInput'
 import Badge from '../../components/ui/Badge'
 import { getTenantSettings, updateTenant, updateTenantSettings, getTenantById } from '../../api/tenants'
+import { getStudioServices, createStudioService, updateStudioService, deleteStudioService } from '../../api/studioServices'
 import { uploadWatermark } from '../../api/media'
 import { getMySubscription } from '../../api/billing'
 import useAuthStore from '../../stores/authStore'
 import { backendAssetUrl } from '../../utils/apiUrl'
+import { confirmDialog } from '../../components/ui/ConfirmDialog'
 import toast from 'react-hot-toast'
+
+function ServiceRow({ service, onEdit, onDelete }) {
+  return (
+    <div className="flex items-center gap-3 py-3 border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{service.name}</p>
+      </div>
+      <p className="text-sm font-semibold flex-shrink-0" style={{ color: 'var(--text-primary)' }}>
+        {service.price != null ? `₹${Number(service.price).toLocaleString('en-IN')}` : '—'}
+      </p>
+      <div className="flex items-center gap-1 flex-shrink-0">
+        <button onClick={() => onEdit(service)} className="p-1.5 rounded-lg transition-colors" style={{ color: 'var(--text-tertiary)' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#93C5FD'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
+          <Pencil size={13} />
+        </button>
+        <button onClick={() => onDelete(service)} className="p-1.5 rounded-lg transition-colors" style={{ color: 'var(--text-tertiary)' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#F87171'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>
+          <Trash2 size={13} />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function ServicesSection() {
+  const qc = useQueryClient()
+  const [formOpen, setFormOpen] = useState(false)
+  const [editing, setEditing] = useState(null)
+  const [form, setForm] = useState({ name: '', price: '' })
+  const [saving, setSaving] = useState(false)
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['studio-services'],
+    queryFn: () => getStudioServices({ status: 'active' }),
+  })
+  const services = data?.data?.items || []
+
+  const openCreate = () => { setEditing(null); setForm({ name: '', price: '' }); setFormOpen(true) }
+  const openEdit = (s) => { setEditing(s); setForm({ name: s.name, price: s.price ?? '' }); setFormOpen(true) }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!form.name.trim()) { toast.error('Name is required'); return }
+    setSaving(true)
+    try {
+      const payload = { name: form.name.trim(), price: form.price === '' ? null : Number(form.price) }
+      if (editing) await updateStudioService(editing.studio_service_id, payload)
+      else await createStudioService(payload)
+      toast.success(editing ? 'Service updated' : 'Service added')
+      qc.invalidateQueries(['studio-services'])
+      setFormOpen(false)
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to save service') }
+    finally { setSaving(false) }
+  }
+
+  const handleDelete = async (service) => {
+    const ok = await confirmDialog({
+      title: 'Remove service?',
+      message: `Remove "${service.name}" from your catalog? It stays on any quotations/bills that already used it.`,
+      confirmLabel: 'Remove',
+      danger: true,
+    })
+    if (!ok) return
+    try {
+      await deleteStudioService(service.studio_service_id)
+      toast.success('Service removed')
+      qc.invalidateQueries(['studio-services'])
+    } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to remove service') }
+  }
+
+  return (
+    <GlassCard hover={false} className="settings-section">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-semibold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+          <Package size={16} style={{ color: 'var(--accent-primary)' }} />
+          Services, Products &amp; Packages
+        </h3>
+        <GoldButton size="sm" onClick={openCreate} icon={<Plus size={13} />}>Add</GoldButton>
+      </div>
+      <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+        This catalog is what you'll pick from when adding items to a quotation.
+      </p>
+
+      {isLoading ? (
+        <p className="text-sm py-4 text-center" style={{ color: 'var(--text-tertiary)' }}>Loading…</p>
+      ) : services.length === 0 ? (
+        <p className="text-sm py-6 text-center" style={{ color: 'var(--text-tertiary)' }}>No services yet — add your first one.</p>
+      ) : (
+        <div>
+          {services.map(s => <ServiceRow key={s.studio_service_id} service={s} onEdit={openEdit} onDelete={handleDelete} />)}
+        </div>
+      )}
+
+      {formOpen && (
+        <div className="fixed inset-0 z-[9990] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)' }}
+          onClick={(e) => { if (e.target === e.currentTarget) setFormOpen(false) }}>
+          <div className="w-full max-w-sm rounded-2xl p-6" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{editing ? 'Edit Service' : 'Add a Service'}</h4>
+              <button onClick={() => setFormOpen(false)} style={{ color: 'var(--text-tertiary)' }}><X size={16} /></button>
+            </div>
+            <form onSubmit={handleSubmit}>
+              <GoldInput label="Name *" name="name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+              <GoldInput label="Price (optional)" name="price" type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
+              <div className="flex gap-3 pt-2">
+                <GoldButton type="submit" loading={saving} className="flex-1 justify-center">{editing ? 'Save' : 'Add'}</GoldButton>
+                <GoldButton type="button" variant="ghost" onClick={() => setFormOpen(false)}>Cancel</GoldButton>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </GlassCard>
+  )
+}
 
 export default function StudioSettings() {
   const { user } = useAuthStore()
@@ -263,6 +380,9 @@ export default function StudioSettings() {
             {settings?.tenant_watermark_path ? 'Replace Watermark' : 'Upload Watermark'}
           </GoldButton>
         </GlassCard>
+
+        {/* ── Billing Services Catalog ── */}
+        <ServicesSection />
 
         {/* ── Brand Colours ── */}
         <GlassCard hover={false} className="settings-section">
