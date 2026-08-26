@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { UploadCloud, Save, User, Building2, Phone, Mail, MapPin, CreditCard, Palette, Package, Plus, Pencil, Trash2, X } from 'lucide-react'
+import { UploadCloud, Save, User, Building2, Phone, Mail, MapPin, CreditCard, Palette, Package, Plus, Pencil, Trash2 } from 'lucide-react'
 import { gsap } from 'gsap'
 import AppLayout from '../../components/layout/AppLayout'
 import PageHeader from '../../components/layout/PageHeader'
@@ -9,6 +9,7 @@ import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
 import GoldInput from '../../components/ui/GoldInput'
 import Badge from '../../components/ui/Badge'
+import Modal from '../../components/ui/Modal'
 import { getTenantSettings, updateTenant, updateTenantSettings, getTenantById } from '../../api/tenants'
 import { getStudioServices, createStudioService, updateStudioService, deleteStudioService } from '../../api/studioServices'
 import { uploadWatermark } from '../../api/media'
@@ -110,25 +111,16 @@ function ServicesSection() {
         </div>
       )}
 
-      {formOpen && (
-        <div className="fixed inset-0 z-[9990] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.6)' }}
-          onClick={(e) => { if (e.target === e.currentTarget) setFormOpen(false) }}>
-          <div className="w-full max-w-sm rounded-2xl p-6" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-semibold" style={{ color: 'var(--text-primary)' }}>{editing ? 'Edit Service' : 'Add a Service'}</h4>
-              <button onClick={() => setFormOpen(false)} style={{ color: 'var(--text-tertiary)' }}><X size={16} /></button>
-            </div>
-            <form onSubmit={handleSubmit}>
-              <GoldInput label="Name *" name="name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-              <GoldInput label="Price (optional)" name="price" type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
-              <div className="flex gap-3 pt-2">
-                <GoldButton type="submit" loading={saving} className="flex-1 justify-center">{editing ? 'Save' : 'Add'}</GoldButton>
-                <GoldButton type="button" variant="ghost" onClick={() => setFormOpen(false)}>Cancel</GoldButton>
-              </div>
-            </form>
+      <Modal open={formOpen} onClose={() => setFormOpen(false)} title={editing ? 'Edit Service' : 'Add a Service'} size="sm">
+        <form onSubmit={handleSubmit}>
+          <GoldInput label="Name *" name="name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+          <GoldInput label="Price (optional)" name="price" type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
+          <div className="flex gap-3 pt-2">
+            <GoldButton type="submit" loading={saving} className="flex-1 justify-center">{editing ? 'Save' : 'Add'}</GoldButton>
+            <GoldButton type="button" variant="ghost" onClick={() => setFormOpen(false)}>Cancel</GoldButton>
           </div>
-        </div>
-      )}
+        </form>
+      </Modal>
     </GlassCard>
   )
 }
