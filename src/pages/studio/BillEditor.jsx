@@ -198,11 +198,21 @@ export default function BillEditor() {
             </>
           )}
           {editable && <div className="mb-5" />}
-          {editable ? (
-            <GoldButton loading={saving} onClick={handleSave} className="w-full justify-center">Save Changes</GoldButton>
-          ) : bill.status !== 'PAID' && (
-            <GoldButton icon={<Plus size={14} />} onClick={() => setPaymentOpen(true)} className="w-full justify-center">Record Payment</GoldButton>
-          )}
+          <div className="space-y-2">
+            {editable && (
+              <GoldButton loading={saving} onClick={handleSave} className="w-full justify-center">Save Changes</GoldButton>
+            )}
+            {bill.status !== 'PAID' && (
+              <GoldButton
+                variant={editable ? 'outline' : 'solid'}
+                icon={<Plus size={14} />}
+                onClick={() => setPaymentOpen(true)}
+                className="w-full justify-center"
+              >
+                Record Payment
+              </GoldButton>
+            )}
+          </div>
         </GlassCard>
 
         {bill.payments?.length > 0 && (
