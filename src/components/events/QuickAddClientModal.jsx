@@ -13,11 +13,15 @@ import toast from 'react-hot-toast'
 const EMPTY_NEW_CLIENT = { username: '', password: '' }
 
 // Global shortcut version of EventDetail's AddClientModal — adds an event
-// picker up front so it can be triggered from anywhere (the sidebar), not
-// just from within a specific event's page.
-export default function QuickAddClientModal({ open, onClose }) {
+// picker up front so it can be triggered from anywhere. When opened from a
+// page that already has an event in context (e.g. the Access Board's "Add
+// Client" panel), pass presetEventId to skip the picker entirely and lock it
+// to that event; onCreated fires after a successful create-and-assign or
+// assign-existing so the caller can refresh whatever board/list it's showing.
+export default function QuickAddClientModal({ open, onClose, presetEventId, onCreated }) {
   const qc = useQueryClient()
   const [eventId, setEventId] = useState('')
+  const effectiveEventId = presetEventId || eventId
   const [mode, setMode] = useState('existing')
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
@@ -40,7 +44,7 @@ export default function QuickAddClientModal({ open, onClose }) {
   const { data: usersData } = useQuery({
     queryKey: ['tenant-users'],
     queryFn: () => getUsers({ page: 1, limit: 100 }),
-    enabled: open && mode === 'existing' && !!eventId,
+    enabled: open && mode === 'existing' && !!effectiveEventId,
   })
   const allUsers = usersData?.data?.items || []
   const filtered = allUsers.filter(u =>
@@ -73,12 +77,13 @@ export default function QuickAddClientModal({ open, onClose }) {
   }
 
   const handleAssignExisting = async () => {
-    if (!selected || !eventId) return
+    if (!selected || !effectiveEventId) return
     setAssigning(true)
     try {
-      await assignUserToEvent({ event_id: eventId, user_id: selected.user_id, access_expires: accessExpires || undefined })
+      await assignUserToEvent({ event_id: effectiveEventId, user_id: selected.user_id, access_expires: accessExpires || undefined })
       toast.success(`${selected.user_name} added to event`)
-      qc.invalidateQueries(['event-users', eventId])
+      qc.invalidateQueries(['event-users', effectiveEventId])
+      onCreated?.()
       handleClose()
     } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to assign client') }
     finally { setAssigning(false) }
@@ -91,15 +96,16 @@ export default function QuickAddClientModal({ open, onClose }) {
         user_name: newClient.username,
         username: newClient.username,
         password: newClient.password,
-        event_id: eventId,
+        event_id: effectiveEventId,
         validity_days: 365,
         expiry_date: accessExpires
           ? new Date(accessExpires).toISOString().split('T')[0]
           : new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0],
       })
       toast.success('New client created and added to event')
-      qc.invalidateQueries(['event-users', eventId])
+      qc.invalidateQueries(['event-users', effectiveEventId])
       qc.invalidateQueries(['tenant-users'])
+      onCreated?.()
       handleClose()
     } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to create client') }
     finally { setCreating(false) }
@@ -107,7 +113,7 @@ export default function QuickAddClientModal({ open, onClose }) {
 
   const handleCreateNew = async (e) => {
     e.preventDefault()
-    if (!eventId) return
+    if (!effectiveEventId) return
 
     if (duplicates === null) {
       setCheckingDuplicates(true)
@@ -127,12 +133,13 @@ export default function QuickAddClientModal({ open, onClose }) {
   }
 
   const assignDuplicateInstead = async (user) => {
-    if (!eventId) return
+    if (!effectiveEventId) return
     setAssigning(true)
     try {
-      await assignUserToEvent({ event_id: eventId, user_id: user.user_id, access_expires: accessExpires || undefined })
+      await assignUserToEvent({ event_id: effectiveEventId, user_id: user.user_id, access_expires: accessExpires || undefined })
       toast.success(`${user.user_name} added to event`)
-      qc.invalidateQueries(['event-users', eventId])
+      qc.invalidateQueries(['event-users', effectiveEventId])
+      onCreated?.()
       handleClose()
     } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to assign client') }
     finally { setAssigning(false) }
@@ -140,29 +147,31 @@ export default function QuickAddClientModal({ open, onClose }) {
 
   return (
     <Modal open={open} onClose={handleClose} title="Add Client" size="md">
-      <div className="mb-5">
-        <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-          Event *
-        </label>
-        <select
-          value={eventId}
-          onChange={e => setEventId(e.target.value)}
-          className="w-full text-sm rounded-xl px-3 py-2.5 outline-none"
-          style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
-        >
-          <option value="">{eventsLoading ? 'Loading events…' : 'Select an event'}</option>
-          {events.map(ev => (
-            <option key={ev.event_id} value={ev.event_id}>{ev.event_name}</option>
-          ))}
-        </select>
-        {!eventsLoading && events.length === 0 && (
-          <p className="text-xs mt-1.5" style={{ color: 'var(--text-tertiary)' }}>
-            Create an event first before adding clients.
-          </p>
-        )}
-      </div>
+      {!presetEventId && (
+        <div className="mb-5">
+          <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+            Event *
+          </label>
+          <select
+            value={eventId}
+            onChange={e => setEventId(e.target.value)}
+            className="w-full text-sm rounded-xl px-3 py-2.5 outline-none"
+            style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
+          >
+            <option value="">{eventsLoading ? 'Loading events…' : 'Select an event'}</option>
+            {events.map(ev => (
+              <option key={ev.event_id} value={ev.event_id}>{ev.event_name}</option>
+            ))}
+          </select>
+          {!eventsLoading && events.length === 0 && (
+            <p className="text-xs mt-1.5" style={{ color: 'var(--text-tertiary)' }}>
+              Create an event first before adding clients.
+            </p>
+          )}
+        </div>
+      )}
 
-      {eventId && (
+      {effectiveEventId && (
         <>
           {/* Mode selector */}
           <div className="flex gap-1 p-1 rounded-xl mb-5" style={{ background: 'var(--bg-elevated)' }}>

@@ -13,6 +13,7 @@ import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import { assignUserToEvent, getEventUsers, getEvents, updateEventUserMapping } from '../../api/events'
 import { getUsers } from '../../api/users'
 import { formatDate, clientDisplayName } from '../../utils/formatters'
+import QuickAddClientModal from '../../components/events/QuickAddClientModal'
 import toast from 'react-hot-toast'
 
 const today = new Date()
@@ -228,6 +229,7 @@ export default function AccessBoard() {
   const qc = useQueryClient()
   const [selectedEventId, setSelectedEventId] = useState(null)
   const [search, setSearch] = useState('')
+  const [addClientOpen, setAddClientOpen] = useState(false)
 
   const { data: eventData, isLoading: eventsLoading } = useQuery({
     queryKey: ['access-board-events'],
@@ -347,7 +349,16 @@ export default function AccessBoard() {
                     {activeEvent ? `To ${activeEvent.event_name}` : 'Select an event'}
                   </p>
                 </div>
-                <UserPlus size={18} style={{ color: '#F59E0B' }} />
+                <button
+                  type="button"
+                  onClick={() => setAddClientOpen(true)}
+                  disabled={!activeEventId}
+                  title="Create a new client"
+                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 transition-colors"
+                  style={{ background: 'var(--accent-muted)', color: '#F59E0B' }}
+                >
+                  <UserPlus size={16} />
+                </button>
               </div>
 
               <div className="relative mb-4">
@@ -365,9 +376,12 @@ export default function AccessBoard() {
                 {filteredUnassigned.length === 0 ? (
                   <div className="rounded-xl px-4 py-10 text-center" style={{ background: 'var(--bg-elevated)' }}>
                     <CheckCircle2 size={26} className="mx-auto mb-2" style={{ color: '#34D399' }} />
-                    <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                    <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>
                       Every matching client is already assigned to this event.
                     </p>
+                    <GoldButton size="sm" variant="outline" icon={<UserPlus size={13} />} onClick={() => setAddClientOpen(true)} disabled={!activeEventId}>
+                      New Client
+                    </GoldButton>
                   </div>
                 ) : filteredUnassigned.map(user => (
                   <UnassignedClient
@@ -382,6 +396,13 @@ export default function AccessBoard() {
           </div>
         )}
       </div>
+
+      <QuickAddClientModal
+        open={addClientOpen}
+        onClose={() => setAddClientOpen(false)}
+        presetEventId={activeEventId}
+        onCreated={refreshBoard}
+      />
     </AppLayout>
   )
 }
