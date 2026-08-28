@@ -1,17 +1,24 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, PackagePlus } from 'lucide-react'
 import Modal from '../ui/Modal'
 import GoldButton from '../ui/GoldButton'
-import { getStudioServices } from '../../api/studioServices'
+import { getStudioServices, createStudioService } from '../../api/studioServices'
+import toast from 'react-hot-toast'
 
 // "Add Items" — a small dropdown of the studio's saved service catalog with
-// quick-add buttons, plus "+ Create Package" for a one-off custom line item
-// not in the catalog (name + optional price + optional discount).
+// quick-add buttons, plus "+ Create Package" for adding a brand-new one. The
+// catalog is a single global list shared between here and Studio Profile —
+// "Create Package" saves it there too (not just to this one quotation), so
+// it shows up as a quick-add option everywhere from then on. Any discount
+// entered here is a one-off line-item negotiation, not part of the saved
+// catalog entry, so it's applied to the local item only.
 export default function AddItemsButton({ onAdd }) {
+  const qc = useQueryClient()
   const [open, setOpen] = useState(false)
   const [customOpen, setCustomOpen] = useState(false)
   const [custom, setCustom] = useState({ name: '', price: '', discount: '' })
+  const [savingCustom, setSavingCustom] = useState(false)
   const wrapRef = useRef(null)
 
   const { data } = useQuery({
@@ -35,16 +42,26 @@ export default function AddItemsButton({ onAdd }) {
 
   const openCustom = () => { setOpen(false); setCustom({ name: '', price: '', discount: '' }); setCustomOpen(true) }
 
-  const handleCustomSubmit = (e) => {
+  const handleCustomSubmit = async (e) => {
     e.preventDefault()
     if (!custom.name.trim()) return
-    onAdd({
-      name: custom.name.trim(),
-      price: Number(custom.price) || 0,
-      quantity: 1,
-      discount_per_unit: Number(custom.discount) || 0,
-    })
-    setCustomOpen(false)
+    setSavingCustom(true)
+    try {
+      const payload = { name: custom.name.trim(), price: custom.price === '' ? null : Number(custom.price) }
+      const res = await createStudioService(payload)
+      qc.invalidateQueries(['studio-services'])
+      onAdd({
+        name: res.data.name,
+        price: Number(res.data.price) || 0,
+        quantity: 1,
+        discount_per_unit: Number(custom.discount) || 0,
+      })
+      setCustomOpen(false)
+    } catch (err) {
+      toast.error(typeof err === 'string' ? err : 'Failed to save to catalog')
+    } finally {
+      setSavingCustom(false)
+    }
   }
 
   return (
@@ -89,6 +106,9 @@ export default function AddItemsButton({ onAdd }) {
       )}
 
       <Modal open={customOpen} onClose={() => setCustomOpen(false)} title="Add a Product, Service or Package">
+        <p className="text-xs mb-4 -mt-1" style={{ color: 'var(--text-tertiary)' }}>
+          This is saved to your studio's catalog, so it'll show up as a quick-add option on future quotations too.
+        </p>
         <form onSubmit={handleCustomSubmit}>
           <div className="mb-4">
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>Product / Service / Package Name *</label>
@@ -128,7 +148,7 @@ export default function AddItemsButton({ onAdd }) {
           </div>
           <div className="flex gap-3">
             <GoldButton type="button" variant="ghost" onClick={() => setCustomOpen(false)}>Close</GoldButton>
-            <GoldButton type="submit" className="flex-1 justify-center">Submit</GoldButton>
+            <GoldButton type="submit" loading={savingCustom} className="flex-1 justify-center">Submit</GoldButton>
           </div>
         </form>
       </Modal>
