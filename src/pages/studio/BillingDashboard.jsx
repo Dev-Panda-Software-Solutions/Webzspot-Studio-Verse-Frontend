@@ -76,12 +76,12 @@ function RecentActivity({ quotations, bills, payments }) {
     const items = [
       ...quotations.map(q => ({
         id: `q-${q.quotation_id}`, at: q.createdAt, icon: FileText,
-        text: `Quotation #${q.quotation_number} created for ${q.billing_client?.name || 'a client'}`,
+        text: `Quotation #${q.quotation_number} created for ${q.client?.user_name || 'a client'}`,
         amount: q.payable_amount,
       })),
       ...bills.map(b => ({
         id: `b-${b.bill_id}`, at: b.createdAt, icon: FileCheck2,
-        text: `Bill #${b.bill_number} generated for ${b.billing_client?.name || 'a client'}`,
+        text: `Bill #${b.bill_number} generated for ${b.client?.user_name || 'a client'}`,
         amount: b.payable_amount,
       })),
       ...payments.map(p => ({
@@ -144,7 +144,7 @@ export default function BillingDashboard() {
   const filteredQuotations = quotations.filter(q =>
     (statusFilter === 'all' || q.status === statusFilter) &&
     (!search.trim() ||
-      q.billing_client?.name?.toLowerCase().includes(search.toLowerCase()) ||
+      q.client?.user_name?.toLowerCase().includes(search.toLowerCase()) ||
       String(q.quotation_number).includes(search))
   )
 
@@ -157,7 +157,7 @@ export default function BillingDashboard() {
   const filteredBills = bills.filter(b =>
     (statusFilter === 'all' || b.status === statusFilter) &&
     (!search.trim() ||
-      b.billing_client?.name?.toLowerCase().includes(search.toLowerCase()) ||
+      b.client?.user_name?.toLowerCase().includes(search.toLowerCase()) ||
       String(b.bill_number).includes(search))
   )
 
@@ -322,8 +322,8 @@ export default function BillingDashboard() {
                     <td className="px-6 py-4 text-sm font-medium" style={{ color: 'var(--text-primary)' }}>#{q.quotation_number}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <Avatar name={q.billing_client?.name || '?'} size="xs" />
-                        <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{q.billing_client?.name || '—'}</span>
+                        <Avatar name={q.client?.user_name || '?'} size="xs" />
+                        <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{q.client?.user_name || '—'}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-tertiary)' }}>{formatDate(q.createdAt)}</td>
@@ -373,8 +373,8 @@ export default function BillingDashboard() {
                     <td className="px-6 py-4 text-sm font-medium" style={{ color: 'var(--text-primary)' }}>#{b.bill_number}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <Avatar name={b.billing_client?.name || '?'} size="xs" />
-                        <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{b.billing_client?.name || '—'}</span>
+                        <Avatar name={b.client?.user_name || '?'} size="xs" />
+                        <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{b.client?.user_name || '—'}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{money(b.payable_amount)}</td>

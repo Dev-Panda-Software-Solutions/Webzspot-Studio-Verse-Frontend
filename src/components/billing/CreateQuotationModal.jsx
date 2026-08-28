@@ -6,9 +6,14 @@ import Modal from '../ui/Modal'
 import GoldButton from '../ui/GoldButton'
 import GoldInput from '../ui/GoldInput'
 import Avatar from '../ui/Avatar'
-import { getBillingClients, createBillingClient } from '../../api/billingClients'
+import { getUsers, createUser } from '../../api/users'
 import toast from 'react-hot-toast'
 
+// A quotation's client is just a User — the same record used for gallery
+// login access. "New User" here creates a bare User with no login and no
+// event access yet (see backend createUser); "Existing User" searches the
+// same client list the Access Board uses, so a client created for a
+// quotation shows up there too, and vice versa.
 export default function CreateQuotationModal({ open, onClose }) {
   const qc = useQueryClient()
   const navigate = useNavigate()
@@ -19,8 +24,8 @@ export default function CreateQuotationModal({ open, onClose }) {
   const [saving, setSaving] = useState(false)
 
   const { data } = useQuery({
-    queryKey: ['billing-clients', search],
-    queryFn: () => getBillingClients({ search }),
+    queryKey: ['tenant-users', search],
+    queryFn: () => getUsers({ search, limit: 50 }),
     enabled: open && mode === 'existing',
   })
   const clients = data?.data?.items || []
@@ -33,9 +38,9 @@ export default function CreateQuotationModal({ open, onClose }) {
   }
   const handleClose = () => { reset(); onClose() }
 
-  const goToQuotation = (billing_client_id) => {
+  const goToQuotation = (user_id) => {
     handleClose()
-    navigate(`/studio/billing-data/quotations/new?client=${billing_client_id}`)
+    navigate(`/studio/billing-data/quotations/new?client=${user_id}`)
   }
 
   const handleCreateUser = async (e) => {
@@ -45,13 +50,13 @@ export default function CreateQuotationModal({ open, onClose }) {
     setSaving(true)
     try {
       const isEmail = newClient.contact.includes('@')
-      const res = await createBillingClient({
-        name: newClient.name.trim(),
-        email: isEmail ? newClient.contact.trim() : undefined,
-        phone: !isEmail ? newClient.contact.trim() : undefined,
+      const res = await createUser({
+        user_name: newClient.name.trim(),
+        user_email_id: isEmail ? newClient.contact.trim() : undefined,
+        user_phone_number: !isEmail ? newClient.contact.trim() : undefined,
       })
-      qc.invalidateQueries(['billing-clients'])
-      goToQuotation(res?.data?.billing_client_id)
+      qc.invalidateQueries(['tenant-users'])
+      goToQuotation(res?.data?.user_id)
     } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to create client') }
     finally { setSaving(false) }
   }
@@ -95,27 +100,27 @@ export default function CreateQuotationModal({ open, onClose }) {
               <div className="py-8 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>No matching clients</div>
             ) : clients.map(c => (
               <button
-                key={c.billing_client_id}
+                key={c.user_id}
                 type="button"
-                onClick={() => setSelected(selected?.billing_client_id === c.billing_client_id ? null : c)}
+                onClick={() => setSelected(selected?.user_id === c.user_id ? null : c)}
                 className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors"
                 style={{
-                  background: selected?.billing_client_id === c.billing_client_id ? 'rgba(245,158,11,0.1)' : 'transparent',
+                  background: selected?.user_id === c.user_id ? 'rgba(245,158,11,0.1)' : 'transparent',
                   borderBottom: '1px solid var(--border-subtle)',
                 }}
               >
-                <Avatar name={c.name} size="xs" />
+                <Avatar name={c.user_name} size="xs" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{c.name}</p>
-                  <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{c.email || c.phone || '—'}</p>
+                  <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{c.user_name}</p>
+                  <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{c.user_email_id || c.user_phone_number || '—'}</p>
                 </div>
-                {selected?.billing_client_id === c.billing_client_id && <CheckCircle2 size={15} className="text-gold-500 flex-shrink-0" />}
+                {selected?.user_id === c.user_id && <CheckCircle2 size={15} className="text-gold-500 flex-shrink-0" />}
               </button>
             ))}
           </div>
           <div className="flex gap-3">
-            <GoldButton disabled={!selected} onClick={() => goToQuotation(selected.billing_client_id)} className="flex-1 justify-center">
-              {selected ? `Continue with ${selected.name}` : 'Select a client above'}
+            <GoldButton disabled={!selected} onClick={() => goToQuotation(selected.user_id)} className="flex-1 justify-center">
+              {selected ? `Continue with ${selected.user_name}` : 'Select a client above'}
             </GoldButton>
             <GoldButton variant="ghost" onClick={handleClose}>Cancel</GoldButton>
           </div>

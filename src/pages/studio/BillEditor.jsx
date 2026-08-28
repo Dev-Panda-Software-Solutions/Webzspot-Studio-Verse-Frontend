@@ -74,7 +74,7 @@ export default function BillEditor() {
   return (
     <AppLayout
       title={`Bill #${bill.bill_number}`}
-      subtitle={`From Quotation #${bill.quotation?.quotation_number ?? '—'} · ${bill.billing_client?.name || ''}`}
+      subtitle={`From Quotation #${bill.quotation?.quotation_number ?? '—'} · ${bill.client?.user_name || ''}`}
       actions={
         <div className="flex gap-2">
           <GoldButton variant="ghost" icon={<ArrowLeft size={14} />} onClick={() => navigate('/studio/billing-data')}>Back</GoldButton>
@@ -83,12 +83,12 @@ export default function BillEditor() {
         </div>
       }
     >
-      {bill.billing_client && (
+      {bill.client && (
         <GlassCard hover={false} className="flex items-center gap-3 mb-5">
-          <Avatar name={bill.billing_client.name} size="sm" />
+          <Avatar name={bill.client.user_name} size="sm" />
           <div>
-            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{bill.billing_client.name}</p>
-            <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{bill.billing_client.email || bill.billing_client.phone || '—'}</p>
+            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{bill.client.user_name}</p>
+            <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{bill.client.user_email_id || bill.client.user_phone_number || '—'}</p>
           </div>
         </GlassCard>
       )}

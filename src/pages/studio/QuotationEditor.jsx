@@ -9,7 +9,7 @@ import Badge from '../../components/ui/Badge'
 import Avatar from '../../components/ui/Avatar'
 import AddItemsButton from '../../components/billing/AddItemsButton'
 import { confirmDialog } from '../../components/ui/ConfirmDialog'
-import { getBillingClients } from '../../api/billingClients'
+import { getUserById } from '../../api/users'
 import { getQuotationById, createQuotation, updateQuotation, deleteQuotation } from '../../api/quotations'
 import { confirmQuotationToBill } from '../../api/bills'
 import { openBillingPdf } from '../../utils/downloadPdf'
@@ -41,15 +41,15 @@ export default function QuotationEditor() {
   })
 
   const { data: clientLookup } = useQuery({
-    queryKey: ['billing-client-lookup', clientId],
-    queryFn: () => getBillingClients({ search: '' }),
+    queryKey: ['user', clientId],
+    queryFn: () => getUserById(clientId),
     enabled: !isEdit && !!clientId,
   })
 
   useEffect(() => {
     if (isEdit && existingData?.data && !loaded) {
       const q = existingData.data
-      setClient(q.billing_client)
+      setClient(q.client)
       setItems(q.items.map(i => ({ ...i })))
       setDiscountAmount(Number(q.discount_amount || 0))
       setLoaded(true)
@@ -57,11 +57,10 @@ export default function QuotationEditor() {
   }, [isEdit, existingData, loaded])
 
   useEffect(() => {
-    if (!isEdit && clientId && clientLookup?.data?.items && !client) {
-      const found = clientLookup.data.items.find(c => c.billing_client_id === clientId)
-      if (found) setClient(found)
+    if (!isEdit && clientLookup?.data && !client) {
+      setClient(clientLookup.data)
     }
-  }, [isEdit, clientId, clientLookup, client])
+  }, [isEdit, clientLookup, client])
 
   const quotation = existingData?.data
   const isConfirmed = quotation?.status === 'CONFIRMED'
@@ -84,7 +83,7 @@ export default function QuotationEditor() {
         qc.invalidateQueries(['quotation', id])
         qc.invalidateQueries(['quotations'])
       } else {
-        const res = await createQuotation({ billing_client_id: clientId, items })
+        const res = await createQuotation({ user_id: clientId, items })
         toast.success('Quotation created')
         qc.invalidateQueries(['quotations'])
         navigate(`/studio/billing-data/quotations/${res.data.quotation_id}`, { replace: true })
@@ -136,7 +135,7 @@ export default function QuotationEditor() {
   return (
     <AppLayout
       title={isEdit ? `Quotation #${quotation?.quotation_number ?? ''}` : 'New Quotation'}
-      subtitle={client ? `For ${client.name}` : 'Add products, services or packages'}
+      subtitle={client ? `For ${client.user_name}` : 'Add products, services or packages'}
       actions={
         <div className="flex gap-2 items-center">
           <GoldButton variant="ghost" icon={<ArrowLeft size={14} />} onClick={() => navigate('/studio/billing-data')}>Back</GoldButton>
@@ -150,10 +149,10 @@ export default function QuotationEditor() {
     >
       {client && (
         <GlassCard hover={false} className="flex items-center gap-3 mb-5">
-          <Avatar name={client.name} size="sm" />
+          <Avatar name={client.user_name} size="sm" />
           <div>
-            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{client.name}</p>
-            <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{client.email || client.phone || '—'}</p>
+            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{client.user_name}</p>
+            <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{client.user_email_id || client.user_phone_number || '—'}</p>
           </div>
         </GlassCard>
       )}
