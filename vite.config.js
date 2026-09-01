@@ -7,11 +7,11 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'https://srv1567353.hstgr.cloud/webzspot-studio-verse',
+        target: 'https://webzspot-studio-verse-backend.onrender.com',
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'https://srv1567353.hstgr.cloud/webzspot-studio-verse',
+        target: 'https://webzspot-studio-verse-backend.onrender.com',
         changeOrigin: true,
       }
     }

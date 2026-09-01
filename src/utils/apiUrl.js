@@ -1,4 +1,4 @@
-export const BACKEND_BASE_URL = import.meta.env.VITE_API_URL || 'https://srv1567353.hstgr.cloud/webzspot-studio-verse'
+export const BACKEND_BASE_URL = import.meta.env.VITE_API_URL || 'https://webzspot-studio-verse-backend.onrender.com'
 export const API_BASE_URL = `${BACKEND_BASE_URL}/api`
 
 export const apiUrl = (path = '') => {
