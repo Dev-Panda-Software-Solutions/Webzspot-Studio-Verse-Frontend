@@ -8,6 +8,7 @@ import GoldButton from '../../components/ui/GoldButton'
 import Badge from '../../components/ui/Badge'
 import Avatar from '../../components/ui/Avatar'
 import AddItemsButton from '../../components/billing/AddItemsButton'
+import BillingStatusTracker from '../../components/billing/BillingStatusTracker'
 import { confirmDialog } from '../../components/ui/ConfirmDialog'
 import { getUserById } from '../../api/users'
 import { getQuotationById, createQuotation, updateQuotation, deleteQuotation } from '../../api/quotations'
@@ -65,6 +66,7 @@ export default function QuotationEditor() {
   const quotation = existingData?.data
   const isConfirmed = quotation?.status === 'CONFIRMED'
   const editable = !isConfirmed
+  const billSummary = quotation?.bill
 
   const addItem = (item) => setItems(prev => [...prev, item])
   const removeItem = (idx) => setItems(prev => prev.filter((_, i) => i !== idx))
@@ -157,13 +159,17 @@ export default function QuotationEditor() {
         </GlassCard>
       )}
 
-      {isConfirmed && quotation?.bill && (
+      {isConfirmed && billSummary && (
         <div className="flex items-center justify-between gap-3 mb-5 px-4 py-3 rounded-xl text-sm" style={{ background: 'var(--accent-muted)', color: '#F59E0B' }}>
           <span>This quotation has been confirmed and is now locked. Edits happen on the generated bill.</span>
-          <GoldButton size="sm" onClick={() => navigate(`/studio/billing-data/bills/${quotation.bill.bill_id}`)}>
-            View Bill #{quotation.bill.bill_number}
+          <GoldButton size="sm" onClick={() => navigate(`/studio/billing-data/bills/${billSummary.bill_id}`)}>
+            View Bill #{billSummary.bill_number}
           </GoldButton>
         </div>
+      )}
+
+      {isEdit && (
+        <BillingStatusTracker bill={billSummary} />
       )}
 
       <GlassCard hover={false} className="p-0 overflow-hidden mb-5">

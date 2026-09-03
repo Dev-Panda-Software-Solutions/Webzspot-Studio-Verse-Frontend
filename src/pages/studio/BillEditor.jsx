@@ -8,6 +8,7 @@ import GoldButton from '../../components/ui/GoldButton'
 import Badge from '../../components/ui/Badge'
 import Avatar from '../../components/ui/Avatar'
 import RecordPaymentModal from '../../components/billing/RecordPaymentModal'
+import BillingStatusTracker from '../../components/billing/BillingStatusTracker'
 import { getBillById } from '../../api/bills'
 import { formatDate } from '../../utils/formatters'
 import { openBillingPdf } from '../../utils/downloadPdf'
@@ -62,6 +63,8 @@ export default function BillEditor() {
           </div>
         </GlassCard>
       )}
+
+      <BillingStatusTracker bill={bill} />
 
       <GlassCard hover={false} className="p-0 overflow-hidden mb-5">
         <div className="px-6 py-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
@@ -166,7 +169,12 @@ export default function BillEditor() {
         open={paymentOpen}
         bill={bill}
         onClose={() => setPaymentOpen(false)}
-        onRecorded={() => { qc.invalidateQueries(['bill', id]); qc.invalidateQueries(['bills']) }}
+        onRecorded={() => {
+          qc.invalidateQueries(['bill', id])
+          qc.invalidateQueries(['bills'])
+          qc.invalidateQueries(['quotation', bill.quotation?.quotation_id])
+          qc.invalidateQueries(['quotations'])
+        }}
       />
     </AppLayout>
   )

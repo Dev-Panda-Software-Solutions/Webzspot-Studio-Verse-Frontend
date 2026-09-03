@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function GlassCard({ children, className = '', hover = true, onClick }) {
+export default function GlassCard({ children, className = '', hover = true, onClick, style }) {
   return (
     <div
       onClick={onClick}
@@ -9,7 +9,7 @@ export default function GlassCard({ children, className = '', hover = true, onCl
         ${hover ? 'hover:border-[rgba(245,158,11,0.3)] hover:shadow-elevated cursor-pointer transition-all duration-200' : ''}
         ${className}
       `}
-      style={{ background: 'var(--gradient-glass)' }}
+      style={{ background: 'var(--gradient-glass)', ...style }}
     >
       {children}
     </div>
