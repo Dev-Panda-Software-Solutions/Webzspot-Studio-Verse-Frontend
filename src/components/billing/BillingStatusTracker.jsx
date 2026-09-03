@@ -42,12 +42,11 @@ export default function BillingStatusTracker({ bill, quotationCreated = true, cl
   const balanceDue = Number(bill?.balance_due || 0)
 
   return (
-    <div className={className}>
+    <GlassCard hover={false} className={`mb-5 overflow-hidden p-0 ${className}`}>
       {hasBill && balanceDue > 0 && (
-        <GlassCard
-          hover={false}
-          className="mb-5 flex flex-col gap-2 border-red-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
-          style={{ background: 'rgba(239,68,68,0.12)' }}
+        <div
+          className="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
+          style={{ background: 'rgba(239,68,68,0.12)', borderBottom: '1px solid rgba(239,68,68,0.18)' }}
         >
           <div>
             <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Amount Due</p>
@@ -56,11 +55,11 @@ export default function BillingStatusTracker({ bill, quotationCreated = true, cl
             </p>
           </div>
           <p className="text-2xl font-bold" style={{ color: '#DC2626' }}>{money(balanceDue)}</p>
-        </GlassCard>
+        </div>
       )}
 
       {hasBill && (
-        <GlassCard hover={false} className="mb-5 grid grid-cols-2 gap-4 px-5 py-4 sm:flex sm:items-center">
+        <div className="grid grid-cols-2 gap-4 px-5 py-4 sm:flex sm:items-center" style={{ borderBottom: '1px solid var(--border-default)' }}>
           <div className="min-w-[120px]">
             <p className="text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>Total Paid</p>
             <p className="text-sm font-bold" style={{ color: '#059669' }}>{money(paidAmount)}</p>
@@ -73,10 +72,10 @@ export default function BillingStatusTracker({ bill, quotationCreated = true, cl
             <p className="text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>Balance Due</p>
             <p className="text-sm font-bold" style={{ color: balanceDue > 0 ? '#DC2626' : '#059669' }}>{money(balanceDue)}</p>
           </div>
-        </GlassCard>
+        </div>
       )}
 
-      <GlassCard hover={false} className="mb-5 px-5 py-6">
+      <div className="px-5 py-6">
         <div className="relative flex items-start justify-between gap-3">
           <div className="absolute left-[16%] right-1/2 top-[17px] h-0.5" style={{ background: hasBill ? '#16A34A' : 'var(--border-default)' }} />
           <div
@@ -103,7 +102,7 @@ export default function BillingStatusTracker({ bill, quotationCreated = true, cl
             tone={hasBill ? payment.tone : 'danger'}
           />
         </div>
-      </GlassCard>
-    </div>
+      </div>
+    </GlassCard>
   )
 }
