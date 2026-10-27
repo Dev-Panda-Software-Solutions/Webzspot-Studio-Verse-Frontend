@@ -237,7 +237,7 @@ export default function AdminDashboard() {
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={storageByEvent.slice(0, 8)} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
+                <BarChart data={storageByEvent.slice(0, 8)} margin={{ top: 20, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis dataKey="event_name" {...axisProps} tickFormatter={(v) => String(v).slice(0, 12)} />
                   <YAxis {...axisProps} tickFormatter={formatStorage} />

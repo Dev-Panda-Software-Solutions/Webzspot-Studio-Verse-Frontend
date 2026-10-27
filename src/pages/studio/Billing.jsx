@@ -361,7 +361,7 @@ export default function Billing() {
               <p className="text-sm p-6 text-center" style={{ color: 'var(--text-tertiary)' }}>No plans purchased yet.</p>
             ) : (
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full min-w-[680px]">
                       <thead>
                         <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
                           {['Change', 'Plan', 'Status', 'Price', 'Started', 'Expires'].map(h => (

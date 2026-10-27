@@ -29,7 +29,7 @@ export default function AppLayout({ children, title, subtitle, actions }) {
       {/* Spacer that matches sidebar width */}
       <div className="hidden md:block flex-shrink-0 transition-all duration-300" style={{ width: collapsed ? 64 : 240 }} />
 
-      <div className="flex-1 min-w-0 flex flex-col min-h-screen">
+      <div className="flex-1 min-w-0 max-w-full overflow-x-clip flex flex-col min-h-screen">
         {!title && (
           <button
             type="button"
@@ -72,7 +72,7 @@ export default function AppLayout({ children, title, subtitle, actions }) {
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-2 flex-wrap justify-end flex-shrink-0 ml-auto">
+            <div className="flex items-center gap-2 flex-wrap justify-end min-w-0 max-w-full md:flex-shrink-0 ml-auto">
               {/* {!isTenantPortal && <ThemeToggle />} dark/light toggle disabled site-wide */}
               {actions}
             </div>

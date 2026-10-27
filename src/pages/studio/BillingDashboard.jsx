@@ -201,7 +201,7 @@ export default function BillingDashboard() {
       title="Billing & Invoicing"
       subtitle="Quotations, bills and payments for your studio"
       actions={
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap justify-end max-w-full">
           <GoldButton variant="outline" icon={<Landmark size={14} />} onClick={() => setGstOpen(true)}>
             {settings.gstin_number ? 'Edit GST' : 'Add GST Number'}
           </GoldButton>
@@ -295,7 +295,7 @@ export default function BillingDashboard() {
       {tab === 'quotations' ? (
         <GlassCard hover={false} className="p-0 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[760px]">
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
                   {['Quotation #', 'Client', 'Date', 'Items', 'Payable', 'Status'].map(h => (
@@ -346,7 +346,7 @@ export default function BillingDashboard() {
       ) : (
         <GlassCard hover={false} className="p-0 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[760px]">
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
                   {['Bill #', 'Client', 'Payable', 'Paid', 'Balance', 'Status'].map(h => (
