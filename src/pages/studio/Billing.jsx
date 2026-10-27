@@ -135,7 +135,7 @@ export default function Billing() {
 
   return (
     <AppLayout title="Billing" subtitle="Manage your plan, photo quota, and wallet credits">
-      <div className="space-y-6">
+      <div className="space-y-5 md:space-y-6">
 
         {subscription?.status === 'GRACE' && (
           <div className="rounded-xl p-4 flex items-start gap-3" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.35)' }}>
@@ -167,7 +167,7 @@ export default function Billing() {
         )}
 
         {!subLoading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
             <GlassCard hover={false}>
               <h3 className="font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
                 <ImagePlus size={16} style={{ color: 'var(--accent-primary)' }} />
@@ -253,7 +253,7 @@ export default function Billing() {
           {!plansLoading && subscriptionPlans.length === 0 && (
             <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No plans have been published yet.</p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {subscriptionPlans.map(plan => {
               const isCurrent = subscription?.subscription_plan_id === plan.subscription_plan_id
               const currentPrice = subscription
@@ -320,7 +320,7 @@ export default function Billing() {
               {hasWallet ? 'No top-up amounts have been published yet.' : 'No initial wallet plan has been published yet.'}
             </p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {walletPlansToShow.map(plan => (
               <GlassCard key={plan.subscription_plan_id} hover={false} className="flex flex-col">
                 <div className="flex items-center justify-between mb-2">
@@ -380,7 +380,11 @@ export default function Billing() {
                             <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-primary)' }}>{planLabel(h)}</td>
                             <td className="px-5 py-3"><Badge variant={planStatusVariant(h.status)}>{h.status}</Badge></td>
                             <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                              {h.locked_price != null ? `₹${Number(h.locked_price).toLocaleString()}` : '—'}
+                              {h.locked_price != null
+                                ? `₹${Number(h.locked_price).toLocaleString()}`
+                                : h.plan?.price != null
+                                  ? `₹${Number(h.plan.price).toLocaleString()}`
+                                  : '—'}
                             </td>
                             <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{formatDate(h.starts_at)}</td>
                             <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{h.expires_at ? formatDate(h.expires_at) : '—'}</td>

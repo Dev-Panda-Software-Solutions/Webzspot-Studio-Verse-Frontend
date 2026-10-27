@@ -69,7 +69,7 @@ export default function RecordPaymentModal({ open, bill, onClose, onRecorded }) 
 
         <div className="mb-4">
           <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>Payment Method *</label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {METHODS.map(m => (
               <button
                 key={m.value}

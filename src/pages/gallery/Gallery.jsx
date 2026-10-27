@@ -177,7 +177,7 @@ export default function Gallery() {
     <AppLayout>
     <div ref={containerRef} className="min-h-screen grain" style={{ background: 'var(--bg-base)' }}>
       {/* Header */}
-      <header className="gallery-header sticky top-0 z-30 px-6 py-4 flex items-center justify-between"
+      <header className="gallery-header sticky top-0 z-30 pl-14 pr-4 py-4 md:px-6 flex flex-wrap items-center justify-between gap-2"
         style={{ background: 'rgba(10,10,11,0.92)', borderBottom: '1px solid var(--border-subtle)' }}>
 
         {/* Left: studio logo / brand */}
@@ -196,19 +196,19 @@ export default function Gallery() {
         {!showFolderGrid && activeEventId && hasMultiple ? (
           <button
             onClick={() => navigate('/gallery')}
-            className="font-display italic text-xl text-gold-500 absolute left-1/2 -translate-x-1/2
-              flex items-center gap-1.5 hover:text-gold-400 transition-colors whitespace-nowrap"
+            className="font-display italic text-lg md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2
+              flex items-center gap-1.5 hover:text-gold-400 transition-colors truncate max-w-[42%] md:max-w-none"
             title="Back to all events"
           >
             <ArrowLeft size={15} />
             {eventName}
           </button>
         ) : !showFolderGrid ? (
-          <h1 className="font-display italic text-xl text-gold-500 absolute left-1/2 -translate-x-1/2 whitespace-nowrap">
+            <h1 className="font-display italic text-lg md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2 truncate max-w-[42%] md:max-w-none">
             {eventName}
           </h1>
         ) : (
-          <h1 className="font-display italic text-xl text-gold-500 absolute left-1/2 -translate-x-1/2 whitespace-nowrap">
+          <h1 className="font-display italic text-lg md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2 truncate max-w-[42%] md:max-w-none">
             My Events
           </h1>
         )}

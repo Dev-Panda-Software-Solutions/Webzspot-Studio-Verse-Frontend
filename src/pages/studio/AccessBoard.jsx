@@ -180,7 +180,7 @@ function EventColumn({ event, mappings, selected, onSelect, onUpdate }) {
 
   return (
     <div
-      className="min-w-[320px] max-w-[360px] rounded-2xl flex flex-col"
+      className="w-full min-w-0 max-w-[360px] rounded-2xl flex flex-col"
       style={{
         background: selected ? 'var(--bg-elevated)' : 'var(--bg-surface)',
         border: selected ? '1px solid rgba(245,158,11,0.45)' : '1px solid var(--border-subtle)',

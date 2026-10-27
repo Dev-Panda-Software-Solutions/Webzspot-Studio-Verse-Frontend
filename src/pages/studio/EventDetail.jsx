@@ -742,7 +742,7 @@ export default function StudioEventDetail() {
           ? `${pct}% · ${speedStr}${etaStr}`
           : `${loadedMB} MB downloaded · ${speedStr}`
         return (
-          <div className="fixed bottom-6 right-6 z-50 w-80 rounded-2xl p-4 shadow-2xl"
+          <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 z-50 w-auto sm:w-80 rounded-2xl p-4 shadow-2xl"
             style={{ background: '#18181b', border: '1px solid rgba(212,175,55,0.3)' }}>
             <style>{`
               @keyframes dlIndeterminate {

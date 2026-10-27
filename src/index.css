@@ -79,6 +79,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
@@ -87,6 +88,22 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+#root { min-width: 0; width: 100%; }
+
+/* Mobile navigation drawer: keep the sidebar at a usable width and make it
+   follow the dynamic viewport height on phones with browser chrome. */
+.sidebar-shell {
+  height: 100vh;
+  height: 100dvh;
+}
+@media (max-width: 767px) {
+  .sidebar-shell {
+    width: 280px !important;
+    max-width: calc(100vw - 32px);
+  }
 }
 
 /* ─── Scrollbar Styling ──────────────────────────────────── */

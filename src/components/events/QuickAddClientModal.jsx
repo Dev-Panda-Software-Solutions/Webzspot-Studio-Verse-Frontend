@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { X, UserPlus, CheckCircle2, UserCheck, Lock, Search, AlertTriangle } from 'lucide-react'
+import { UserPlus, CheckCircle2, UserCheck, Search, AlertTriangle, CalendarPlus } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import Modal from '../ui/Modal'
 import GoldButton from '../ui/GoldButton'
 import GoldInput from '../ui/GoldInput'
@@ -20,6 +21,7 @@ const EMPTY_NEW_CLIENT = { username: '', password: '' }
 // assign-existing so the caller can refresh whatever board/list it's showing.
 export default function QuickAddClientModal({ open, onClose, presetEventId, onCreated }) {
   const qc = useQueryClient()
+  const navigate = useNavigate()
   const [eventId, setEventId] = useState('')
   const effectiveEventId = presetEventId || eventId
   const [mode, setMode] = useState('existing')
@@ -40,6 +42,7 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
     enabled: open,
   })
   const events = eventsData?.data?.items || []
+  const noEvents = !presetEventId && !eventsLoading && events.length === 0
 
   const { data: usersData } = useQuery({
     queryKey: ['tenant-users'],
@@ -147,7 +150,32 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
 
   return (
     <Modal open={open} onClose={handleClose} title="Add Client" size="md">
-      {!presetEventId && (
+      {noEvents ? (
+        <div className="py-3 text-center">
+          <div
+            className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center"
+            style={{ background: 'rgba(245,158,11,0.12)', color: '#F59E0B' }}
+          >
+            <AlertTriangle size={26} />
+          </div>
+          <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+            Create an event first
+          </h3>
+          <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--text-secondary)' }}>
+            To create or add a client, you need to create an event first. Clients are added to a specific event so they can access its gallery.
+          </p>
+          <div className="flex gap-3">
+            <GoldButton
+              icon={<CalendarPlus size={14} />}
+              onClick={() => { handleClose(); navigate('/studio') }}
+              className="flex-1 justify-center"
+            >
+              Create an Event
+            </GoldButton>
+            <GoldButton variant="ghost" onClick={handleClose}>Cancel</GoldButton>
+          </div>
+        </div>
+      ) : !presetEventId && (
         <div className="mb-5">
           <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
             Event *
@@ -171,7 +199,7 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
         </div>
       )}
 
-      {effectiveEventId && (
+      {!noEvents && effectiveEventId && (
         <>
           {/* Mode selector */}
           <div className="flex gap-1 p-1 rounded-xl mb-5" style={{ background: 'var(--bg-elevated)' }}>

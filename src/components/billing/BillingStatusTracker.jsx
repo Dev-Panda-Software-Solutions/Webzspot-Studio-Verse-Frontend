@@ -17,7 +17,7 @@ function Step({ icon, label, active, complete, tone = 'success' }) {
   const bg = complete || active ? toneColor : 'var(--bg-surface)'
 
   return (
-    <div className="relative z-10 flex min-w-[120px] flex-1 flex-col items-center text-center">
+    <div className="relative z-10 flex min-w-0 flex-1 flex-col items-center text-center">
       <div
         className="mb-3 flex h-9 w-9 items-center justify-center rounded-full border-2"
         style={{
@@ -60,11 +60,11 @@ export default function BillingStatusTracker({ bill, quotationCreated = true, cl
 
       {hasBill && (
         <div className="grid grid-cols-2 gap-4 px-5 py-4 sm:flex sm:items-center" style={{ borderBottom: '1px solid var(--border-default)' }}>
-          <div className="min-w-[120px]">
+          <div className="min-w-0">
             <p className="text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>Total Paid</p>
             <p className="text-sm font-bold" style={{ color: '#059669' }}>{money(paidAmount)}</p>
           </div>
-          <div className="min-w-[120px] sm:border-l sm:pl-4" style={{ borderColor: 'var(--border-default)' }}>
+          <div className="min-w-0 sm:border-l sm:pl-4" style={{ borderColor: 'var(--border-default)' }}>
             <p className="text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>Receipts</p>
             <p className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{bill.receipt_count || 0}</p>
           </div>

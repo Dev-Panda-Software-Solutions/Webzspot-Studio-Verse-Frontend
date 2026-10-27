@@ -260,7 +260,7 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
         </div>
 
         {/* Two-column grid for fields */}
-        <div className="grid grid-cols-2 gap-x-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
           <div className="col-span-2">
             <GoldInput label="Event Name *" name="event_name" required value={form.event_name}
               onChange={e => update('event_name', e.target.value)} />

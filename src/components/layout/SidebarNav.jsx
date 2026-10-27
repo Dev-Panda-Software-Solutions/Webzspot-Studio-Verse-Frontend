@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { gsap } from 'gsap'
 import {
-  LayoutDashboard, Building2, Users, Settings, LogOut,
+  LayoutDashboard, Building2, Users, Settings, LogOut, X,
   Camera, ChevronLeft, ChevronRight, Store,
   CreditCard, Wallet, LifeBuoy, LayoutGrid, Receipt
 } from 'lucide-react'
@@ -35,7 +35,7 @@ const navItems = {
   ],
 }
 
-export default function SidebarNav({ collapsed, onCollapse }) {
+export default function SidebarNav({ collapsed, onCollapse, mobileOpen = false, onMobileClose }) {
   const { user, role, logout: storeLogout } = useAuthStore()
   const navigate = useNavigate()
   const shutterNavigate = useShutterNavigate()
@@ -49,10 +49,10 @@ export default function SidebarNav({ collapsed, onCollapse }) {
     return location.pathname === to || location.pathname.startsWith(to + '/')
   }
 
-  // Slide-in on mount — x only, opacity never touched
+  // Width is animated on desktop. Mobile visibility is controlled with CSS so
+  // the drawer remains full-height without fighting GSAP's transforms.
   useEffect(() => {
     gsap.set(sidebarRef.current, { width: collapsed ? 64 : 240 })
-    gsap.fromTo(sidebarRef.current, { x: -16 }, { x: 0, duration: 0.45, ease: 'power3.out' })
   }, [])
 
   useEffect(() => {
@@ -89,7 +89,10 @@ export default function SidebarNav({ collapsed, onCollapse }) {
   return (
     <aside
       ref={sidebarRef}
-      className="fixed left-0 top-0 h-screen flex flex-col z-40 select-none"
+      data-mobile-open={mobileOpen}
+      className={`sidebar-shell fixed left-0 top-0 h-screen min-h-[100dvh] flex flex-col z-40 select-none
+        transition-transform duration-300 md:translate-x-0
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
       style={{
         width: collapsed ? 64 : 240,
         background: sb.bg,
@@ -115,6 +118,15 @@ export default function SidebarNav({ collapsed, onCollapse }) {
             </motion.span>
           )}
         </AnimatePresence>
+        <button
+          type="button"
+          aria-label="Close navigation"
+          onClick={onMobileClose}
+          className="md:hidden ml-auto p-1.5 rounded-lg"
+          style={{ color: sb.textMuted }}
+        >
+          <X size={18} />
+        </button>
       </div>
 
       {/* ── User chip ── */}
@@ -145,7 +157,7 @@ export default function SidebarNav({ collapsed, onCollapse }) {
           return (
             <div
               key={to}
-              onClick={() => shutterNavigate(to)}
+              onClick={() => { onMobileClose?.(); shutterNavigate(to) }}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
                 transition-colors duration-150 group relative overflow-hidden cursor-pointer"
               style={{
@@ -195,7 +207,7 @@ export default function SidebarNav({ collapsed, onCollapse }) {
           const active = isActive('/settings')
           return (
             <div
-              onClick={() => shutterNavigate('/settings')}
+              onClick={() => { onMobileClose?.(); shutterNavigate('/settings') }}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
                 transition-colors duration-150 cursor-pointer"
               style={{

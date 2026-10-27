@@ -242,9 +242,9 @@ export default function BillingDashboard() {
         </GlassCard>
       </div>
 
-      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: 'var(--bg-elevated)' }}>
+      <div className="flex items-stretch justify-between mb-4 gap-3 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap min-w-0 max-w-full">
+          <div className="flex gap-1 p-1 rounded-xl w-fit max-w-full overflow-x-auto" style={{ background: 'var(--bg-elevated)' }}>
             {[
               { key: 'quotations', label: 'Quotations' },
               { key: 'bills', label: 'Bills' },
@@ -263,7 +263,7 @@ export default function BillingDashboard() {
               </button>
             ))}
           </div>
-          <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: 'var(--bg-elevated)' }}>
+          <div className="flex gap-1 p-1 rounded-xl w-fit max-w-full overflow-x-auto" style={{ background: 'var(--bg-elevated)' }}>
             {statusOptions.map(({ key, label }) => (
               <button
                 key={key}
@@ -280,7 +280,7 @@ export default function BillingDashboard() {
             ))}
           </div>
         </div>
-        <div className="relative max-w-sm flex-1 min-w-[200px]">
+        <div className="relative w-full sm:max-w-sm sm:flex-1 min-w-0">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
           <input
             value={search}

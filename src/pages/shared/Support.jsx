@@ -184,8 +184,8 @@ export default function Support() {
         <GoldButton onClick={() => setCreateOpen(true)} icon={<Plus size={14} />}>Raise Ticket</GoldButton>
       )}
     >
-      <div className="px-4 py-10">
-        <div className="flex items-center justify-between mb-6">
+        <div className="py-4 md:py-10">
+          <div className="flex items-center justify-between gap-3 mb-6">
           <h1 className="font-display text-2xl font-semibold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
             <LifeBuoy size={22} className="text-gold-500" />
             {isSuperAdmin ? 'Support Tickets' : 'Help & Support'}
@@ -193,12 +193,12 @@ export default function Support() {
         </div>
 
         {isSuperAdmin && (
-          <div className="flex gap-1 p-1 rounded-xl mb-4 w-fit" style={{ background: 'var(--bg-elevated)' }}>
+            <div className="flex flex-wrap gap-1 p-1 rounded-xl mb-4 w-full sm:w-fit" style={{ background: 'var(--bg-elevated)' }}>
             {['', ...STATUS_OPTIONS].map(s => (
               <button
                 key={s || 'all'}
                 onClick={() => setStatusFilter(s)}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
                 style={{
                   background: statusFilter === s ? 'var(--bg-surface)' : 'transparent',
                   color: statusFilter === s ? '#F59E0B' : 'var(--text-secondary)',
