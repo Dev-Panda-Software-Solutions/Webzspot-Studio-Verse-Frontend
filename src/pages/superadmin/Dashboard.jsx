@@ -303,12 +303,13 @@ export default function AdminDashboard() {
                 <div className="py-12 text-center text-[var(--text-tertiary)] text-sm">No studios yet</div>
               ) : (
                 <div
-                  className="w-full max-w-full overflow-x-auto overscroll-x-contain"
-                  style={{ WebkitOverflowScrolling: 'touch' }}
+                  className="w-full max-w-full overflow-x-scroll overscroll-x-contain"
+                  style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}
                 >
-                  {tenants.map((t) => (
+                  <div className="min-w-[680px]">
+                    {tenants.map((t) => (
                     <div key={t.tenant_id || t.id}
-                      className="flex min-w-[680px] flex-nowrap items-center gap-4 px-6 py-4 border-b transition-colors hover:bg-[var(--bg-elevated)]"
+                      className="flex items-center gap-4 px-6 py-4 border-b transition-colors hover:bg-[var(--bg-elevated)]"
                       style={{ borderColor: 'var(--border-subtle)' }}>
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 font-semibold text-sm"
                         style={{ background: 'rgba(245,158,11,0.12)', color: '#F59E0B' }}>
@@ -322,7 +323,8 @@ export default function AdminDashboard() {
                       <p className="text-xs whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>{formatDate(t.createdAt)}</p>
                       <Badge variant={t.isactive ? 'success' : 'error'}>{t.isactive ? 'Active' : 'Inactive'}</Badge>
                     </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
             </GlassCard>
@@ -333,21 +335,15 @@ export default function AdminDashboard() {
             <SectionHeader title="Storage by Studio" subtitle="Top studios by stored media" />
             {storageByStudio.length === 0 ? (
               <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No storage yet</p>
-            ) : (
-              <div className="w-full max-w-full overflow-x-auto overscroll-x-contain">
-                <div className="min-w-0 sm:min-w-[400px]">
-                  {storageByStudio.slice(0, 5).map(item => (
-                    <StorageRow
-                      key={item.tenant_id}
-                      name={item.studio_name}
-                      meta={`${item.event_count} events - ${item.media_count} files`}
-                      value={item.stored_kb}
-                      max={maxStudioStorage}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
+            ) : storageByStudio.slice(0, 5).map(item => (
+              <StorageRow
+                key={item.tenant_id}
+                name={item.studio_name}
+                meta={`${item.event_count} events - ${item.media_count} files`}
+                value={item.stored_kb}
+                max={maxStudioStorage}
+              />
+            ))}
           </GlassCard>
         </div>
       </div>
