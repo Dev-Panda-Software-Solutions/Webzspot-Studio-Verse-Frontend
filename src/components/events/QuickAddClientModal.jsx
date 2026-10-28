@@ -13,7 +13,7 @@ import toast from 'react-hot-toast'
 
 const EMPTY_NEW_CLIENT = { username: '', password: '' }
 
-// Global shortcut version of EventDetail's AddClientModal — adds an event
+// Global shortcut version of EventDetail's AddClientModal - adds an event
 // picker up front so it can be triggered from anywhere. When opened from a
 // page that already has an event in context (e.g. the Access Board's "Add
 // Client" panel), pass presetEventId to skip the picker entirely and lock it
@@ -69,10 +69,10 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
   const handleClose = () => { reset(); onClose() }
 
   // Any edit to the username invalidates whatever duplicate check already
-  // ran — a stale "no matches" result shouldn't wave through a username that
+  // ran - a stale "no matches" result shouldn't wave through a username that
   // was just changed to collide with an existing client.
   // Any edit to the username invalidates whatever duplicate check already
-  // ran — a stale "no matches" result shouldn't wave through a username that
+  // ran - a stale "no matches" result shouldn't wave through a username that
   // was just changed to collide with an existing client.
   const updateNewClient = (key, value) => {
     setNewClient(f => ({ ...f, [key]: value }))
@@ -126,7 +126,7 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
         setDuplicates(matches)
         if (matches.length > 0) { setCheckingDuplicates(false); return }
       } catch {
-        // Fail open — a broken duplicate check shouldn't block client creation.
+        // Fail open - a broken duplicate check shouldn't block client creation.
         setDuplicates([])
       }
       setCheckingDuplicates(false)
@@ -240,7 +240,7 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
               <div className="rounded-xl overflow-hidden mb-4" style={{ border: '1px solid var(--border-subtle)', maxHeight: 220, overflowY: 'auto' }}>
                 {filtered.length === 0 ? (
                   <div className="py-8 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
-                    {allUsers.length === 0 ? 'No clients yet — create one first' : 'No matching clients'}
+                    {allUsers.length === 0 ? 'No clients yet - create one first' : 'No matching clients'}
                   </div>
                 ) : filtered.map(u => (
                   <button
@@ -258,7 +258,7 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
                     <Avatar name={u.user_name} size="xs" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{clientDisplayName(u)}</p>
-                      <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{u.user_email_id || u.user_phone_number || '—'}</p>
+                      <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{u.user_email_id || u.user_phone_number || '-'}</p>
                     </div>
                     {selected?.user_id === u.user_id && <CheckCircle2 size={15} className="text-gold-500 flex-shrink-0" />}
                   </button>
@@ -268,7 +268,7 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
               {selected && (
                 <div className="mb-4">
                   <label className="text-xs font-medium block mb-1" style={{ color: 'var(--text-secondary)' }}>
-                    Access expires (optional — leave empty for no expiry)
+                    Access expires (optional - leave empty for no expiry)
                   </label>
                   <input
                     type="date"
@@ -314,7 +314,7 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
                   <div className="flex items-start gap-2 mb-2">
                     <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" style={{ color: '#F59E0B' }} />
                     <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                      {duplicates.length === 1 ? 'A client with this username already exists' : `${duplicates.length} clients with this username already exist`} — assign one instead, or create a new client anyway.
+                      {duplicates.length === 1 ? 'A client with this username already exists' : `${duplicates.length} clients with this username already exist`} - assign one instead, or create a new client anyway.
                     </p>
                   </div>
                   <div className="space-y-1.5 mb-3">
@@ -323,7 +323,7 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
                         <Avatar name={u.user_name} size="xs" />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium truncate" style={{ color: 'var(--text-primary)' }}>{clientDisplayName(u)}</p>
-                          <p className="text-[11px] truncate" style={{ color: 'var(--text-tertiary)' }}>{u.user_email_id || u.user_phone_number || '—'}</p>
+                          <p className="text-[11px] truncate" style={{ color: 'var(--text-tertiary)' }}>{u.user_email_id || u.user_phone_number || '-'}</p>
                         </div>
                         <button
                           type="button"

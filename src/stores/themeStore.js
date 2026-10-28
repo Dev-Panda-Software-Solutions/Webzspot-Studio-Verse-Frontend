@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-// Dark/light toggle is disabled site-wide for now — the store always reports
+// Dark/light toggle is disabled site-wide for now - the store always reports
 // 'light' and setTheme/toggleTheme are no-ops. Original logic kept commented
 // out below so the toggle can be restored later without rebuilding it.
 const useThemeStore = create((set) => ({

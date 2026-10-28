@@ -66,7 +66,7 @@ export default function GuestRegister() {
           </div>
           <h1 className="font-display text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>Get Your Photos</h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-            Upload a selfie and leave your email — we'll send you the photos you appear in.
+            Upload a selfie and leave your email - we'll send you the photos you appear in.
           </p>
         </div>
 

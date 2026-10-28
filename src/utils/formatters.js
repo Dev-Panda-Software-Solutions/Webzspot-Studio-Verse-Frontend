@@ -1,5 +1,5 @@
 export const formatDate = (dateStr) => {
-  if (!dateStr) return '—'
+  if (!dateStr) return '-'
   return new Date(dateStr).toLocaleDateString('en-US', {
     year: 'numeric', month: 'short', day: 'numeric'
   })
@@ -25,7 +25,7 @@ export const greetingTime = () => {
 }
 
 export const timeAgo = (dateStr) => {
-  if (!dateStr) return '—'
+  if (!dateStr) return '-'
   const seconds = Math.floor((new Date() - new Date(dateStr)) / 1000)
   const units = [
     ['year', 31536000], ['month', 2592000], ['day', 86400],
@@ -43,7 +43,7 @@ export const isExpired = (dateStr) => {
   return new Date(dateStr) < new Date()
 }
 
-// Same-named clients are easy to confuse in a flat list — prefix with the
+// Same-named clients are easy to confuse in a flat list - prefix with the
 // event they belong to (e.g. "Diwali Party - Priya Sharma") when known.
 export const clientDisplayName = (user) => {
   const eventName = user?.event_names?.[0]
@@ -51,7 +51,7 @@ export const clientDisplayName = (user) => {
 }
 
 // A tenant's `subscription` (from getAllTenants/getTenantSummary) has a raw
-// plan record attached — collapse it to the short label the user actually
+// plan record attached - collapse it to the short label the user actually
 // wants to see: "Trial", "Wallet", "Monthly", "Annual", or the plan's own name.
 export const planLabel = (subscription) => {
   if (!subscription) return 'No Plan'

@@ -22,7 +22,7 @@ export const validateMediaFile = (file) => {
   return 'File type not allowed. Only images (jpeg, jpg, png, gif), videos (mp4, mov, avi, mkv) and audio (mp3, wav) are accepted.'
 }
 
-// Do NOT set Content-Type manually for FormData — axios auto-sets it with the correct boundary
+// Do NOT set Content-Type manually for FormData - axios auto-sets it with the correct boundary
 export const uploadMedia = (formData, onProgress, signal) => api.post('/uploaded-media/upload', formData, {
   onUploadProgress: onProgress,
   signal,
@@ -95,7 +95,7 @@ export const uploadLargeMedia = async ({ eventId, file, onProgress, signal, gall
     }, { signal })
   } catch (err) {
     // Always fire the cleanup call (no signal) even if the failure was us
-    // deliberately aborting — an aborted multipart session still needs its
+    // deliberately aborting - an aborted multipart session still needs its
     // in-progress parts released on the storage backend.
     await api.post('/uploaded-media/large/abort', {
       event_id: eventId,
@@ -125,7 +125,7 @@ const triggerBlobDownload = (blob, filename) => {
   setTimeout(() => window.URL.revokeObjectURL(url), 1000)
 }
 
-// onProgress({ percent, speedMBps, etaSec }) — called during download
+// onProgress({ percent, speedMBps, etaSec }) - called during download
 export const downloadFavouritesZip = async (eventId, userId, filename, onProgress) => {
   let startTime = null
   let lastLoaded = 0

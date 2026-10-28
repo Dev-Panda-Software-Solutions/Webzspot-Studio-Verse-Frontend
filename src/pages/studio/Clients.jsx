@@ -236,7 +236,7 @@ export default function Clients() {
   return (
     <AppLayout
       title="Clients"
-      subtitle={`${total} clients — manage accounts and their event access in one place`}
+      subtitle={`${total} clients - manage accounts and their event access in one place`}
       actions={<GoldButton onClick={() => setAddOpen(true)} icon={<UserPlus size={14} />}>Add Client</GoldButton>}
     >
       <div className="flex gap-1 p-1 rounded-xl mb-4 w-fit" style={{ background: 'var(--bg-elevated)' }}>
@@ -277,7 +277,7 @@ export default function Clients() {
                 </td></tr>
               ) : items.length === 0 ? (
                 <tr><td colSpan={6} className="py-16 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
-                  No clients yet — add one to get started.
+                  No clients yet - add one to get started.
                 </td></tr>
               ) : items.map(u => (
                 <tr key={u.user_id} className="border-b hover:bg-[var(--bg-elevated)] transition-colors group"
@@ -287,11 +287,11 @@ export default function Clients() {
                       <Avatar name={u.user_name} size="sm" />
                       <div>
                         <p className="text-sm font-medium text-[var(--text-primary)]">{clientDisplayName(u)}</p>
-                        <p className="text-xs text-[var(--text-tertiary)]">{u.user_phone_number || '—'}</p>
+                        <p className="text-xs text-[var(--text-tertiary)]">{u.user_phone_number || '-'}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{u.user_email_id || '—'}</td>
+                  <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{u.user_email_id || '-'}</td>
                   <td className="px-6 py-4">
                     <button
                       onClick={() => setEventsModalClient(u)}
@@ -303,7 +303,7 @@ export default function Clients() {
                     </button>
                   </td>
                   <td className="px-6 py-4 text-sm text-[var(--text-tertiary)]">
-                    {u.expiry_date ? formatDate(u.expiry_date) : '—'}
+                    {u.expiry_date ? formatDate(u.expiry_date) : '-'}
                   </td>
                   <td className="px-6 py-4">
                     {!u.isactive

@@ -130,7 +130,7 @@ function MediaGrid({ items, view, zoom, eventId, watermarkSrc, onClickItem }) {
   )
 }
 
-/* ─── Deduped grid — shown when 2+ groups selected ─── */
+/* ─── Deduped grid - shown when 2+ groups selected ─── */
 function DedupedGrid({ groups, eventId, watermarkSrc, view, zoom, onDownload, onStudioDownload }) {
   const [lbIndex, setLbIndex] = useState(null)
 
@@ -198,7 +198,7 @@ function DedupedGrid({ groups, eventId, watermarkSrc, view, zoom, onDownload, on
   )
 }
 
-/* ─── Per-group grid — shown when exactly 1 group selected ─── */
+/* ─── Per-group grid - shown when exactly 1 group selected ─── */
 function GroupGallery({ group, eventId, watermarkSrc, view, zoom, onDownload, onStudioDownload }) {
   const [lbIndex, setLbIndex] = useState(null)
   const items = group.items.map(m => ({ media: m, labels: null }))

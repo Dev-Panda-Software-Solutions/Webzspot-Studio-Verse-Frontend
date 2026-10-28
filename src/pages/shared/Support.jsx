@@ -169,7 +169,7 @@ export default function Support() {
     setCreating(true)
     try {
       await createTicket(form)
-      toast.success('Ticket raised — we\'ll get back to you soon')
+      toast.success('Ticket raised - we\'ll get back to you soon')
       setForm({ subject: '', description: '' })
       setCreateOpen(false)
       qc.invalidateQueries(['my-tickets'])

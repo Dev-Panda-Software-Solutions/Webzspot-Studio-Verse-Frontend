@@ -101,7 +101,7 @@ export default function FavouriteButton({ mediaId, eventId, size = 16, atLimit =
         ref={heartRef}
         onClick={handleClick}
         onKeyDown={(e) => { if (e.key === ' ') e.preventDefault() }}
-        title={blocked ? (frozen ? 'Favourites submitted — locked' : 'Favourite limit reached for this event') : undefined}
+        title={blocked ? (frozen ? 'Favourites submitted - locked' : 'Favourite limit reached for this event') : undefined}
         className={`p-2 rounded-full transition-all duration-200
           ${fav ? 'bg-gold-500/20' : 'bg-black/30 hover:bg-black/50'} ${blocked ? 'opacity-40 cursor-not-allowed' : ''}`}
       >

@@ -40,7 +40,7 @@ export default function FavouritesDrawer({ open, onClose, mediaList = [], eventI
       await downloadFavouritesZip(eventId, user.user_id, `${safeName}_my_favourites.zip`)
       toast.success('Download started!')
     } catch (err) {
-      toast.error(typeof err === 'string' ? err : 'Download failed — downloads may be disabled for this event')
+      toast.error(typeof err === 'string' ? err : 'Download failed - downloads may be disabled for this event')
     } finally {
       setDownloading(false)
     }
@@ -65,7 +65,7 @@ export default function FavouritesDrawer({ open, onClose, mediaList = [], eventI
         {count === 0 ? (
           <div className="flex flex-col items-center py-12 text-center">
             <Heart size={40} className="text-[var(--text-tertiary)] mb-3" />
-            <p className="text-[var(--text-secondary)]">No favourites yet — tap the heart on any photo</p>
+            <p className="text-[var(--text-secondary)]">No favourites yet - tap the heart on any photo</p>
           </div>
         ) : (
           <>

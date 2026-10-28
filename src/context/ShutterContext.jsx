@@ -32,7 +32,7 @@ export function ShutterProvider({ children }) {
     tl.to(scanRef.current, { opacity: 1, duration: 0.06 }, 0.19)
     tl.to(scanRef.current, { opacity: 0, duration: 0.12 }, 0.25)
 
-    // ③ Navigate AFTER panels are fully closed — new page renders under them
+    // ③ Navigate AFTER panels are fully closed - new page renders under them
     tl.call(() => navigate(to, options), null, 0.23)
 
     // ④ Brief hold so page can mount

@@ -30,7 +30,7 @@ const useAuthStore = create(
     }),
     {
       name: 'sv-auth',
-      // sessionStorage clears on tab/browser close — safer than localStorage on shared machines
+      // sessionStorage clears on tab/browser close - safer than localStorage on shared machines
       storage: createJSONStorage(() => sessionStorage),
     }
   )

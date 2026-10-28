@@ -7,10 +7,10 @@ const useGalleryStore = create((set, get) => ({
   // User favourites: { [media_id]: user_favourite_media_id }
   favourites: {},
 
-  // Derived Set kept in sync — backward compat for components using .has() / .size
+  // Derived Set kept in sync - backward compat for components using .has() / .size
   favouriteIds: new Set(),
 
-  // Shared in-flight lock per media_id — the heart button (click) and the
+  // Shared in-flight lock per media_id - the heart button (click) and the
   // Lightbox (spacebar) both toggle the same favourite but previously used
   // separate local refs, so a click and a space-press in quick succession
   // could race each other instead of serializing. This makes them share one lock.

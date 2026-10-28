@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import SidebarNav from './SidebarNav'
-// import ThemeToggle from '../ui/ThemeToggle' // dark/light toggle disabled site-wide — see themeStore.js
+// import ThemeToggle from '../ui/ThemeToggle' // dark/light toggle disabled site-wide - see themeStore.js
 import UploadStatusPanel from '../upload/UploadStatusPanel'
 
 const getSavedCollapsed = () => localStorage.getItem('sv-sidebar-collapsed') === 'true'
@@ -9,9 +9,29 @@ const getSavedCollapsed = () => localStorage.getItem('sv-sidebar-collapsed') ===
 export default function AppLayout({ children, title, subtitle, actions }) {
   const [collapsed, setCollapsed] = useState(getSavedCollapsed)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const touchStartX = useRef(null)
+
+  const handleTouchStart = (event) => {
+    if (window.innerWidth >= 768 || mobileOpen) return
+    const touch = event.touches[0]
+    touchStartX.current = touch && touch.clientX <= 28 ? touch.clientX : null
+  }
+
+  const handleTouchEnd = (event) => {
+    if (window.innerWidth >= 768 || mobileOpen || touchStartX.current === null) return
+    const touch = event.changedTouches[0]
+    const swipeDistance = touch ? touch.clientX - touchStartX.current : 0
+    touchStartX.current = null
+    if (swipeDistance >= 60) setMobileOpen(true)
+  }
 
   return (
-    <div className="flex min-h-screen" style={{ background: 'var(--bg-base)' }}>
+    <div
+      className="flex min-h-screen"
+      style={{ background: 'var(--bg-base)' }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <SidebarNav
         collapsed={collapsed}
         onCollapse={setCollapsed}
@@ -54,8 +74,8 @@ export default function AppLayout({ children, title, subtitle, actions }) {
             <div className="flex items-center gap-3 min-w-0">
               <button
                 type="button"
-                aria-label="Open navigation"
-                onClick={() => setMobileOpen(true)}
+                aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
+                onClick={() => setMobileOpen(open => !open)}
                 className="md:hidden flex-shrink-0 p-2 -ml-2 rounded-lg"
                 style={{ color: 'var(--text-secondary)' }}
               >

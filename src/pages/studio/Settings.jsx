@@ -26,7 +26,7 @@ function ServiceRow({ service, onEdit, onDelete }) {
         <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{service.name}</p>
       </div>
       <p className="text-sm font-semibold flex-shrink-0" style={{ color: 'var(--text-primary)' }}>
-        {service.price != null ? `₹${Number(service.price).toLocaleString('en-IN')}` : '—'}
+        {service.price != null ? `₹${Number(service.price).toLocaleString('en-IN')}` : '-'}
       </p>
       <div className="flex items-center gap-1 flex-shrink-0">
         <button onClick={() => onEdit(service)} className="p-1.5 rounded-lg transition-colors" style={{ color: 'var(--text-tertiary)' }}
@@ -104,7 +104,7 @@ function ServicesSection() {
       {isLoading ? (
         <p className="text-sm py-4 text-center" style={{ color: 'var(--text-tertiary)' }}>Loading…</p>
       ) : services.length === 0 ? (
-        <p className="text-sm py-6 text-center" style={{ color: 'var(--text-tertiary)' }}>No services yet — add your first one.</p>
+        <p className="text-sm py-6 text-center" style={{ color: 'var(--text-tertiary)' }}>No services yet - add your first one.</p>
       ) : (
         <div>
           {services.map(s => <ServiceRow key={s.studio_service_id} service={s} onEdit={openEdit} onDelete={handleDelete} />)}
@@ -383,7 +383,7 @@ export default function StudioSettings() {
             Brand Colours
           </h3>
           <p className="text-sm mb-5" style={{ color: 'var(--text-secondary)' }}>
-            These colours replace the gold theme in your client galleries — event headers, buttons,
+            These colours replace the gold theme in your client galleries - event headers, buttons,
             hearts and badges all follow your brand.
           </p>
 
@@ -402,7 +402,7 @@ export default function StudioSettings() {
                     style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}
                   />
                   <span className="text-xs font-mono" style={{ color: 'var(--text-tertiary)' }}>
-                    {brand.primary_color || 'Not set — default gold'}
+                    {brand.primary_color || 'Not set - default gold'}
                   </span>
                 </div>
               </div>
@@ -419,7 +419,7 @@ export default function StudioSettings() {
                     style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}
                   />
                   <span className="text-xs font-mono" style={{ color: 'var(--text-tertiary)' }}>
-                    {brand.secondary_color || 'Not set — default amber'}
+                    {brand.secondary_color || 'Not set - default amber'}
                   </span>
                 </div>
               </div>

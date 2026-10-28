@@ -3,7 +3,7 @@ import { API_BASE_URL } from '../utils/apiUrl'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  // Do NOT set a default Content-Type — axios auto-sets it per request:
+  // Do NOT set a default Content-Type - axios auto-sets it per request:
   // 'application/json' for objects, 'multipart/form-data; boundary=...' for FormData
 })
 
@@ -18,7 +18,7 @@ api.interceptors.response.use(
   res => res.data,
   err => {
     // Preserve cancellation errors as-is (name/code intact) so callers can
-    // tell "I aborted this on purpose" apart from a real failure — collapsing
+    // tell "I aborted this on purpose" apart from a real failure - collapsing
     // it to a plain string here would make that distinction impossible.
     if (axios.isCancel(err) || err.code === 'ERR_CANCELED') {
       return Promise.reject(err)

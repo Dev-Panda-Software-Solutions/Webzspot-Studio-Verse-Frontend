@@ -47,7 +47,7 @@ function TrialWelcomeModal({ subscription }) {
   return (
     <Modal open={!dismissed} onClose={close} title="Welcome to Webzspot Studio!" size="sm">
       <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-        You're on a <strong style={{ color: 'var(--text-primary)' }}>free trial</strong> — upload up to{' '}
+        You're on a <strong style={{ color: 'var(--text-primary)' }}>free trial</strong> - upload up to{' '}
         <strong style={{ color: 'var(--text-primary)' }}>{subscription.photo_quota_total} photos</strong>
         {daysLeft !== null && (
           <> for the next <strong style={{ color: 'var(--text-primary)' }}>{daysLeft} day{daysLeft === 1 ? '' : 's'}</strong></>
@@ -193,7 +193,7 @@ export default function StudioDashboard() {
   const handleArchiveEvent = async (eventId, eventName) => {
     const ok = await confirmDialog({
       title: 'Archive event?',
-      message: `Archive "${eventName}"? Clients will immediately lose access and all its photos/videos will be hidden — nothing is deleted, and you can restore it any time.`,
+      message: `Archive "${eventName}"? Clients will immediately lose access and all its photos/videos will be hidden - nothing is deleted, and you can restore it any time.`,
       confirmLabel: 'Archive',
       danger: false,
     })
@@ -415,7 +415,7 @@ export default function StudioDashboard() {
                   <div className="rounded-lg px-4 py-3" style={{ background: 'var(--bg-elevated)' }}>
                     <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>Plan</p>
                     <p className="text-sm font-semibold mt-0.5" style={{ color: 'var(--text-primary)' }}>
-                      {subscription?.plan?.plan_name || '—'}
+                      {subscription?.plan?.plan_name || '-'}
                     </p>
                   </div>
                 </div>

@@ -19,6 +19,8 @@ const EMPTY = {
   allow_download: true,
 }
 
+const sanitizeOrganizerPhone = (value) => String(value || '').replace(/\D/g, '').slice(0, 10)
+
 function toDateInput(val) {
   if (!val) return ''
   return new Date(val).toISOString().slice(0, 10)
@@ -28,7 +30,7 @@ function toDateInput(val) {
 // so the crop is locked to 16:9.
 const COVER_ASPECT = 16 / 9
 // Downscale the cropped output so huge originals (no more 5MB limit) don't
-// overflow the canvas — 2400px is plenty for the widest hero banner.
+// overflow the canvas - 2400px is plenty for the widest hero banner.
 const MAX_OUTPUT_SIZE = 2400
 
 function getCroppedBlob(imageSrc, pixelCrop) {
@@ -56,6 +58,7 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
   const [coverPreview, setCoverPreview] = useState(null)
   const [coverFile, setCoverFile] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [phoneTouched, setPhoneTouched] = useState(false)
   const imgInputRef = useRef(null)
 
   // Crop state
@@ -71,7 +74,7 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
     enabled: open
   })
   // Whether the created event gets an AI Media module is decided entirely by
-  // the studio's current plan — not a per-event choice.
+  // the studio's current plan - not a per-event choice.
   const planIncludesAi = Boolean(subData?.data?.subscription?.plan?.includes_ai_media)
 
   // Pre-fill form when opening in edit mode
@@ -83,16 +86,18 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
         event_venue: editEvent.event_venue || '',
         event_organizer: editEvent.event_organizer || '',
         event_description: editEvent.event_description || '',
-        event_organizer_phone_number: editEvent.event_organizer_phone_number || '',
+        event_organizer_phone_number: sanitizeOrganizerPhone(editEvent.event_organizer_phone_number),
         event_organizer_email_id: editEvent.event_organizer_email_id || '',
         allow_download: editEvent.allow_download !== false,
       })
       setCoverPreview(editEvent.profile_url ? backendAssetUrl(editEvent.profile_url) : null)
       setCoverFile(null)
+      setPhoneTouched(false)
     } else if (open && !isEdit) {
       setForm(EMPTY)
       setCoverPreview(null)
       setCoverFile(null)
+      setPhoneTouched(false)
     }
     // Reset crop state every time the modal opens
     setCropSrc(null)
@@ -102,6 +107,18 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
   }, [open, editEvent])
 
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
+
+  const organizerPhone = form.event_organizer_phone_number
+  const organizerPhoneError = phoneTouched && organizerPhone.length !== 10
+    ? 'Required format: exactly 10 digits (0-9).'
+    : undefined
+
+  const handleOrganizerPhoneKeyDown = (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return
+    if (!/^[0-9]$/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+      e.preventDefault()
+    }
+  }
 
   const handleCoverPick = (e) => {
     const file = e.target.files?.[0]
@@ -143,11 +160,16 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setPhoneTouched(true)
     if (!form.event_name.trim()) { toast.error('Event name is required'); return }
     if (!form.event_date) { toast.error('Event date is required'); return }
     if (!form.event_venue.trim()) { toast.error('Venue is required'); return }
     if (!form.event_organizer.trim()) { toast.error('Organizer name is required'); return }
     if (!form.event_organizer_phone_number.trim()) { toast.error('Organizer phone is required'); return }
+    if (!/^\d{10}$/.test(form.event_organizer_phone_number)) {
+      toast.error('Organizer phone must contain exactly 10 digits')
+      return
+    }
     if (!form.event_organizer_email_id.trim()) { toast.error('Organizer email is required'); return }
     setLoading(true)
     try {
@@ -250,7 +272,7 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
                   <div className="flex flex-col items-center justify-center h-full gap-2
                     group-hover:text-gold-500 transition-colors" style={{ color: 'var(--text-tertiary)' }}>
                     <UploadCloud size={22} />
-                    <p className="text-xs">Click to upload cover photo — it will be cropped to 16:9</p>
+                    <p className="text-xs">Click to upload cover photo - it will be cropped to 16:9</p>
                   </div>
                 )}
               </div>
@@ -271,8 +293,11 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
             onChange={e => update('event_venue', e.target.value)} />
           <GoldInput label="Organizer Name *" name="event_organizer" required value={form.event_organizer}
             onChange={e => update('event_organizer', e.target.value)} />
-          <GoldInput label="Organizer Phone *" name="event_organizer_phone_number" required value={form.event_organizer_phone_number}
-            onChange={e => update('event_organizer_phone_number', e.target.value)} />
+          <GoldInput label="Organizer Phone *" name="event_organizer_phone_number" type="tel" inputMode="numeric"
+            pattern="[0-9]{10}" maxLength={10} required value={organizerPhone} error={organizerPhoneError}
+            onKeyDown={handleOrganizerPhoneKeyDown}
+            onBlur={() => setPhoneTouched(true)}
+            onChange={e => update('event_organizer_phone_number', sanitizeOrganizerPhone(e.target.value))} />
           <GoldInput label="Organizer Email *" name="event_organizer_email_id" type="email" required
             value={form.event_organizer_email_id}
             onChange={e => update('event_organizer_email_id', e.target.value)} />
@@ -327,7 +352,7 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
           >
             <Sparkles size={15} style={{ color: planIncludesAi ? 'var(--accent-primary)' : 'var(--text-tertiary)' }} />
             {planIncludesAi
-              ? 'Your plan includes AI Media — this event will get both Photo Selection and AI Media galleries.'
+              ? 'Your plan includes AI Media - this event will get both Photo Selection and AI Media galleries.'
               : 'This event will get a Photo Selection gallery. Upgrade to an AI-enabled plan to add AI Media.'}
           </div>
         )}

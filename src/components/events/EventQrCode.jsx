@@ -3,7 +3,7 @@ import { QRCodeCanvas } from 'qrcode.react'
 import { Download } from 'lucide-react'
 import GoldButton from '../ui/GoldButton'
 
-// The QR code just encodes a URL on this same frontend — no backend image
+// The QR code just encodes a URL on this same frontend - no backend image
 // generation needed. Guests scanning it land on the public registration page.
 export default function EventQrCode({ eventId, size = 140 }) {
   const canvasRef = useRef(null)

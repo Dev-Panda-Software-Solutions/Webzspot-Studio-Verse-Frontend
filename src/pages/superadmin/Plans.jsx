@@ -195,8 +195,8 @@ export default function Plans() {
       <TrialSettingsCard />
 
       <GlassCard hover={false} className="p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="w-full max-w-full overflow-x-auto overscroll-x-contain">
+          <table className="w-full min-w-[900px]">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
                 {['Order', 'Plan', 'Type', 'Details', 'Price', 'Status', ''].map(h => (

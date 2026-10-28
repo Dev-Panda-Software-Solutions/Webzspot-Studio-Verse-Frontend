@@ -22,7 +22,7 @@ const useTenantFavouriteStore = create((set, get) => ({
   getFavId: (mediaId) => get().favourites[mediaId],
   getFavouritedIds: () => new Set(Object.keys(get().favourites)),
 
-  // Shared in-flight lock per media_id — see galleryStore.js for why this needs
+  // Shared in-flight lock per media_id - see galleryStore.js for why this needs
   // to be shared between the heart button (click) and the Lightbox (spacebar).
   pendingIds: new Set(),
   isPending: (mediaId) => get().pendingIds.has(mediaId),

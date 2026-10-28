@@ -86,7 +86,7 @@ function RecentActivity({ quotations, bills, payments }) {
       })),
       ...payments.map(p => ({
         id: `p-${p.payment_id}`, at: p.createdAt, icon: CreditCard,
-        text: `Payment received via ${METHOD_LABEL[p.method] || p.method} against Bill #${p.bill?.bill_number ?? '—'}`,
+        text: `Payment received via ${METHOD_LABEL[p.method] || p.method} against Bill #${p.bill?.bill_number ?? '-'}`,
         amount: p.amount, positive: true,
       })),
     ]
@@ -310,7 +310,7 @@ export default function BillingDashboard() {
                   </td></tr>
                 ) : filteredQuotations.length === 0 ? (
                   <tr><td colSpan={6} className="py-16 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
-                    No quotations yet — create one to get started.
+                    No quotations yet - create one to get started.
                   </td></tr>
                 ) : filteredQuotations.map(q => (
                   <tr
@@ -323,7 +323,7 @@ export default function BillingDashboard() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <Avatar name={q.client?.user_name || '?'} size="xs" />
-                        <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{q.client?.user_name || '—'}</span>
+                        <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{q.client?.user_name || '-'}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm" style={{ color: 'var(--text-tertiary)' }}>{formatDate(q.createdAt)}</td>
@@ -339,7 +339,7 @@ export default function BillingDashboard() {
           </div>
           {quotationsTotal > quotations.length && (
             <p className="px-6 py-3 text-xs border-t" style={{ color: 'var(--text-tertiary)', borderColor: 'var(--border-default)' }}>
-              Showing latest {quotations.length} of {quotationsTotal} quotations — refine your search to find older ones.
+              Showing latest {quotations.length} of {quotationsTotal} quotations - refine your search to find older ones.
             </p>
           )}
         </GlassCard>
@@ -361,7 +361,7 @@ export default function BillingDashboard() {
                   </td></tr>
                 ) : filteredBills.length === 0 ? (
                   <tr><td colSpan={6} className="py-16 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
-                    No bills yet — confirm a quotation to generate one.
+                    No bills yet - confirm a quotation to generate one.
                   </td></tr>
                 ) : filteredBills.map(b => (
                   <tr
@@ -374,7 +374,7 @@ export default function BillingDashboard() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <Avatar name={b.client?.user_name || '?'} size="xs" />
-                        <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{b.client?.user_name || '—'}</span>
+                        <span className="text-sm" style={{ color: 'var(--text-primary)' }}>{b.client?.user_name || '-'}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{money(b.payable_amount)}</td>
@@ -390,7 +390,7 @@ export default function BillingDashboard() {
           </div>
           {billsTotal > bills.length && (
             <p className="px-6 py-3 text-xs border-t" style={{ color: 'var(--text-tertiary)', borderColor: 'var(--border-default)' }}>
-              Showing latest {bills.length} of {billsTotal} bills — refine your search to find older ones.
+              Showing latest {bills.length} of {billsTotal} bills - refine your search to find older ones.
             </p>
           )}
         </GlassCard>

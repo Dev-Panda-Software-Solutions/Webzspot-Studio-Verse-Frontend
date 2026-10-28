@@ -21,7 +21,7 @@ const STATUS_VARIANT = { UNPAID: 'gold', PARTIALLY_PAID: 'info', PAID: 'success'
 const METHOD_LABEL = { CASH: 'Cash', GPAY: 'GPay', CARD: 'Card', BANK_TRANSFER: 'Bank Transfer', CHEQUE: 'Cheque' }
 
 // A Bill is a fixed document from the moment a Quotation is confirmed into
-// one — items and discount are never editable, matching how a real invoice
+// one - items and discount are never editable, matching how a real invoice
 // works. The only thing that can happen to a Bill afterwards is recording
 // payments against it.
 export default function BillEditor() {
@@ -45,7 +45,7 @@ export default function BillEditor() {
   return (
     <AppLayout
       title={`Bill #${bill.bill_number}`}
-      subtitle={`From Quotation #${bill.quotation?.quotation_number ?? '—'} · ${bill.client?.user_name || ''}`}
+      subtitle={`From Quotation #${bill.quotation?.quotation_number ?? '-'} · ${bill.client?.user_name || ''}`}
       actions={
         <div className="flex gap-2">
           <GoldButton variant="ghost" icon={<ArrowLeft size={14} />} onClick={() => navigate('/studio/billing-data')}>Back</GoldButton>
@@ -59,7 +59,7 @@ export default function BillEditor() {
           <Avatar name={bill.client.user_name} size="sm" />
           <div>
             <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{bill.client.user_name}</p>
-            <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{bill.client.user_email_id || bill.client.user_phone_number || '—'}</p>
+            <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{bill.client.user_email_id || bill.client.user_phone_number || '-'}</p>
           </div>
         </GlassCard>
       )}
@@ -146,7 +146,7 @@ export default function BillEditor() {
                       <td className="px-6 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{formatDate(p.createdAt)}</td>
                       <td className="px-6 py-3 text-sm font-semibold" style={{ color: '#34D399' }}>{money(p.amount)}</td>
                       <td className="px-6 py-3 text-sm" style={{ color: 'var(--text-secondary)' }}>{METHOD_LABEL[p.method]}</td>
-                      <td className="px-6 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{p.remark || '—'}</td>
+                      <td className="px-6 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{p.remark || '-'}</td>
                       <td className="px-6 py-3">
                         <button
                           onClick={() => openBillingPdf(`/payments/${p.payment_id}/pdf`)}

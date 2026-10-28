@@ -97,8 +97,8 @@ function StorageRow({ name, meta, value, max }) {
     <div className="py-3 border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
       <div className="flex items-center justify-between gap-3 mb-2">
         <div className="min-w-0">
-          <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{name}</p>
-          {meta && <p className="text-xs truncate" style={{ color: 'var(--text-tertiary)' }}>{meta}</p>}
+          <p className="text-sm font-medium whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>{name}</p>
+          {meta && <p className="text-xs whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>{meta}</p>}
         </div>
         <p className="text-xs font-semibold whitespace-nowrap" style={{ color: GOLD }}>{formatStorage(value)}</p>
       </div>
@@ -116,7 +116,7 @@ export default function AdminDashboard() {
     queryKey: ['tenants'],
     queryFn: () => getTenants({ page: 1, limit: 6 })
   })
-  // Studios list defaults to active-only — a separate all-status count is
+  // Studios list defaults to active-only - a separate all-status count is
   // needed to distinguish "Total Studios" from "Active Studios".
   const { data: allTenantRes } = useQuery({
     queryKey: ['tenants-all-count'],
@@ -302,21 +302,21 @@ export default function AdminDashboard() {
               ) : tenants.length === 0 ? (
                 <div className="py-12 text-center text-[var(--text-tertiary)] text-sm">No studios yet</div>
               ) : (
-                <div>
+                <div className="w-full max-w-full overflow-x-auto overscroll-x-contain">
                   {tenants.map((t) => (
                     <div key={t.tenant_id || t.id}
-                      className="flex items-center gap-4 px-6 py-4 border-b transition-colors hover:bg-[var(--bg-elevated)]"
+                      className="flex min-w-[680px] items-center gap-4 px-6 py-4 border-b transition-colors hover:bg-[var(--bg-elevated)]"
                       style={{ borderColor: 'var(--border-subtle)' }}>
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 font-semibold text-sm"
                         style={{ background: 'rgba(245,158,11,0.12)', color: '#F59E0B' }}>
                         {(t.tenant_studio_name || '?')[0].toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{t.tenant_studio_name}</p>
-                        <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{t.tenant_name}</p>
+                        <p className="text-sm font-medium whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>{t.tenant_studio_name}</p>
+                        <p className="text-xs whitespace-nowrap" style={{ color: 'var(--text-secondary)' }}>{t.tenant_name}</p>
                       </div>
                       <Badge variant="gold">{planLabel(t.subscription)}</Badge>
-                      <p className="text-xs hidden md:block" style={{ color: 'var(--text-tertiary)' }}>{formatDate(t.createdAt)}</p>
+                      <p className="text-xs whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>{formatDate(t.createdAt)}</p>
                       <Badge variant={t.isactive ? 'success' : 'error'}>{t.isactive ? 'Active' : 'Inactive'}</Badge>
                     </div>
                   ))}
@@ -326,19 +326,25 @@ export default function AdminDashboard() {
           </div>
 
           {/* Storage by Studio */}
-          <GlassCard hover={false}>
+          <GlassCard hover={false} className="min-w-0 overflow-hidden">
             <SectionHeader title="Storage by Studio" subtitle="Top studios by stored media" />
             {storageByStudio.length === 0 ? (
               <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No storage yet</p>
-            ) : storageByStudio.slice(0, 5).map(item => (
-              <StorageRow
-                key={item.tenant_id}
-                name={item.studio_name}
-                meta={`${item.event_count} events · ${item.media_count} files`}
-                value={item.stored_kb}
-                max={maxStudioStorage}
-              />
-            ))}
+            ) : (
+              <div className="w-full max-w-full overflow-x-auto overscroll-x-contain">
+                <div className="min-w-[400px]">
+                  {storageByStudio.slice(0, 5).map(item => (
+                    <StorageRow
+                      key={item.tenant_id}
+                      name={item.studio_name}
+                      meta={`${item.event_count} events - ${item.media_count} files`}
+                      value={item.stored_kb}
+                      max={maxStudioStorage}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </GlassCard>
         </div>
       </div>

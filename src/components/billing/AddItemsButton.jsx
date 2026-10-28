@@ -6,9 +6,9 @@ import GoldButton from '../ui/GoldButton'
 import { getStudioServices, createStudioService } from '../../api/studioServices'
 import toast from 'react-hot-toast'
 
-// "Add Items" — a small dropdown of the studio's saved service catalog with
+// "Add Items" - a small dropdown of the studio's saved service catalog with
 // quick-add buttons, plus "+ Create Package" for adding a brand-new one. The
-// catalog is a single global list shared between here and Studio Profile —
+// catalog is a single global list shared between here and Studio Profile -
 // "Create Package" saves it there too (not just to this one quotation), so
 // it shows up as a quick-add option everywhere from then on. Any discount
 // entered here is a one-off line-item negotiation, not part of the saved
@@ -77,7 +77,7 @@ export default function AddItemsButton({ onAdd }) {
         >
           {services.length === 0 ? (
             <p className="text-xs px-4 py-4 text-center" style={{ color: 'var(--text-tertiary)' }}>
-              No saved services yet — add some in Studio Profile.
+              No saved services yet - add some in Studio Profile.
             </p>
           ) : (
             <div className="max-h-64 overflow-y-auto">
@@ -87,7 +87,7 @@ export default function AddItemsButton({ onAdd }) {
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{s.name}</p>
                     <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                      {s.price != null ? `₹${Number(s.price).toLocaleString('en-IN')}` : '—'}
+                      {s.price != null ? `₹${Number(s.price).toLocaleString('en-IN')}` : '-'}
                     </p>
                   </div>
                   <GoldButton size="sm" onClick={() => addService(s)}>Add</GoldButton>

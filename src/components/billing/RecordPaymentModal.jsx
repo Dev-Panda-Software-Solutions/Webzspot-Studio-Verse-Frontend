@@ -14,7 +14,7 @@ const METHODS = [
 
 const money = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`
 
-// Recording a payment IS generating a receipt — full or split/partial
+// Recording a payment IS generating a receipt - full or split/partial
 // payments against the same bill are just multiple calls to this modal.
 export default function RecordPaymentModal({ open, bill, onClose, onRecorded }) {
   const [amount, setAmount] = useState('')
@@ -40,7 +40,7 @@ export default function RecordPaymentModal({ open, bill, onClose, onRecorded }) 
     setSaving(true)
     try {
       await createPayment({ bill_id: bill.bill_id, amount: amt, method, remark: remark.trim() || undefined })
-      toast.success('Payment recorded — receipt generated')
+      toast.success('Payment recorded - receipt generated')
       onRecorded?.()
       onClose()
     } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to record payment') }

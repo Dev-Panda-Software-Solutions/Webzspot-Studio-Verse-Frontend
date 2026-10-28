@@ -44,7 +44,7 @@ function DetailRow({ icon: Icon, label, value }) {
       </div>
       <div className="min-w-0">
         <p className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-tertiary)' }}>{label}</p>
-        <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{value || '—'}</p>
+        <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{value || '-'}</p>
       </div>
     </div>
   )
@@ -144,7 +144,7 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
   const handleArchiveStudio = async () => {
     const ok = await confirmDialog({
       title: 'Revoke studio?',
-      message: `Revoke "${studioName}"? The studio's admin immediately loses access — nothing is deleted and it can be restored anytime.`,
+      message: `Revoke "${studioName}"? The studio's admin immediately loses access - nothing is deleted and it can be restored anytime.`,
       confirmLabel: 'Revoke',
       danger: false,
     })
@@ -178,7 +178,7 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
   const handleDeleteStorage = async () => {
     const ok = await confirmDialog({
       title: 'Delete all uploaded files?',
-      message: `Delete ALL uploaded photos/videos for "${studioName}"? This frees up their storage but cannot be undone — the studio and its events stay intact.`,
+      message: `Delete ALL uploaded photos/videos for "${studioName}"? This frees up their storage but cannot be undone - the studio and its events stay intact.`,
       confirmLabel: 'Delete',
       danger: true,
     })
@@ -195,7 +195,7 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
   const handleHardDeleteStudio = async () => {
     const ok = await confirmDialog({
       title: 'Delete studio permanently?',
-      message: `Permanently delete "${studioName}"? This cannot be undone — subscriptions, settings and mappings are wiped (client accounts are kept).`,
+      message: `Permanently delete "${studioName}"? This cannot be undone - subscriptions, settings and mappings are wiped (client accounts are kept).`,
       confirmLabel: 'Delete',
       danger: true,
     })
@@ -273,10 +273,10 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
 
   const quotaLabel = subscription
     ? `${subscription.photo_quota_used ?? 0} / ${subscription.photo_quota_total ?? 0} photos`
-    : '—'
+    : '-'
 
   return (
-    <Modal open onClose={onClose} title={`${studioName} — Studio Details`} size="2xl">
+    <Modal open onClose={onClose} title={`${studioName} - Studio Details`} size="2xl">
       <div className="max-h-[75vh] overflow-y-auto pr-1 -mr-1 space-y-6">
 
         {/* ── Overview ── */}
@@ -323,12 +323,12 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
             <DetailRow icon={MapPin} label="Address" value={tenant.tenant_studio_address} />
             <DetailRow icon={CalendarDays} label="Joined" value={formatDate(tenant.createdAt)} />
             <DetailRow icon={HardDrive} label="Storage Used" value={storageLabel} />
-            <DetailRow icon={Users} label="Clients" value={summary.user_count ?? '—'} />
-            <DetailRow icon={FolderOpen} label="Events" value={summary.event_count ?? '—'} />
-            <DetailRow icon={ImageIcon} label="Media Files" value={summary.media_count ?? '—'} />
-            <DetailRow icon={UploadCloud} label="Uploads Pending" value={summary.pending_uploads_count ?? '—'} />
+            <DetailRow icon={Users} label="Clients" value={summary.user_count ?? '-'} />
+            <DetailRow icon={FolderOpen} label="Events" value={summary.event_count ?? '-'} />
+            <DetailRow icon={ImageIcon} label="Media Files" value={summary.media_count ?? '-'} />
+            <DetailRow icon={UploadCloud} label="Uploads Pending" value={summary.pending_uploads_count ?? '-'} />
             <DetailRow icon={CreditCard} label="Active Plan" value={planLabel(subscription)} />
-            <DetailRow icon={CalendarDays} label="Plan Expires" value={subscription?.expires_at ? formatDate(subscription.expires_at) : '—'} />
+            <DetailRow icon={CalendarDays} label="Plan Expires" value={subscription?.expires_at ? formatDate(subscription.expires_at) : '-'} />
           </div>
         </section>
 
@@ -401,7 +401,7 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
               <div className="rounded-lg p-3" style={{ background: 'var(--bg-surface)' }}>
                 <p className="text-[10px] uppercase tracking-widest" style={{ color: 'var(--text-tertiary)' }}>Expires</p>
                 <p className="text-sm font-semibold mt-1" style={{ color: 'var(--text-primary)' }}>
-                  {subscription?.expires_at ? formatDate(subscription.expires_at) : '—'}
+                  {subscription?.expires_at ? formatDate(subscription.expires_at) : '-'}
                 </p>
               </div>
               <div className="rounded-lg p-3" style={{ background: 'var(--bg-surface)' }}>
@@ -423,7 +423,7 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
             <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>No subscription purchases yet.</p>
           ) : (
             <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid var(--border-subtle)' }}>
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[700px] text-sm">
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
                     {['Change', 'Plan', 'Price', 'Starts', 'Expires', 'Status'].map(h => (
@@ -437,17 +437,17 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
                     return (
                     <tr key={s.tenant_subscription_id} className="border-b last:border-0" style={{ borderColor: 'var(--border-subtle)' }}>
                       <td className="px-4 py-2.5">
-                        {change ? <Badge variant={change.variant}>{change.label}</Badge> : '—'}
+                        {change ? <Badge variant={change.variant}>{change.label}</Badge> : '-'}
                       </td>
                       <td className="px-4 py-2.5 font-medium" style={{ color: 'var(--text-primary)' }}>
-                        {s.plan?.plan_name || (s.status === 'TRIAL' ? 'Free Trial' : '—')}
+                        {s.plan?.plan_name || (s.status === 'TRIAL' ? 'Free Trial' : '-')}
                         {s.is_free_grant && <span className="ml-1.5 text-[10px] text-gold-500 font-semibold">FREE</span>}
                       </td>
                       <td className="px-4 py-2.5" style={{ color: 'var(--text-secondary)' }}>
-                        {s.locked_price != null ? `₹${Number(s.locked_price).toLocaleString('en-IN')}` : (s.plan ? `₹${Number(s.plan.price).toLocaleString('en-IN')}` : '—')}
+                        {s.locked_price != null ? `₹${Number(s.locked_price).toLocaleString('en-IN')}` : (s.plan ? `₹${Number(s.plan.price).toLocaleString('en-IN')}` : '-')}
                       </td>
                       <td className="px-4 py-2.5" style={{ color: 'var(--text-secondary)' }}>{formatDate(s.starts_at)}</td>
-                      <td className="px-4 py-2.5" style={{ color: 'var(--text-secondary)' }}>{s.expires_at ? formatDate(s.expires_at) : '—'}</td>
+                      <td className="px-4 py-2.5" style={{ color: 'var(--text-secondary)' }}>{s.expires_at ? formatDate(s.expires_at) : '-'}</td>
                       <td className="px-4 py-2.5"><Badge variant={planStatusVariant(s.status)}>{s.status}</Badge></td>
                     </tr>
                     )
@@ -467,7 +467,7 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
             <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>No clients yet.</p>
           ) : (
             <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid var(--border-subtle)' }}>
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[760px] text-sm">
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
                     {['Name', 'Email', 'Phone', 'Events', 'Status', ''].map(h => (
@@ -479,9 +479,9 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
                   {users.map(u => (
                     <tr key={u.user_id} className="border-b last:border-0" style={{ borderColor: 'var(--border-subtle)' }}>
                       <td className="px-4 py-2.5 font-medium" style={{ color: 'var(--text-primary)' }}>{u.user_name}</td>
-                      <td className="px-4 py-2.5" style={{ color: 'var(--text-secondary)' }}>{u.user_email_id || '—'}</td>
-                      <td className="px-4 py-2.5" style={{ color: 'var(--text-secondary)' }}>{u.user_phone_number || '—'}</td>
-                      <td className="px-4 py-2.5" style={{ color: 'var(--text-secondary)' }}>{(u.event_names || []).join(', ') || '—'}</td>
+                      <td className="px-4 py-2.5" style={{ color: 'var(--text-secondary)' }}>{u.user_email_id || '-'}</td>
+                      <td className="px-4 py-2.5" style={{ color: 'var(--text-secondary)' }}>{u.user_phone_number || '-'}</td>
+                      <td className="px-4 py-2.5" style={{ color: 'var(--text-secondary)' }}>{(u.event_names || []).join(', ') || '-'}</td>
                       <td className="px-4 py-2.5">
                         <Badge variant={u.isactive ? 'success' : 'error'}>{u.isactive ? 'Active' : 'Revoked'}</Badge>
                       </td>
@@ -527,7 +527,7 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
             <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>No events yet.</p>
           ) : (
             <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid var(--border-subtle)' }}>
-              <table className="w-full text-sm">
+              <table className="w-full min-w-[520px] text-sm">
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
                     {['Event', 'Date', 'Status'].map(h => (
@@ -539,7 +539,7 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
                   {events.map(ev => (
                     <tr key={ev.event_id} className="border-b last:border-0" style={{ borderColor: 'var(--border-subtle)' }}>
                       <td className="px-4 py-2.5 font-medium" style={{ color: 'var(--text-primary)' }}>{ev.event_name}</td>
-                      <td className="px-4 py-2.5" style={{ color: 'var(--text-secondary)' }}>{ev.event_date ? formatDate(ev.event_date) : '—'}</td>
+                      <td className="px-4 py-2.5" style={{ color: 'var(--text-secondary)' }}>{ev.event_date ? formatDate(ev.event_date) : '-'}</td>
                       <td className="px-4 py-2.5">
                         <Badge variant={ev.isactive ? 'success' : 'error'}>{ev.isactive ? 'Active' : 'Archived'}</Badge>
                       </td>
@@ -553,10 +553,10 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
       </div>
 
       {/* ── Assign plan picker ── */}
-      <Modal open={planEditOpen} onClose={() => setPlanEditOpen(false)} title={`Edit Plan — ${studioName}`}>
+      <Modal open={planEditOpen} onClose={() => setPlanEditOpen(false)} title={`Edit Plan - ${studioName}`}>
         <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
           Assign a new subscription plan to this studio. The current plan is replaced with a
-          fresh billing period starting today — the studio's used photo quota carries over.
+          fresh billing period starting today - the studio's used photo quota carries over.
         </p>
         <div className="space-y-2 max-h-72 overflow-y-auto pr-1 mb-5">
           {(plansData?.data?.items || [])

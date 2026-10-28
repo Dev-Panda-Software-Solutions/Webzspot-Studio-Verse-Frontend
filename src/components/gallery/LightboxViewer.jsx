@@ -75,7 +75,7 @@ function HeartFlash({ adding }) {
 function LightboxImage({ media, watermarkSrc }) {
   const mediaId = media?.media_id
   // Prefer the direct pre-signed S3 url; fall back to the token-serve path (fetched
-  // fresh, so it can't be stale) if that url has expired or otherwise fails to load —
+  // fresh, so it can't be stale) if that url has expired or otherwise fails to load -
   // a photo left open in the lightbox can easily outlive the ~30s presigned URL.
   const [useFallback, setUseFallback] = useState(false)
   const { token } = useMediaToken(useFallback || !media?.media_url ? mediaId : null)
@@ -181,7 +181,7 @@ export default function LightboxViewer({
   isStudioPick = false,
   atFavouriteLimit = false,
   frozen = false,
-  ownerLabels = null,   // string[] — who favourited this photo (from FavouritesGallery)
+  ownerLabels = null,   // string[] - who favourited this photo (from FavouritesGallery)
 }) {
   const hideSize = showFavourite && !showTenantFav
   const panelRef = useRef(null)
@@ -191,7 +191,7 @@ export default function LightboxViewer({
     setTimeout(() => setHeartFlash(null), 560)
   }
 
-  // Silently prefetch legacy tokens for the 5 photos before/after current index —
+  // Silently prefetch legacy tokens for the 5 photos before/after current index -
   // only needed for pre-S3-migration media that has no media_url already.
   useEffect(() => {
     if (!mediaList.length) return
@@ -272,7 +272,7 @@ export default function LightboxViewer({
             const gs = store
             const fav = gs.isFavourited(media.media_id)
             if (fav) {
-              // Use the stored favourite record ID — NOT media_id (backend lookup by PK)
+              // Use the stored favourite record ID - NOT media_id (backend lookup by PK)
               const favId = gs.getFavId(media.media_id)
               gs.removeFavourite(media.media_id)
               flashHeart(false)
@@ -361,7 +361,7 @@ export default function LightboxViewer({
         {heartFlash && <HeartFlash key={heartFlash.key} adding={heartFlash.adding} />}
       </div>
 
-      {/* Bottom panel — pointer-events-none so video seek bar stays clickable */}
+      {/* Bottom panel - pointer-events-none so video seek bar stays clickable */}
       <div ref={panelRef}
         className="absolute bottom-0 left-0 right-0 p-6 flex items-end justify-between pointer-events-none"
         style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.4), transparent)' }}>
@@ -405,7 +405,7 @@ export default function LightboxViewer({
         </div>
 
         <div className="flex flex-col items-end gap-2 pointer-events-auto">
-          {/* Owner labels — who favourited this photo */}
+          {/* Owner labels - who favourited this photo */}
           {ownerLabels && ownerLabels.length > 0 && (
             <div className="flex flex-wrap gap-1 justify-end">
               {ownerLabels.map(label => (

@@ -4,7 +4,7 @@ import GoldButton from '../ui/GoldButton'
 import GoldInput from '../ui/GoldInput'
 import { INDIAN_STATES } from '../../utils/indianStates'
 
-// GSTIN/state are display-only fields printed on Quotation/Bill documents —
+// GSTIN/state are display-only fields printed on Quotation/Bill documents -
 // no tax amount is calculated from them.
 export default function GstModal({ open, onClose, settings, onSave, saving }) {
   const [form, setForm] = useState({ gstin_number: '', gst_state: '' })

@@ -140,7 +140,7 @@ export default function UploadDropzone({ eventId, onComplete, galleryType = 'PHO
                 {dragging ? 'Drop to upload' : 'Drag & drop photos here'}
               </p>
               <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
-                or click to browse — JPG, PNG, MP4, MOV, MP3, WAV · max 5GB each
+                or click to browse - JPG, PNG, MP4, MOV, MP3, WAV · max 5GB each
               </p>
             </div>
             <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-tertiary)' }}>

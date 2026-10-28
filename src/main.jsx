@@ -7,7 +7,7 @@ import App from './App'
 import { queryClient } from './lib/queryClient'
 import './index.css'
 
-// Dark/light toggle is disabled site-wide for now — always light. The old
+// Dark/light toggle is disabled site-wide for now - always light. The old
 // saved-theme logic is kept commented out so the toggle can be restored later.
 // const saved = localStorage.getItem('sv-theme') || 'dark'
 // document.documentElement.classList.toggle('dark', saved === 'dark')

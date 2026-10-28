@@ -43,7 +43,7 @@ export default function SidebarNav({ collapsed, onCollapse, mobileOpen = false, 
   const sidebarRef = useRef(null)
   const items = navItems[role] || []
 
-  // Active check — exact match for root paths, prefix match for nested
+  // Active check - exact match for root paths, prefix match for nested
   const isActive = (to) => {
     if (to === '/studio' || to === '/admin') return location.pathname === to
     return location.pathname === to || location.pathname.startsWith(to + '/')
@@ -73,7 +73,7 @@ export default function SidebarNav({ collapsed, onCollapse, mobileOpen = false, 
     toast.success('Logged out')
   }
 
-  // Sidebar is ALWAYS dark — like VS Code / Linear / Notion sidebars
+  // Sidebar is ALWAYS dark - like VS Code / Linear / Notion sidebars
   // This keeps it visible regardless of the page's light/dark mode
   const sb = {
     bg:          '#111113',

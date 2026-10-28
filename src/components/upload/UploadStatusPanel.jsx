@@ -229,7 +229,7 @@ export default function UploadStatusPanel() {
 
   return (
     <>
-      {/* ── Floating badge — shown while any upload is running, even when the popup is closed ── */}
+      {/* ── Floating badge - shown while any upload is running, even when the popup is closed ── */}
       {anyUploading && !panelOpen && (
         <button
           onClick={() => openPanel(activeKey || allSessions[0]?.key || null)}
@@ -354,7 +354,7 @@ export default function UploadStatusPanel() {
                           {dragging ? 'Drop to upload' : 'Drag & drop photos here'}
                         </p>
                         <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
-                          or click to browse — JPG, PNG, MP4, MOV, MP3, WAV · max 5GB each
+                          or click to browse - JPG, PNG, MP4, MOV, MP3, WAV · max 5GB each
                         </p>
                       </div>
                       <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-tertiary)' }}>

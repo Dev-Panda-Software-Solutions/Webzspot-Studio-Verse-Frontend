@@ -14,7 +14,7 @@ import toast from 'react-hot-toast'
 
 const GOLD = '#F59E0B'
 
-// Label for the "Change" column in plan history — what created each row.
+// Label for the "Change" column in plan history - what created each row.
 const changeLabel = (changeType) => {
   switch (changeType) {
     case 'UPGRADE': return { label: 'Upgrade', variant: 'success' }
@@ -69,7 +69,7 @@ export default function Billing() {
   const trialActivatedAt = subData?.data?.trial_activated_at
   const plans = plansData?.data?.items || []
   // A wallet is a feature add-on available regardless of the active subscription
-  // plan type — it exists once the studio has recharged it at least once.
+  // plan type - it exists once the studio has recharged it at least once.
   const hasWallet = !!wallet
   const subscriptionPlans = plans.filter(p => p.plan_type === 'SUBSCRIPTION')
   // Before the one-time initial purchase, only INITIAL plans are offered;
@@ -104,7 +104,7 @@ export default function Billing() {
     try {
       const res = await upgradePlan(planId)
       const amount = res?.data?.amount_charged
-      toast.success(amount != null ? `Upgraded to ${planName} — ₹${amount} charged` : `Upgraded to ${planName}`)
+      toast.success(amount != null ? `Upgraded to ${planName} - ₹${amount} charged` : `Upgraded to ${planName}`)
       qc.invalidateQueries(['tenant-subscription'])
       qc.invalidateQueries(['tenant-subscription-history'])
     } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to upgrade') }
@@ -116,7 +116,7 @@ export default function Billing() {
     setActingId(planId)
     try {
       await downgradePlan(planId)
-      toast.success(`Downgraded to ${planName} — no refund issued`)
+      toast.success(`Downgraded to ${planName} - no refund issued`)
       qc.invalidateQueries(['tenant-subscription'])
       qc.invalidateQueries(['tenant-subscription-history'])
     } catch (err) { toast.error(typeof err === 'string' ? err : 'Failed to downgrade') }
@@ -142,7 +142,7 @@ export default function Billing() {
             <AlertTriangle size={18} className="mt-0.5 flex-shrink-0" style={{ color: '#F59E0B' }} />
             <div>
               <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                Your billing period ended — you're in the grace period
+                Your billing period ended - you're in the grace period
               </p>
               <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
                 Uploads are disabled, but your existing events and photos are still visible to clients.
@@ -221,7 +221,7 @@ export default function Billing() {
               ) : (
                 <>
                   <p className="text-sm mb-3" style={{ color: 'var(--text-tertiary)' }}>
-                    No active subscription — activate your one-time free trial or choose a plan below.
+                    No active subscription - activate your one-time free trial or choose a plan below.
                   </p>
                   <GoldButton icon={<Gift size={13} />} loading={activatingTrial} onClick={handleActivateTrial}>
                     Activate Free Trial
@@ -264,7 +264,7 @@ export default function Billing() {
                 && subscription.plan?.plan_type === 'SUBSCRIPTION'
                 && subscription.plan?.duration_unit === plan.duration_unit
               // Upgrading (same billing interval, higher price) keeps the quota
-              // already used and the billing period — only charges the price
+              // already used and the billing period - only charges the price
               // difference. Anything else (no active sub, GRACE, EXPIRED,
               // different interval) goes through subscribe instead.
               const canUpgrade = planSwapEligible && Number(plan.price) > currentPrice
@@ -312,7 +312,7 @@ export default function Billing() {
           </h3>
           <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>
             {hasWallet
-              ? 'Add more credits any time — credits never expire.'
+              ? 'Add more credits any time - credits never expire.'
               : 'Purchase the initial wallet plan once to unlock AI events and start topping up later.'}
           </p>
           {!plansLoading && walletPlansToShow.length === 0 && (
@@ -375,7 +375,7 @@ export default function Billing() {
                           return (
                           <tr key={h.tenant_subscription_id} className="border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
                             <td className="px-5 py-3">
-                              {change ? <Badge variant={change.variant}>{change.label}</Badge> : '—'}
+                              {change ? <Badge variant={change.variant}>{change.label}</Badge> : '-'}
                             </td>
                             <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-primary)' }}>{planLabel(h)}</td>
                             <td className="px-5 py-3"><Badge variant={planStatusVariant(h.status)}>{h.status}</Badge></td>
@@ -384,10 +384,10 @@ export default function Billing() {
                                 ? `₹${Number(h.locked_price).toLocaleString()}`
                                 : h.plan?.price != null
                                   ? `₹${Number(h.plan.price).toLocaleString()}`
-                                  : '—'}
+                                  : '-'}
                             </td>
                             <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{formatDate(h.starts_at)}</td>
-                            <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{h.expires_at ? formatDate(h.expires_at) : '—'}</td>
+                            <td className="px-5 py-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>{h.expires_at ? formatDate(h.expires_at) : '-'}</td>
                           </tr>
                           )
                         })}
@@ -399,7 +399,7 @@ export default function Billing() {
         </div>
       </div>
 
-      {/* ── Downgrade confirmation — no refund warning ── */}
+      {/* ── Downgrade confirmation - no refund warning ── */}
       <Modal
         open={!!downgradeTarget}
         onClose={() => setDowngradeTarget(null)}
@@ -418,7 +418,7 @@ export default function Billing() {
           </div>
         </div>
         <ul className="text-xs space-y-1.5 mb-5 pl-1" style={{ color: 'var(--text-tertiary)' }}>
-          <li>• Your already-used photo quota is carried over — if it exceeds the new plan's limit, uploads pause until renewal.</li>
+          <li>• Your already-used photo quota is carried over - if it exceeds the new plan's limit, uploads pause until renewal.</li>
           <li>• The downgrade takes effect immediately and will be recorded in your plan history.</li>
         </ul>
         <div className="flex gap-3">
@@ -429,7 +429,7 @@ export default function Billing() {
             onClick={() => handleDowngrade(downgradeTarget.planId, downgradeTarget.planName)}
           >
             <ArrowUpRight className="rotate-90" size={14} />
-            Confirm Downgrade — No Refund
+            Confirm Downgrade - No Refund
           </GoldButton>
           <GoldButton variant="ghost" onClick={() => setDowngradeTarget(null)}>Cancel</GoldButton>
         </div>

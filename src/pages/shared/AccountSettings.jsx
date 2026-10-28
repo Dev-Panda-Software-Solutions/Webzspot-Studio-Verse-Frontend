@@ -149,7 +149,7 @@ export default function AccountSettings() {
           </div>
         )}
 
-        {/* Appearance tab disabled site-wide — dark/light toggle turned off, default to light.
+        {/* Appearance tab disabled site-wide - dark/light toggle turned off, default to light.
         {tab === 'Appearance' && (
           <GlassCard hover={false}>
             <h3 className="font-semibold text-[var(--text-primary)] mb-6">Appearance</h3>

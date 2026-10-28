@@ -151,7 +151,7 @@ function ClientRow({ mapping, onUpdate, onRevokeToggle, onHardDelete, onToggleSu
           )}
         </div>
         <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-          {u.user_email_id || u.user_phone_number || '—'}
+          {u.user_email_id || u.user_phone_number || '-'}
         </p>
         <div className="mt-1.5 flex items-center gap-3 flex-wrap">
           <AccessPanel mapping={mapping} onUpdate={onUpdate} />
@@ -165,7 +165,7 @@ function ClientRow({ mapping, onUpdate, onRevokeToggle, onHardDelete, onToggleSu
         </div>
       </div>
 
-      {/* Revoke/Restore this event's access only (doesn't touch login or other events) + permanent removal — always visible */}
+      {/* Revoke/Restore this event's access only (doesn't touch login or other events) + permanent removal - always visible */}
       <div className="flex-shrink-0 flex items-center gap-1">
         <button
           onClick={() => onRevokeToggle(mapping.event_user_id, isRevoked, u.user_name)}
@@ -281,7 +281,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
         setDuplicates(matches)
         if (matches.length > 0) { setCheckingDuplicates(false); return }
       } catch {
-        // Fail open — a broken duplicate check shouldn't block client creation.
+        // Fail open - a broken duplicate check shouldn't block client creation.
         setDuplicates([])
       }
       setCheckingDuplicates(false)
@@ -347,7 +347,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
           <div className="rounded-xl overflow-hidden mb-4" style={{ border: '1px solid var(--border-subtle)', maxHeight: 220, overflowY: 'auto' }}>
             {filtered.length === 0 ? (
               <div className="py-8 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
-                {allUsers.length === 0 ? 'No clients yet — create one first' : 'No matching clients'}
+                {allUsers.length === 0 ? 'No clients yet - create one first' : 'No matching clients'}
               </div>
             ) : filtered.map(u => (
               <button
@@ -365,7 +365,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
                 <Avatar name={u.user_name} size="xs" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{clientDisplayName(u)}</p>
-                  <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{u.user_email_id || u.user_phone_number || '—'}</p>
+                  <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{u.user_email_id || u.user_phone_number || '-'}</p>
                 </div>
                 {selected?.user_id === u.user_id && (
                   <CheckCircle2 size={15} className="text-gold-500 flex-shrink-0" />
@@ -377,7 +377,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
           {selected && (
             <div className="mb-4">
               <label className="text-xs font-medium block mb-1" style={{ color: 'var(--text-secondary)' }}>
-                Access expires (optional — leave empty for no expiry)
+                Access expires (optional - leave empty for no expiry)
               </label>
               <input
                 type="date"
@@ -435,7 +435,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
               <div className="flex items-start gap-2 mb-2">
                 <AlertTriangle size={14} className="mt-0.5 flex-shrink-0" style={{ color: '#F59E0B' }} />
                 <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                  {duplicates.length === 1 ? 'A client with this username already exists' : `${duplicates.length} clients with this username already exist`} — assign one instead, or create a new client anyway.
+                  {duplicates.length === 1 ? 'A client with this username already exists' : `${duplicates.length} clients with this username already exist`} - assign one instead, or create a new client anyway.
                 </p>
               </div>
               <div className="space-y-1.5 mb-3">
@@ -444,7 +444,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
                     <Avatar name={u.user_name} size="xs" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium truncate" style={{ color: 'var(--text-primary)' }}>{clientDisplayName(u)}</p>
-                      <p className="text-[11px] truncate" style={{ color: 'var(--text-tertiary)' }}>{u.user_email_id || u.user_phone_number || '—'}</p>
+                      <p className="text-[11px] truncate" style={{ color: 'var(--text-tertiary)' }}>{u.user_email_id || u.user_phone_number || '-'}</p>
                     </div>
                     <button
                       type="button"
@@ -504,7 +504,7 @@ export default function StudioEventDetail() {
   const { data: mediaData, isLoading: mediaLoading, refetch: refetchMedia } = useQuery({
     queryKey: ['event-media', id, mediaPage, mediaStatus, galleryType],
     queryFn: () => getMediaByEvent(id, { page: mediaPage, limit: 30, status: mediaStatus, gallery: galleryType }),
-    // Pre-signed S3 URLs expire after ~30s — refetch ahead of that while this tab is visible.
+    // Pre-signed S3 URLs expire after ~30s - refetch ahead of that while this tab is visible.
     refetchInterval: isGalleryTab ? 25_000 : false,
   })
   const { data: guestsData, isLoading: guestsLoading } = useQuery({
@@ -555,7 +555,7 @@ export default function StudioEventDetail() {
   const favsGrouped = favsData?.data || []
   const tenantFavs = tenantFavsData?.data || []
 
-  // "Revoked" reflects access to THIS event only (EventUserMapping.isactive) —
+  // "Revoked" reflects access to THIS event only (EventUserMapping.isactive) -
   // it never touches the client's login or their access to other events.
   const activeClients = allMappings.filter(m => m.isactive)
   const revokedClients = allMappings.filter(m => !m.isactive)
@@ -658,7 +658,7 @@ export default function StudioEventDetail() {
     } catch { toast.error('Failed to permanently delete file') }
   }
 
-  // Copying doesn't re-upload — the destination gallery just gets a second
+  // Copying doesn't re-upload - the destination gallery just gets a second
   // row pointing at the same stored file.
   const handleCopyMedia = async (mediaId, mediaName) => {
     const target = galleryType === 'AI_MEDIA' ? 'PHOTO_SELECTION' : 'AI_MEDIA'
@@ -848,7 +848,7 @@ export default function StudioEventDetail() {
           </div>
         </div>
 
-        {/* Tab: AI Media — QR code + registered guests, on top of its own gallery */}
+        {/* Tab: AI Media - QR code + registered guests, on top of its own gallery */}
         {tab === 'AI Media' && event?.is_ai_event && (
           <div className="mb-6">
             <GlassCard hover={false} className="mb-5">
@@ -862,7 +862,7 @@ export default function StudioEventDetail() {
                   </h3>
                   <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>
                     Print this QR code at the entrance or on tables. Guests scan it, upload a selfie, and leave their
-                    email — they'll get their matched photos once you publish the event.
+                    email - they'll get their matched photos once you publish the event.
                   </p>
                   <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
                     <Mail size={13} />

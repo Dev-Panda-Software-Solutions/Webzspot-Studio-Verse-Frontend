@@ -150,7 +150,7 @@ export function PageLoader({ label = 'Loading...' }) {
   )
 }
 
-// Small inline spinner — drop-in for SkeletonLoader type="page"
+// Small inline spinner - drop-in for SkeletonLoader type="page"
 export function GalleryLoader({ label = 'Opening gallery...' }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-8"
@@ -167,7 +167,7 @@ export function GalleryLoader({ label = 'Opening gallery...' }) {
   )
 }
 
-// Upload in-progress animation — used while files upload
+// Upload in-progress animation - used while files upload
 export function UploadLoader({ label = 'Uploading...', percent }) {
   return (
     <div className="flex flex-col items-center gap-4 py-6">
@@ -203,7 +203,7 @@ export function UploadLoader({ label = 'Uploading...', percent }) {
   )
 }
 
-// Tiny spinner — for buttons and inline use
+// Tiny spinner - for buttons and inline use
 export function MiniLoader({ size = 20 }) {
   return <ApertureSpinner size={size} />
 }

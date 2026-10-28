@@ -33,7 +33,7 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
   const [hovered, setHovered] = useState(false)
   const { ref: inViewRef, inView } = useInView({ triggerOnce: true, rootMargin: '200px' })
   const video = isVideo(media)
-  // Pre-signed S3 URL comes straight from the media list — fall back to the
+  // Pre-signed S3 URL comes straight from the media list - fall back to the
   // legacy token flow only for media that predates the S3 migration.
   const { token } = useMediaToken(inView && !media.media_url ? media.media_id : null)
   const src = media.media_url || (token ? mediaViewUrl(token) : null)
@@ -97,7 +97,7 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
         {loaded && <WatermarkOverlay src={watermarkSrc} />}
       </div>
 
-      {/* Studio Pick pill — distinct from the client's own heart toggle, always visible */}
+      {/* Studio Pick pill - distinct from the client's own heart toggle, always visible */}
       {isStudioPick && (
         <div className="absolute top-2 left-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
           style={{ background: 'rgba(245,158,11,0.9)', color: '#111113' }}>
@@ -105,10 +105,10 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
         </div>
       )}
 
-      {/* Hover overlay — darkens, shows expand */}
+      {/* Hover overlay - darkens, shows expand */}
       <div className={`absolute inset-0 bg-black/40 transition-opacity duration-200 ${hovered ? 'opacity-100' : 'opacity-0'}`} />
 
-      {/* Expand button — hover only */}
+      {/* Expand button - hover only */}
       <div className={`absolute bottom-3 left-3 transition-all duration-200 ${hovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'}`}>
         <button
           onClick={(e) => { e.stopPropagation(); onClick && onClick(media) }}
@@ -118,7 +118,7 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
         </button>
       </div>
 
-      {/* Heart — always visible in bottom-right */}
+      {/* Heart - always visible in bottom-right */}
       {loaded && hasFav && (
         <div className="absolute bottom-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
           <FavBtn mediaId={media.media_id} eventId={eventId}
@@ -126,7 +126,7 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
         </div>
       )}
 
-      {/* Delete/restore actions — top-right, hover only, only when handlers provided */}
+      {/* Delete/restore actions - top-right, hover only, only when handlers provided */}
       {(onDelete || onRestore || onHardDelete || onCopyToOtherGallery) && loaded && (
         <div
           className={`absolute top-2 right-2 flex gap-1 z-10 transition-opacity duration-200 ${hovered ? 'opacity-100' : 'opacity-0'}`}
@@ -289,7 +289,7 @@ function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
         </p>
       </div>
 
-      {/* Actions — heart always visible, expand + delete on hover */}
+      {/* Actions - heart always visible, expand + delete on hover */}
       <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
         <FavBtn mediaId={media.media_id} eventId={eventId}
           showFavourite={showFavourite} showTenantFav={showTenantFav} atFavouriteLimit={atFavouriteLimit} frozen={frozen} size={15} />
@@ -350,7 +350,7 @@ function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
 
 /* ─── Exported component ─── */
 export default function PhotoCard({ media, eventId, watermarkSrc, onClick, showFavourite = true, showTenantFav = false, isStudioPick = false, atFavouriteLimit = false, frozen = false, view = 'masonry', onDelete, onRestore, onHardDelete, onCopyToOtherGallery, copyLabel }) {
-  // Storage/compressed size is only relevant to the studio side — clients browsing
+  // Storage/compressed size is only relevant to the studio side - clients browsing
   // their own gallery (showFavourite without showTenantFav) don't need to see it.
   const hideSize = showFavourite && !showTenantFav
   if (view === 'list') {

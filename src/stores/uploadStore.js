@@ -9,7 +9,7 @@ import { getMySubscription } from '../api/billing'
 import toast from 'react-hot-toast'
 
 /* ─── Globally-persisted upload state ──────────────────────────────
-   Upload progress used to live inside UploadDropzone's local state —
+   Upload progress used to live inside UploadDropzone's local state -
    closing the popup or navigating away hid the status forever even
    though the upload kept going. Now sessions live here so the status
    panel (mounted in AppLayout) can always show and reopen them. */
@@ -47,12 +47,12 @@ const useUploadStore = create((set, get) => ({
           return []
         }
         if (fileList.length > remaining) {
-          toast.error(`Only ${remaining} photo${remaining === 1 ? '' : 's'} left in your quota — you selected ${fileList.length}. Select ${remaining} or fewer.`)
+          toast.error(`Only ${remaining} photo${remaining === 1 ? '' : 's'} left in your quota - you selected ${fileList.length}. Select ${remaining} or fewer.`)
           return []
         }
       }
     } catch {
-      // Quota check failing shouldn't block upload entirely — the backend still enforces it per-file.
+      // Quota check failing shouldn't block upload entirely - the backend still enforces it per-file.
     }
 
     const items = fileList.map(file => ({
@@ -181,7 +181,7 @@ const useUploadStore = create((set, get) => ({
       return true
     } catch (err) {
       // A cancellation we triggered ourselves (stall watchdog) isn't a real
-      // failure — the item is about to be retried, so stay silent.
+      // failure - the item is about to be retried, so stay silent.
       if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') {
         return false
       }
@@ -294,7 +294,7 @@ const useUploadStore = create((set, get) => ({
   closePanel: () => set({ panelOpen: false }),
 }))
 
-// Watchdog keeps running for as long as the tab is alive — independent of
+// Watchdog keeps running for as long as the tab is alive - independent of
 // any mounted component, so it fires as soon as the tab regains focus.
 setInterval(() => {
   useUploadStore.getState().watchdogTick()

@@ -110,7 +110,7 @@ export default function PhotoGrid({
           count={view === 'grid' ? gCols : mCols}
         />
 
-        {/* Tenant favourite filter — only visible when showTenantFav is on */}
+        {/* Tenant favourite filter - only visible when showTenantFav is on */}
         {showTenantFav && (
           <button
             onClick={() => setFilterFavs(f => !f)}
@@ -134,7 +134,7 @@ export default function PhotoGrid({
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Heart size={36} className="mb-3" style={{ color: 'var(--text-tertiary)' }} />
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            No studio favourites yet — click the heart on any photo to save it here.
+            No studio favourites yet - click the heart on any photo to save it here.
           </p>
         </div>
       )}

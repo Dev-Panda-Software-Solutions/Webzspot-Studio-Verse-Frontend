@@ -9,7 +9,7 @@ import Avatar from '../ui/Avatar'
 import { getUsers, createUser } from '../../api/users'
 import toast from 'react-hot-toast'
 
-// A quotation's client is just a User — the same record used for gallery
+// A quotation's client is just a User - the same record used for gallery
 // login access. "New User" here creates a bare User with no login and no
 // event access yet (see backend createUser); "Existing User" searches the
 // same client list the Access Board uses, so a client created for a
@@ -112,7 +112,7 @@ export default function CreateQuotationModal({ open, onClose }) {
                 <Avatar name={c.user_name} size="xs" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{c.user_name}</p>
-                  <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{c.user_email_id || c.user_phone_number || '—'}</p>
+                  <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{c.user_email_id || c.user_phone_number || '-'}</p>
                 </div>
                 {selected?.user_id === c.user_id && <CheckCircle2 size={15} className="text-gold-500 flex-shrink-0" />}
               </button>

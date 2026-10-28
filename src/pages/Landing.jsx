@@ -174,7 +174,7 @@ export default function Landing() {
             {[
               { n: '01', title: 'Upload Your Photos', desc: 'Create an event, upload your shots. We compress them for fast viewing while keeping originals safe.' },
               { n: '02', title: 'Clients Browse & Heart', desc: 'Send your client a secure login. They browse the gallery and heart the photos they want.' },
-              { n: '03', title: 'Download Favourites', desc: 'You download a zip of exactly the photos they loved — originals, ready for final delivery.' },
+              { n: '03', title: 'Download Favourites', desc: 'You download a zip of exactly the photos they loved - originals, ready for final delivery.' },
             ].map(({ n, title, desc }) => (
               <div key={n} className="step-item text-center">
                 <div className="w-12 h-12 rounded-full border-2 border-gold-500 flex items-center justify-center

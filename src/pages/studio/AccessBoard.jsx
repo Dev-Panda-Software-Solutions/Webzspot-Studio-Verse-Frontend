@@ -276,24 +276,39 @@ export default function AccessBoard() {
     }
   }, [mappingsByEvent])
 
-  const refreshBoard = () => {
-    qc.invalidateQueries(['access-board-mappings'])
-    qc.invalidateQueries(['event-users'])
+  const [refreshing, setRefreshing] = useState(false)
+
+  const refreshBoard = async ({ notify = false } = {}) => {
+    setRefreshing(true)
+    try {
+      await Promise.all([
+        qc.invalidateQueries(['access-board-events']),
+        qc.invalidateQueries(['tenant-users']),
+        qc.invalidateQueries(['access-board-mappings']),
+        qc.invalidateQueries(['event-users']),
+      ])
+      if (notify) toast.success('Client access board refreshed')
+    } catch (err) {
+      if (notify) toast.error('Could not refresh client access board')
+      throw err
+    } finally {
+      setRefreshing(false)
+    }
   }
 
   const updateMapping = async (mappingId, data) => {
     await updateEventUserMapping(mappingId, data)
-    refreshBoard()
+    await refreshBoard()
   }
 
   const activeEvent = events.find(event => event.event_id === activeEventId)
-  const loading = eventsLoading || usersLoading || mappingsLoading
+  const loading = eventsLoading || usersLoading || mappingsLoading || refreshing
 
   return (
     <AppLayout
       title="Client Access Board"
       subtitle="Map clients to events and control gallery access from one place"
-      actions={<GoldButton icon={<LayoutGrid size={14} />} onClick={refreshBoard}>Refresh</GoldButton>}
+      actions={<GoldButton icon={<LayoutGrid size={14} />} loading={refreshing} onClick={() => refreshBoard({ notify: true })}>Refresh</GoldButton>}
     >
       <div className="space-y-6">
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">

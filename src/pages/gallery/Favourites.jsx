@@ -29,7 +29,7 @@ export default function GalleryFavourites() {
   })
   const allowDownload = eventData?.data?.allow_download !== false
 
-  // tenant_mapping[0] is the OWNER entry — included in USER response specifically for settings fetch
+  // tenant_mapping[0] is the OWNER entry - included in USER response specifically for settings fetch
   const tenantId = eventData?.data?.tenant_mapping?.[0]?.tenant_id || eventData?.data?.tenant_id
   const { data: settingsData } = useQuery({
     queryKey: ['gallery-settings', tenantId],
@@ -45,7 +45,7 @@ export default function GalleryFavourites() {
   const { data: mediaData, isLoading: mediaLoading } = useQuery({
     queryKey: ['gallery-media', eventId],
     queryFn: () => getMediaByEvent(eventId, { page: 1, limit: 100 }),
-    // Pre-signed S3 URLs expire after ~30s — refetch ahead of that so images keep loading.
+    // Pre-signed S3 URLs expire after ~30s - refetch ahead of that so images keep loading.
     refetchInterval: 25_000,
   })
 
@@ -74,7 +74,7 @@ export default function GalleryFavourites() {
       await downloadFavouritesZip(eventId, user.user_id, `${safeName}_my_favourites.zip`)
       toast.success('Download started!')
     } catch (err) {
-      toast.error(typeof err === 'string' ? err : 'Download failed — downloads may be disabled for this event')
+      toast.error(typeof err === 'string' ? err : 'Download failed - downloads may be disabled for this event')
     } finally {
       setDownloading(false)
     }

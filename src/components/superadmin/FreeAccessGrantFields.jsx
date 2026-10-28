@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 // Shared "Free Access grant" picker used in both the Create Studio form and
 // the Studio detail popup: super admin picks one of the existing plans and an
 // expiry (preset months or a custom date). A plan and an expiry always travel
-// together — a studio can never get an expiry alone.
+// together - a studio can never get an expiry alone.
 const PRESETS = [
   { key: '1m', label: '1 month' },
   { key: '3m', label: '3 months' },
@@ -79,7 +79,7 @@ export default function FreeAccessGrantFields({ value, onChange }) {
           <option value="" disabled>Select a plan…</option>
           {plans.map(p => (
             <option key={p.subscription_plan_id} value={p.subscription_plan_id}>
-              {p.plan_name} — ₹{Number(p.price).toLocaleString('en-IN')} ({p.duration_value} {p.duration_unit === 'MONTHS' ? 'mo' : p.duration_unit === 'YEARS' ? 'yr' : 'days'}, {p.photo_quota} photos)
+              {p.plan_name} - ₹{Number(p.price).toLocaleString('en-IN')} ({p.duration_value} {p.duration_unit === 'MONTHS' ? 'mo' : p.duration_unit === 'YEARS' ? 'yr' : 'days'}, {p.photo_quota} photos)
             </option>
           ))}
         </select>
@@ -131,7 +131,7 @@ export default function FreeAccessGrantFields({ value, onChange }) {
         )}
       </div>
       <p className="text-xs -mt-1" style={{ color: 'var(--text-tertiary)' }}>
-        The studio gets the chosen plan for free until the expiry — revocable anytime.
+        The studio gets the chosen plan for free until the expiry - revocable anytime.
       </p>
     </div>
   )

@@ -10,7 +10,7 @@ export default function ShutterTransition() {
   const isFirst = useRef(true)
   const tlRef = useRef(null)
 
-  // Park panels off-screen once on mount — no inline CSS transforms
+  // Park panels off-screen once on mount - no inline CSS transforms
   useEffect(() => {
     gsap.set(topRef.current, { yPercent: -100 })
     gsap.set(botRef.current, { yPercent: 100 })
@@ -30,11 +30,11 @@ export default function ShutterTransition() {
     tl.to(topRef.current, { yPercent: 0, duration: 0.22, ease: 'power4.in' }, 0)
     tl.to(botRef.current, { yPercent: 0, duration: 0.22, ease: 'power4.in' }, 0)
 
-    // Gold flash at the seam — camera exposure moment
+    // Gold flash at the seam - camera exposure moment
     tl.to(scanRef.current, { opacity: 1, duration: 0.06 }, 0.2)
     tl.to(scanRef.current, { opacity: 0, duration: 0.14, ease: 'power2.in' }, 0.26)
 
-    // Brief hold — new page renders underneath
+    // Brief hold - new page renders underneath
     tl.to({}, { duration: 0.08 })
 
     // Panels spring open

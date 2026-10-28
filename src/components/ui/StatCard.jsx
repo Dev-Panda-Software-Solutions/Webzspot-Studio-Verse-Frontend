@@ -69,7 +69,7 @@ export default function StatCard({ label, value = 0, icon: Icon, sub }) {
         {sub && <div className="mb-1">{sub}</div>}
       </div>
 
-      {/* Gold sweep line — grows from center on hover */}
+      {/* Gold sweep line - grows from center on hover */}
       <div ref={lineRef} className="absolute bottom-0 left-0 right-0 h-[2px]"
         style={{
           background: 'linear-gradient(90deg, transparent, #F59E0B 30%, #FDE68A 50%, #F59E0B 70%, transparent)',

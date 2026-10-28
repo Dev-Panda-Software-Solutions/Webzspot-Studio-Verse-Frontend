@@ -33,7 +33,7 @@ export default function AdminStudios() {
   const [grantOpen, setGrantOpen] = useState(false)
   const [grantValue, setGrantValue] = useState({ subscription_plan_id: '', expires_at: null })
   const [viewTenant, setViewTenant] = useState(null)
-  // One-time reveal of the auto-generated login password for a just-created studio —
+  // One-time reveal of the auto-generated login password for a just-created studio -
   // the super admin no longer sets a password on this form (moved to Settings for
   // account-level password changes), so the backend mints one and we show it once.
   const [generatedCreds, setGeneratedCreds] = useState(null)
@@ -43,7 +43,7 @@ export default function AdminStudios() {
     queryKey: ['tenants', page, status],
     queryFn: () => getTenants({ page, limit: 10, status })
   })
-  // Storage-per-studio isn't tracked on the tenant row itself — reuse the
+  // Storage-per-studio isn't tracked on the tenant row itself - reuse the
   // same aggregation the Dashboard already computes rather than duplicating it.
   const { data: analyticsData } = useQuery({
     queryKey: ['super-admin-analytics'],
@@ -88,7 +88,7 @@ export default function AdminStudios() {
     if (!generatedCreds) return
     navigator.clipboard.writeText(`Username: ${generatedCreds.username}\nPassword: ${generatedCreds.password}`)
       .then(() => { setCopied(true); toast.success('Copied to clipboard') })
-      .catch(() => toast.error('Could not copy — copy manually'))
+      .catch(() => toast.error('Could not copy - copy manually'))
   }
 
   const handleArchive = async (tenantId, studioName) => {
@@ -122,7 +122,7 @@ export default function AdminStudios() {
   }
 
   const handleDeleteStorage = async (tenantId, studioName) => {
-    const ok = await confirmDialog({ title: 'Delete all uploaded files?', message: `Delete ALL uploaded photos/videos for "${studioName}"? This frees up their storage but cannot be undone — the studio and its events stay intact.`, confirmLabel: 'Delete', danger: true })
+    const ok = await confirmDialog({ title: 'Delete all uploaded files?', message: `Delete ALL uploaded photos/videos for "${studioName}"? This frees up their storage but cannot be undone - the studio and its events stay intact.`, confirmLabel: 'Delete', danger: true })
     if (!ok) return
     try {
       const res = await deleteTenantStorage(tenantId)
@@ -160,8 +160,8 @@ export default function AdminStudios() {
       </div>
 
       <GlassCard hover={false} className="p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="w-full max-w-full overflow-x-auto overscroll-x-contain">
+          <table className="w-full min-w-[860px]">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
                 {['Studio', 'Owner', 'Plan', 'Storage', 'Created', 'Status', ''].map(h => (
@@ -195,7 +195,7 @@ export default function AdminStudios() {
                         >
                           {t.tenant_studio_name}
                         </button>
-                        <p className="text-xs text-[var(--text-tertiary)]">{t.tenant_email_id || '—'}</p>
+                        <p className="text-xs text-[var(--text-tertiary)]">{t.tenant_email_id || '-'}</p>
                       </div>
                     </div>
                   </td>
@@ -208,7 +208,7 @@ export default function AdminStudios() {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
-                    {storageEntry ? formatStorageKb(storageEntry.stored_kb) : '—'}
+                    {storageEntry ? formatStorageKb(storageEntry.stored_kb) : '-'}
                   </td>
                   <td className="px-6 py-4 text-sm text-[var(--text-tertiary)]">{formatDate(t.createdAt)}</td>
                   <td className="px-6 py-4">
@@ -274,7 +274,7 @@ export default function AdminStudios() {
           <GoldInput label="Studio Address *" name="tenant_studio_address" value={form.tenant_studio_address} onChange={e => update('tenant_studio_address', e.target.value)} />
           <GoldInput label="Username *" name="username" value={form.username} onChange={e => update('username', e.target.value)} />
           <p className="text-xs -mt-2 mb-3" style={{ color: 'var(--text-tertiary)' }}>
-            A login password is generated automatically — you'll see it once after the studio is created.
+            A login password is generated automatically - you'll see it once after the studio is created.
           </p>
 
           <button
@@ -311,7 +311,7 @@ export default function AdminStudios() {
 
       <Modal open={!!generatedCreds} onClose={() => setGeneratedCreds(null)} title="Studio Login Created">
         <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-          Share these credentials with the studio owner. This password won't be shown again — the owner can change it after logging in.
+          Share these credentials with the studio owner. This password won't be shown again - the owner can change it after logging in.
         </p>
         <div className="rounded-xl p-4 mb-4 space-y-2" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}>
           <div className="flex items-center justify-between">
@@ -335,7 +335,7 @@ export default function AdminStudios() {
         <StudioDetailModal
           tenantId={viewTenant.tenant_id}
           studioName={viewTenant.tenant_studio_name}
-          storageLabel={storageByTenantId[viewTenant.tenant_id] ? formatStorageKb(storageByTenantId[viewTenant.tenant_id].stored_kb) : '—'}
+          storageLabel={storageByTenantId[viewTenant.tenant_id] ? formatStorageKb(storageByTenantId[viewTenant.tenant_id].stored_kb) : '-'}
           onClose={() => setViewTenant(null)}
         />
       )}

@@ -49,7 +49,7 @@ export default function EventCard({ event, eventId, isNew = false, onCreate, onD
         onMouseEnter={handleNewEnter}
         onMouseLeave={handleNewLeave}
       >
-        {/* Top zone — dark photographic field */}
+        {/* Top zone - dark photographic field */}
         <div className="h-40 relative flex items-center justify-center overflow-hidden"
           style={{ background: 'linear-gradient(135deg, #0c0c0e 0%, #13100a 60%, #0a0a0c 100%)' }}
         >
@@ -138,7 +138,7 @@ export default function EventCard({ event, eventId, isNew = false, onCreate, onD
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[rgba(245,158,11,0.08)] to-transparent
           -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
 
-        {/* Action buttons — only show if handlers provided */}
+        {/* Action buttons - only show if handlers provided */}
         {(onEdit || onDelete || onArchive || onRestore) && (
           <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
             {onEdit && (
@@ -157,7 +157,7 @@ export default function EventCard({ event, eventId, isNew = false, onCreate, onD
               onRestore && (
                 <button
                   onClick={e => { e.stopPropagation(); onRestore(resolvedId, event?.event_name) }}
-                  title="Restore event — clients regain access"
+                  title="Restore event - clients regain access"
                   className="w-7 h-7 rounded-lg flex items-center justify-center"
                   style={{ background: 'rgba(0,0,0,0.55)', color: '#34D399', backdropFilter: 'blur(4px)' }}
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(16,185,129,0.25)'}
@@ -170,7 +170,7 @@ export default function EventCard({ event, eventId, isNew = false, onCreate, onD
               (onArchive || onDelete) && (
                 <button
                   onClick={e => { e.stopPropagation(); (onArchive || onDelete)(resolvedId, event?.event_name) }}
-                  title="Archive event — hides it and its photos from clients"
+                  title="Archive event - hides it and its photos from clients"
                   className="w-7 h-7 rounded-lg flex items-center justify-center"
                   style={{ background: 'rgba(0,0,0,0.55)', color: '#FBBF24', backdropFilter: 'blur(4px)' }}
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.25)'}

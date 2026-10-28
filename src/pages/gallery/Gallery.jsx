@@ -46,7 +46,7 @@ export default function Gallery() {
   const allUserEvents = eventsData?.data?.items || []
   const accessibleEvents = allUserEvents.filter(e => e._access?.has_current_access !== false)
 
-  // Skip straight to the gallery only when there's exactly one event — with
+  // Skip straight to the gallery only when there's exactly one event - with
   // more than one, land on the folder-grid picker instead of guessing which
   // event the client meant to open.
   useEffect(() => {
@@ -80,7 +80,7 @@ export default function Gallery() {
     queryKey: ['gallery-media', activeEventId, mediaPage],
     queryFn: () => getMediaByEvent(activeEventId, { page: mediaPage, limit: 50 }),
     enabled: !!activeEventId && !isLocked,
-    // Pre-signed S3 URLs expire after ~30s — refetch ahead of that so images keep loading.
+    // Pre-signed S3 URLs expire after ~30s - refetch ahead of that so images keep loading.
     refetchInterval: 25_000,
   })
 
@@ -90,7 +90,7 @@ export default function Gallery() {
     || 'Gallery'
   const mediaList = mediaData?.data?.items || []
 
-  // tenant_mapping[0] is the OWNER entry — included in USER response specifically for watermark fetch
+  // tenant_mapping[0] is the OWNER entry - included in USER response specifically for watermark fetch
   const tenantId = event?.tenant_mapping?.[0]?.tenant_id || event?.tenant_id
   const { data: settingsData } = useQuery({
     queryKey: ['gallery-settings', tenantId],
@@ -117,7 +117,7 @@ export default function Gallery() {
     enabled: !!activeEventId && !!user?.user_id && !isLocked,
   })
 
-  // Studio's own picks — shown as a distinct "Studio Pick" indicator so clients
+  // Studio's own picks - shown as a distinct "Studio Pick" indicator so clients
   // can see what the photographer already favourited while choosing their own.
   const { data: studioFavsData } = useQuery({
     queryKey: ['studio-favs-for-client', activeEventId],
@@ -170,7 +170,7 @@ export default function Gallery() {
 
   const hasMultiple = allUserEvents.length > 1
   // Folder-grid picker shows whenever there isn't exactly one accessible event to
-  // auto-open — either multiple to choose from, or none accessible (all locked).
+  // auto-open - either multiple to choose from, or none accessible (all locked).
   const showFolderGrid = !activeEventId && allUserEvents.length > 0 && accessibleEvents.length !== 1
 
   return (
@@ -250,7 +250,7 @@ export default function Gallery() {
         </div>
       </header>
 
-      {/* Submitted banner — favourites are frozen */}
+      {/* Submitted banner - favourites are frozen */}
       {!showFolderGrid && isSubmitted && !isLocked && (
         <div className="px-6 py-2.5 flex items-center gap-3"
           style={{ background: 'rgba(52,211,153,0.08)', borderBottom: '1px solid rgba(52,211,153,0.2)' }}>
@@ -267,7 +267,7 @@ export default function Gallery() {
           style={{ background: 'rgba(251,191,36,0.10)', borderBottom: '1px solid rgba(251,191,36,0.25)' }}>
           <Clock size={14} style={{ color: '#FBBF24', flexShrink: 0 }} />
           <p className="text-xs" style={{ color: '#FBBF24' }}>
-            Access expires in {daysLeft} day{daysLeft === 1 ? '' : 's'} —{' '}
+            Access expires in {daysLeft} day{daysLeft === 1 ? '' : 's'} -{' '}
             {expiresDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
           </p>
         </div>
@@ -285,7 +285,7 @@ export default function Gallery() {
           </div>
         )}
 
-        {/* Folder grid — pick which event to open */}
+        {/* Folder grid - pick which event to open */}
         {showFolderGrid && (
           <EventFolderGrid events={allUserEvents} onOpen={(id) => navigate(`/gallery/${id}`)} />
         )}

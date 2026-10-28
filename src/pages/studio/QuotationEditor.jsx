@@ -154,7 +154,7 @@ export default function QuotationEditor() {
           <Avatar name={client.user_name} size="sm" />
           <div>
             <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{client.user_name}</p>
-            <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{client.user_email_id || client.user_phone_number || '—'}</p>
+            <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{client.user_email_id || client.user_phone_number || '-'}</p>
           </div>
         </GlassCard>
       )}
@@ -180,7 +180,7 @@ export default function QuotationEditor() {
 
         {items.length === 0 ? (
           <p className="py-12 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
-            No items added yet — click "Add Items" to build this quotation.
+            No items added yet - click "Add Items" to build this quotation.
           </p>
         ) : (
           <div className="overflow-x-auto">

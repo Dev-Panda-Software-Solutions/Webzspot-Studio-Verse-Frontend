@@ -3,7 +3,7 @@ import { Folder, Lock, Clock } from 'lucide-react'
 import { formatDate } from '../../utils/formatters'
 import { backendAssetUrl } from '../../utils/apiUrl'
 
-// Google-Drive-style landing view for clients assigned to multiple events —
+// Google-Drive-style landing view for clients assigned to multiple events -
 // pick a folder (event) first, then see its photos, instead of being dropped
 // straight into whichever event happened to load first.
 export default function EventFolderGrid({ events, onOpen }) {
