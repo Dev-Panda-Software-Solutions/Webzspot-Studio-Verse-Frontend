@@ -208,7 +208,7 @@ export default function AdminStudios() {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
-                    {storageEntry ? formatStorageKb(storageEntry.stored_kb) : '-'}
+                    {storageEntry ? formatStorageKb(storageEntry.stored_kb) : '0 KB'}
                   </td>
                   <td className="px-6 py-4 text-sm text-[var(--text-tertiary)]">{formatDate(t.createdAt)}</td>
                   <td className="px-6 py-4">
@@ -335,7 +335,7 @@ export default function AdminStudios() {
         <StudioDetailModal
           tenantId={viewTenant.tenant_id}
           studioName={viewTenant.tenant_studio_name}
-          storageLabel={storageByTenantId[viewTenant.tenant_id] ? formatStorageKb(storageByTenantId[viewTenant.tenant_id].stored_kb) : '-'}
+           storageLabel={storageByTenantId[viewTenant.tenant_id] ? formatStorageKb(storageByTenantId[viewTenant.tenant_id].stored_kb) : '0 KB'}
           onClose={() => setViewTenant(null)}
         />
       )}
