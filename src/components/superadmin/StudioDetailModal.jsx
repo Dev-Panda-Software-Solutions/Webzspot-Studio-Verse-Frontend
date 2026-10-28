@@ -422,7 +422,7 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
           ) : history.length === 0 ? (
             <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>No subscription purchases yet.</p>
           ) : (
-            <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid var(--border-subtle)' }}>
+            <div className="w-full max-w-full overflow-x-auto overscroll-x-contain rounded-xl" style={{ border: '1px solid var(--border-subtle)' }}>
               <table className="w-full min-w-[700px] text-sm">
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -466,7 +466,7 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
           ) : users.length === 0 ? (
             <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>No clients yet.</p>
           ) : (
-            <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid var(--border-subtle)' }}>
+            <div className="w-full max-w-full overflow-x-auto overscroll-x-contain rounded-xl" style={{ border: '1px solid var(--border-subtle)' }}>
               <table className="w-full min-w-[760px] text-sm">
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -526,7 +526,7 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
           ) : events.length === 0 ? (
             <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>No events yet.</p>
           ) : (
-            <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid var(--border-subtle)' }}>
+            <div className="w-full max-w-full overflow-x-auto overscroll-x-contain rounded-xl" style={{ border: '1px solid var(--border-subtle)' }}>
               <table className="w-full min-w-[520px] text-sm">
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
