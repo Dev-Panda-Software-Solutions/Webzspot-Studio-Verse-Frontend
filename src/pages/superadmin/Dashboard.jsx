@@ -95,12 +95,12 @@ function StorageRow({ name, meta, value, max }) {
   const pct = max > 0 ? Math.max(4, Math.min(100, (value / max) * 100)) : 0
   return (
     <div className="py-3 border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
-          <div className="min-w-0 flex-1">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-medium break-words sm:whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>{name}</p>
           {meta && <p className="text-xs break-words sm:whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>{meta}</p>}
         </div>
-        <p className="text-xs font-semibold whitespace-nowrap" style={{ color: GOLD }}>{formatStorage(value)}</p>
+        <p className="w-full text-xs font-semibold sm:w-auto sm:text-right" style={{ color: GOLD }}>{formatStorage(value)}</p>
       </div>
       <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--bg-elevated)' }}>
         <div className="h-full rounded-full" style={{ width: `${pct}%`, background: GOLD }} />
@@ -302,32 +302,27 @@ export default function AdminDashboard() {
               ) : tenants.length === 0 ? (
                 <div className="py-12 text-center text-[var(--text-tertiary)] text-sm">No studios yet</div>
               ) : (
-                <>
-                  <div className="overflow-x-auto overscroll-x-contain recent-studios-scroll">
-                    <div style={{ width: 680, minWidth: 680 }}>
-                    {tenants.map((t) => (
+                <div>
+                  {tenants.map((t) => (
                     <div key={t.tenant_id || t.id}
-                      className="flex items-center gap-4 px-6 py-4 border-b transition-colors hover:bg-[var(--bg-elevated)]"
+                      className="flex flex-wrap items-center gap-x-4 gap-y-2 px-6 py-4 border-b transition-colors hover:bg-[var(--bg-elevated)]"
                       style={{ borderColor: 'var(--border-subtle)' }}>
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 font-semibold text-sm"
                         style={{ background: 'rgba(245,158,11,0.12)', color: '#F59E0B' }}>
                         {(t.tenant_studio_name || '?')[0].toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium break-words sm:whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>{t.tenant_studio_name}</p>
-                        <p className="text-xs break-words sm:whitespace-nowrap" style={{ color: 'var(--text-secondary)' }}>{t.tenant_name}</p>
+                        <p className="text-sm font-medium break-words" style={{ color: 'var(--text-primary)' }}>{t.tenant_studio_name}</p>
+                        <p className="text-xs break-words" style={{ color: 'var(--text-secondary)' }}>{t.tenant_name}</p>
                       </div>
-                      <Badge variant="gold">{planLabel(t.subscription)}</Badge>
-                      <p className="text-xs whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>{formatDate(t.createdAt)}</p>
-                      <Badge variant={t.isactive ? 'success' : 'error'}>{t.isactive ? 'Active' : 'Inactive'}</Badge>
+                      <div className="w-full pl-[52px] flex flex-wrap items-center gap-2 text-xs sm:w-auto sm:pl-0">
+                        <Badge variant="gold">{planLabel(t.subscription)}</Badge>
+                        <span className="whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>{formatDate(t.createdAt)}</span>
+                        <Badge variant={t.isactive ? 'success' : 'error'}>{t.isactive ? 'Active' : 'Inactive'}</Badge>
+                      </div>
                     </div>
-                    ))}
-                    </div>
-                  </div>
-                  <p className="px-6 py-2 text-[11px] md:hidden" style={{ color: 'var(--text-tertiary)' }}>
-                    Swipe left to view plan, date and status
-                  </p>
-                </>
+                  ))}
+                </div>
               )}
             </GlassCard>
           </div>
