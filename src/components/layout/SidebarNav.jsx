@@ -67,8 +67,11 @@ export default function SidebarNav({ collapsed, onCollapse, mobileOpen = false, 
   }
 
   const handleCollapseClick = () => {
+    if (window.innerWidth < 768) {
+      onMobileClose?.()
+      return
+    }
     toggleCollapse()
-    if (window.innerWidth < 768) onMobileClose?.()
   }
 
   const handleLogout = async () => {

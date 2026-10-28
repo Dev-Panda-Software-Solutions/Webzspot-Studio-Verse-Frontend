@@ -11,6 +11,11 @@ export default function AppLayout({ children, title, subtitle, actions }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const touchStartX = useRef(null)
 
+  const openMobileNav = () => {
+    if (window.innerWidth < 768) setCollapsed(false)
+    setMobileOpen(true)
+  }
+
   const handleTouchStart = (event) => {
     if (window.innerWidth >= 768 || mobileOpen) return
     const touch = event.touches[0]
@@ -22,7 +27,7 @@ export default function AppLayout({ children, title, subtitle, actions }) {
     const touch = event.changedTouches[0]
     const swipeDistance = touch ? touch.clientX - touchStartX.current : 0
     touchStartX.current = null
-    if (swipeDistance >= 60) setMobileOpen(true)
+    if (swipeDistance >= 60) openMobileNav()
   }
 
   return (
@@ -54,7 +59,7 @@ export default function AppLayout({ children, title, subtitle, actions }) {
           <button
             type="button"
             aria-label="Open navigation"
-            onClick={() => setMobileOpen(true)}
+            onClick={openMobileNav}
             className="fixed left-3 top-3 z-40 md:hidden p-2 rounded-lg bg-black/50"
             style={{ color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
           >
@@ -75,7 +80,7 @@ export default function AppLayout({ children, title, subtitle, actions }) {
               <button
                 type="button"
                 aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
-                onClick={() => setMobileOpen(open => !open)}
+                onClick={() => mobileOpen ? setMobileOpen(false) : openMobileNav()}
                 className="md:hidden flex-shrink-0 p-2 -ml-2 rounded-lg"
                 style={{ color: 'var(--text-secondary)' }}
               >
