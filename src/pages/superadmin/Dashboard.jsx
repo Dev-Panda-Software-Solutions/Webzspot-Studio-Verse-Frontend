@@ -302,10 +302,13 @@ export default function AdminDashboard() {
               ) : tenants.length === 0 ? (
                 <div className="py-12 text-center text-[var(--text-tertiary)] text-sm">No studios yet</div>
               ) : (
-                <div className="w-full max-w-full overflow-x-auto overscroll-x-contain">
+                <div
+                  className="w-full max-w-full overflow-x-auto overscroll-x-contain"
+                  style={{ WebkitOverflowScrolling: 'touch' }}
+                >
                   {tenants.map((t) => (
                     <div key={t.tenant_id || t.id}
-                      className="flex min-w-0 flex-wrap items-center gap-3 px-6 py-4 border-b transition-colors hover:bg-[var(--bg-elevated)] sm:min-w-[680px] sm:flex-nowrap sm:gap-4"
+                      className="flex min-w-[680px] flex-nowrap items-center gap-4 px-6 py-4 border-b transition-colors hover:bg-[var(--bg-elevated)]"
                       style={{ borderColor: 'var(--border-subtle)' }}>
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 font-semibold text-sm"
                         style={{ background: 'rgba(245,158,11,0.12)', color: '#F59E0B' }}>
