@@ -104,6 +104,18 @@ body {
     width: 280px !important;
     max-width: calc(100vw - 32px);
   }
+
+  .recent-studios-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-primary) var(--bg-elevated);
+  }
+
+  .recent-studios-scroll::-webkit-scrollbar { height: 8px; }
+  .recent-studios-scroll::-webkit-scrollbar-track { background: var(--bg-elevated); }
+  .recent-studios-scroll::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 999px; }
 }
 
 /* ─── Scrollbar Styling ──────────────────────────────────── */

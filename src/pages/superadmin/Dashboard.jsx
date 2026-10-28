@@ -302,11 +302,9 @@ export default function AdminDashboard() {
               ) : tenants.length === 0 ? (
                 <div className="py-12 text-center text-[var(--text-tertiary)] text-sm">No studios yet</div>
               ) : (
-                <div
-                  className="w-full max-w-full overflow-x-scroll overscroll-x-contain"
-                  style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x' }}
-                >
-                  <div className="min-w-[680px]">
+                <>
+                  <div className="overflow-x-auto overscroll-x-contain recent-studios-scroll">
+                    <div style={{ width: 680, minWidth: 680 }}>
                     {tenants.map((t) => (
                     <div key={t.tenant_id || t.id}
                       className="flex items-center gap-4 px-6 py-4 border-b transition-colors hover:bg-[var(--bg-elevated)]"
@@ -324,8 +322,12 @@ export default function AdminDashboard() {
                       <Badge variant={t.isactive ? 'success' : 'error'}>{t.isactive ? 'Active' : 'Inactive'}</Badge>
                     </div>
                     ))}
+                    </div>
                   </div>
-                </div>
+                  <p className="px-6 py-2 text-[11px] md:hidden" style={{ color: 'var(--text-tertiary)' }}>
+                    Swipe left to view plan, date and status
+                  </p>
+                </>
               )}
             </GlassCard>
           </div>
