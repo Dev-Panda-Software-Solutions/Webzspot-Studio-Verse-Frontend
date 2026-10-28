@@ -95,10 +95,10 @@ function StorageRow({ name, meta, value, max }) {
   const pct = max > 0 ? Math.max(4, Math.min(100, (value / max) * 100)) : 0
   return (
     <div className="py-3 border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
-      <div className="flex items-center justify-between gap-3 mb-2">
-        <div className="min-w-0">
-          <p className="text-sm font-medium whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>{name}</p>
-          {meta && <p className="text-xs whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>{meta}</p>}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+          <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium break-words sm:whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>{name}</p>
+          {meta && <p className="text-xs break-words sm:whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>{meta}</p>}
         </div>
         <p className="text-xs font-semibold whitespace-nowrap" style={{ color: GOLD }}>{formatStorage(value)}</p>
       </div>
@@ -305,15 +305,15 @@ export default function AdminDashboard() {
                 <div className="w-full max-w-full overflow-x-auto overscroll-x-contain">
                   {tenants.map((t) => (
                     <div key={t.tenant_id || t.id}
-                      className="flex min-w-[680px] items-center gap-4 px-6 py-4 border-b transition-colors hover:bg-[var(--bg-elevated)]"
+                      className="flex min-w-0 flex-wrap items-center gap-3 px-6 py-4 border-b transition-colors hover:bg-[var(--bg-elevated)] sm:min-w-[680px] sm:flex-nowrap sm:gap-4"
                       style={{ borderColor: 'var(--border-subtle)' }}>
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 font-semibold text-sm"
                         style={{ background: 'rgba(245,158,11,0.12)', color: '#F59E0B' }}>
                         {(t.tenant_studio_name || '?')[0].toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>{t.tenant_studio_name}</p>
-                        <p className="text-xs whitespace-nowrap" style={{ color: 'var(--text-secondary)' }}>{t.tenant_name}</p>
+                        <p className="text-sm font-medium break-words sm:whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>{t.tenant_studio_name}</p>
+                        <p className="text-xs break-words sm:whitespace-nowrap" style={{ color: 'var(--text-secondary)' }}>{t.tenant_name}</p>
                       </div>
                       <Badge variant="gold">{planLabel(t.subscription)}</Badge>
                       <p className="text-xs whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>{formatDate(t.createdAt)}</p>
@@ -332,7 +332,7 @@ export default function AdminDashboard() {
               <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No storage yet</p>
             ) : (
               <div className="w-full max-w-full overflow-x-auto overscroll-x-contain">
-                <div className="min-w-[400px]">
+                <div className="min-w-0 sm:min-w-[400px]">
                   {storageByStudio.slice(0, 5).map(item => (
                     <StorageRow
                       key={item.tenant_id}
