@@ -66,6 +66,11 @@ export default function SidebarNav({ collapsed, onCollapse, mobileOpen = false, 
     gsap.to(sidebarRef.current, { width: next ? 64 : 240, duration: 0.3, ease: 'power3.inOut' })
   }
 
+  const handleCollapseClick = () => {
+    toggleCollapse()
+    if (window.innerWidth < 768) onMobileClose?.()
+  }
+
   const handleLogout = async () => {
     try { await logout() } catch {}
     storeLogout()
@@ -246,7 +251,7 @@ export default function SidebarNav({ collapsed, onCollapse, mobileOpen = false, 
 
       {/* ── Collapse pill ── */}
       <button
-        onClick={toggleCollapse}
+        onClick={handleCollapseClick}
         className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full
           flex items-center justify-center z-50 transition-colors duration-150"
         style={{
