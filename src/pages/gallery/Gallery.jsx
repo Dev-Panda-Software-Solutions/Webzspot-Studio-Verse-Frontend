@@ -331,6 +331,7 @@ export default function Gallery() {
         eventId={activeEventId}
         eventName={eventName}
         allowDownload={event?.allow_download !== false}
+        favouritesSubmitted={isSubmitted}
       />
     </div>
     </AppLayout>

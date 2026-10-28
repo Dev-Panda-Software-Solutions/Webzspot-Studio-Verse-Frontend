@@ -5,7 +5,7 @@ import { Heart, Download } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import PhotoGrid from '../../components/gallery/PhotoGrid'
 import { getMediaByEvent, downloadFavouritesZip } from '../../api/media'
-import { getEventById } from '../../api/events'
+import { getEvents, getEventById } from '../../api/events'
 import { getUserFavourites } from '../../api/favourites'
 import { getTenantSettings } from '../../api/tenants'
 import useBrandColours from '../../hooks/useBrandColours'
@@ -21,6 +21,15 @@ export default function GalleryFavourites() {
   const { setFavourites, getFavouritedMediaIds } = useGalleryStore()
   const containerRef = useRef(null)
   const [downloading, setDownloading] = useState(false)
+
+  const { data: eventsData } = useQuery({
+    queryKey: ['user-events'],
+    queryFn: () => getEvents({ page: 1, limit: 100 }),
+    enabled: !!eventId,
+    refetchOnWindowFocus: true,
+  })
+  const currentAccess = (eventsData?.data?.items || []).find(e => e.event_id === eventId)?._access
+  const favouritesSubmitted = !!currentAccess?.favourites_submitted_at
 
   const { data: eventData } = useQuery({
     queryKey: ['gallery-event', eventId],
@@ -83,7 +92,7 @@ export default function GalleryFavourites() {
   return (
     <AppLayout
       title={`My Favourites${favIds.size > 0 ? ` (${favIds.size})` : ''}`}
-      actions={allowDownload && favouriteMedia.length > 0 ? (
+      actions={allowDownload && favouritesSubmitted && favouriteMedia.length > 0 ? (
         <GoldButton size="sm" variant="outline" icon={<Download size={14} />} loading={downloading} onClick={handleDownload}>
           Download
         </GoldButton>
@@ -91,6 +100,13 @@ export default function GalleryFavourites() {
     >
       <div ref={containerRef} className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
         <main className="px-4 py-8">
+        {!favouritesSubmitted && (
+          <div className="mb-6 px-4 py-3 rounded-lg flex items-center gap-3" style={{ background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.25)' }}>
+            <p className="text-sm" style={{ color: '#FBBF24' }}>
+              Submit your favourites from the gallery before downloading. Your selection will be locked after submission.
+            </p>
+          </div>
+        )}
         {!mediaLoading && favouriteMedia.length === 0 ? (
           <div className="py-24 flex flex-col items-center text-center">
             <Heart size={48} className="text-[var(--text-tertiary)] mb-4 animate-float" />
@@ -106,6 +122,7 @@ export default function GalleryFavourites() {
             eventId={eventId}
             loading={mediaLoading}
             showFavourite
+            frozen={favouritesSubmitted}
           />
         )}
         </main>

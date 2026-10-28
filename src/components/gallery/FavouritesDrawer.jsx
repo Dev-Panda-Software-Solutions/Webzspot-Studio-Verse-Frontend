@@ -24,7 +24,7 @@ function ThumbImage({ media }) {
   )
 }
 
-export default function FavouritesDrawer({ open, onClose, mediaList = [], eventId, eventName, allowDownload }) {
+export default function FavouritesDrawer({ open, onClose, mediaList = [], eventId, eventName, allowDownload, favouritesSubmitted = false }) {
   const { user } = useAuthStore()
   const { getFavouritedMediaIds } = useGalleryStore()
   const [downloading, setDownloading] = useState(false)
@@ -73,7 +73,11 @@ export default function FavouritesDrawer({ open, onClose, mediaList = [], eventI
               {favouritedMedia.map(m => <ThumbImage key={m.media_id} media={m} />)}
             </div>
             <div className="mt-4 flex items-center justify-end gap-3">
-              {allowDownload ? (
+              {!favouritesSubmitted ? (
+                <span className="text-xs" style={{ color: '#FBBF24' }}>
+                  Submit your favourites first to unlock the download.
+                </span>
+              ) : allowDownload ? (
                 <GoldButton size="sm" icon={<Download size={14} />} loading={downloading} onClick={handleDownload}>
                   Download Favourites
                 </GoldButton>
