@@ -9,6 +9,7 @@ import Avatar from '../../components/ui/Avatar'
 import Badge from '../../components/ui/Badge'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
+import Modal from '../../components/ui/Modal'
 import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import { assignUserToEvent, getEventUsers, getEvents, updateEventUserMapping } from '../../api/events'
 import { getUsers } from '../../api/users'
@@ -202,12 +203,17 @@ function EventColumn({ event, mappings, selected, onSelect, onUpdate }) {
             {mappings.length}
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-2 flex-wrap">
-          <span className="inline-flex items-center gap-1 text-[11px]" style={{ color: '#34D399' }}>
-            <CheckCircle2 size={11} /> {activeCount} active
-          </span>
-          <span className="inline-flex items-center gap-1 text-[11px]" style={{ color: expiredCount ? '#F87171' : 'var(--text-tertiary)' }}>
-            <Clock3 size={11} /> {expiredCount} expired
+        <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="inline-flex items-center gap-1 text-[11px]" style={{ color: '#34D399' }}>
+              <CheckCircle2 size={11} /> {activeCount} active
+            </span>
+            <span className="inline-flex items-center gap-1 text-[11px]" style={{ color: expiredCount ? '#F87171' : 'var(--text-tertiary)' }}>
+              <Clock3 size={11} /> {expiredCount} expired
+            </span>
+          </div>
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold" style={{ color: '#F59E0B' }}>
+            <UserPlus size={12} /> Add client
           </span>
         </div>
       </button>
@@ -231,6 +237,7 @@ export default function AccessBoard() {
   const [selectedEventId, setSelectedEventId] = useState(null)
   const [search, setSearch] = useState('')
   const [addClientOpen, setAddClientOpen] = useState(false)
+  const [quickAddOpen, setQuickAddOpen] = useState(false)
   const [showAllEvents, setShowAllEvents] = useState(false)
 
   const { data: eventData, isLoading: eventsLoading } = useQuery({
@@ -321,11 +328,22 @@ export default function AccessBoard() {
   const activeEvent = events.find(event => event.event_id === activeEventId)
   const loading = eventsLoading || usersLoading || mappingsLoading || refreshing
 
+  const openAddClient = (eventId) => {
+    setSelectedEventId(eventId)
+    setSearch('')
+    setAddClientOpen(true)
+  }
+
+  const closeAddClient = () => {
+    setAddClientOpen(false)
+    setSearch('')
+  }
+
   const toggleEventList = () => {
     setShowAllEvents(prev => {
       const next = !prev
       // The selected event may be outside the recent list - fall back to the
-      // newest event so the Add Client panel never points at a hidden event.
+      // newest event so the popup never points at a hidden event.
       if (!next && selectedEventId) {
         const recentIds = sortedEvents.slice(0, RECENT_EVENT_COUNT).map(e => e.event_id)
         if (!recentIds.includes(selectedEventId)) {
@@ -372,8 +390,7 @@ export default function AccessBoard() {
             <p style={{ color: 'var(--text-secondary)' }}>Create an event first to start mapping clients.</p>
           </GlassCard>
         ) : (
-          <div className="grid xl:grid-cols-[1fr_360px] gap-5 items-start">
-            <div className="min-w-0">
+          <div className="min-w-0">
               <div className="flex items-center justify-between gap-3 mb-3">
                 <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>
                   {showAllEvents ? 'All events' : 'Recent events'}
@@ -389,8 +406,8 @@ export default function AccessBoard() {
                     key={event.event_id}
                     event={event}
                     mappings={mappingsByEvent[event.event_id] || []}
-                    selected={event.event_id === activeEventId}
-                    onSelect={() => setSelectedEventId(event.event_id)}
+                    selected={event.event_id === selectedEventId && addClientOpen}
+                    onSelect={() => openAddClient(event.event_id)}
                     onUpdate={updateMapping}
                   />
                 ))}
@@ -413,67 +430,62 @@ export default function AccessBoard() {
                   </GoldButton>
                 </div>
               )}
-            </div>
-
-            <GlassCard hover={false} className="sticky top-24">
-              <div className="flex items-start justify-between gap-3 mb-4">
-                <div>
-                  <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Add Client</h2>
-                  <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
-                    {activeEvent ? `To ${activeEvent.event_name}` : 'Select an event'}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setAddClientOpen(true)}
-                  disabled={!activeEventId}
-                  title="Create a new client"
-                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 disabled:opacity-40 transition-colors"
-                  style={{ background: 'var(--accent-muted)', color: '#F59E0B' }}
-                >
-                  <UserPlus size={16} />
-                </button>
-              </div>
-
-              <div className="relative mb-4">
-                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
-                <input
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="Search unassigned clients"
-                  className="w-full pl-8 pr-3 py-2.5 text-sm rounded-xl outline-none"
-                  style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
-                />
-              </div>
-
-              <div className="space-y-3 overflow-y-auto pr-1" style={{ maxHeight: '58vh' }}>
-                {filteredUnassigned.length === 0 ? (
-                  <div className="rounded-xl px-4 py-10 text-center" style={{ background: 'var(--bg-elevated)' }}>
-                    <CheckCircle2 size={26} className="mx-auto mb-2" style={{ color: '#34D399' }} />
-                    <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>
-                      Every matching client is already assigned to this event.
-                    </p>
-                    <GoldButton size="sm" variant="outline" icon={<UserPlus size={13} />} onClick={() => setAddClientOpen(true)} disabled={!activeEventId}>
-                      New Client
-                    </GoldButton>
-                  </div>
-                ) : filteredUnassigned.map(user => (
-                  <UnassignedClient
-                    key={user.user_id}
-                    user={user}
-                    eventId={activeEventId}
-                    onAssigned={refreshBoard}
-                  />
-                ))}
-              </div>
-            </GlassCard>
           </div>
         )}
       </div>
 
+      <Modal open={addClientOpen} onClose={closeAddClient} title="Add Client" size="md">
+        <div className="flex flex-wrap items-center justify-between gap-3 -mt-3 mb-4">
+          <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+            {activeEvent ? `To ${activeEvent.event_name}` : 'Select an event'}
+          </p>
+          <GoldButton
+            size="sm"
+            variant="outline"
+            icon={<UserPlus size={13} />}
+            onClick={() => setQuickAddOpen(true)}
+            disabled={!activeEventId}
+          >
+            New Client
+          </GoldButton>
+        </div>
+
+        <div className="relative mb-4">
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search unassigned clients"
+            className="w-full pl-8 pr-3 py-2.5 text-sm rounded-xl outline-none"
+            style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
+          />
+        </div>
+
+        <div className="space-y-3 overflow-y-auto pr-1 popup-scrollbar" style={{ maxHeight: '48vh' }}>
+          {filteredUnassigned.length === 0 ? (
+            <div className="rounded-xl px-4 py-10 text-center" style={{ background: 'var(--bg-elevated)' }}>
+              <CheckCircle2 size={26} className="mx-auto mb-2" style={{ color: '#34D399' }} />
+              <p className="text-xs mb-3" style={{ color: 'var(--text-tertiary)' }}>
+                Every matching client is already assigned to this event.
+              </p>
+              <GoldButton size="sm" variant="outline" icon={<UserPlus size={13} />} onClick={() => setQuickAddOpen(true)} disabled={!activeEventId}>
+                New Client
+              </GoldButton>
+            </div>
+          ) : filteredUnassigned.map(user => (
+            <UnassignedClient
+              key={user.user_id}
+              user={user}
+              eventId={activeEventId}
+              onAssigned={refreshBoard}
+            />
+          ))}
+        </div>
+      </Modal>
+
       <QuickAddClientModal
-        open={addClientOpen}
-        onClose={() => setAddClientOpen(false)}
+        open={quickAddOpen}
+        onClose={() => setQuickAddOpen(false)}
         presetEventId={activeEventId}
         onCreated={refreshBoard}
       />
