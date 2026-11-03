@@ -160,7 +160,7 @@ export default function AdminStudios() {
       </div>
 
       <GlassCard hover={false} className="p-0 overflow-hidden">
-        <div className="hidden w-full max-w-full overflow-x-auto overscroll-x-contain md:block">
+        <div className="hidden w-full max-w-full overflow-x-auto overscroll-x-contain xl:block">
           <table className="w-full min-w-[860px]">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -256,7 +256,7 @@ export default function AdminStudios() {
 
         {/* Mobile: each studio becomes a compact card, so no field is hidden
             behind a sideways-scrolling table. */}
-        <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+        <div className="divide-y xl:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
           {isLoading ? (
             <div className="p-4 space-y-3">
               {[...Array(4)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}

@@ -294,7 +294,7 @@ export default function BillingDashboard() {
 
       {tab === 'quotations' ? (
         <GlassCard hover={false} className="p-0 overflow-hidden">
-          <div className="hidden overflow-x-auto md:block">
+          <div className="hidden overflow-x-auto xl:block">
             <table className="w-full min-w-[760px]">
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -337,7 +337,7 @@ export default function BillingDashboard() {
               </tbody>
             </table>
           </div>
-          <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+          <div className="divide-y xl:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
             {isLoading ? (
               <div className="p-4 space-y-2">
                 {[...Array(4)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}
@@ -388,7 +388,7 @@ export default function BillingDashboard() {
         </GlassCard>
       ) : (
         <GlassCard hover={false} className="p-0 overflow-hidden">
-          <div className="hidden overflow-x-auto md:block">
+          <div className="hidden overflow-x-auto xl:block">
             <table className="w-full min-w-[760px]">
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -431,7 +431,7 @@ export default function BillingDashboard() {
               </tbody>
             </table>
           </div>
-          <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+          <div className="divide-y xl:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
             {billsLoading ? (
               <div className="p-4 space-y-2">
                 {[...Array(4)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}

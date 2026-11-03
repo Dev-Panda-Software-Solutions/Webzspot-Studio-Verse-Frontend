@@ -184,7 +184,7 @@ export default function QuotationEditor() {
           </p>
         ) : (
           <>
-          <div className="hidden overflow-x-auto md:block">
+          <div className="hidden overflow-x-auto xl:block">
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -242,7 +242,7 @@ export default function QuotationEditor() {
           </div>
 
           {/* Mobile: edit each line item as a compact card instead of a wide table. */}
-          <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+          <div className="divide-y xl:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
             {items.map((item, idx) => (
               <div key={idx} className="p-4">
                 <div className="flex items-start justify-between gap-3">

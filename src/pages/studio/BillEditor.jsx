@@ -71,7 +71,7 @@ export default function BillEditor() {
           <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Items</h3>
         </div>
 
-        <div className="hidden overflow-x-auto md:block">
+        <div className="hidden overflow-x-auto xl:block">
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -95,7 +95,7 @@ export default function BillEditor() {
         </div>
 
         {/* Mobile: item details stay readable without a wide table. */}
-        <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+        <div className="divide-y xl:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
           {(bill.items || []).map((item) => (
             <div key={item.bill_item_id} className="p-4">
               <p className="text-sm font-medium break-words" style={{ color: 'var(--text-primary)' }}>{item.name}</p>
@@ -157,7 +157,7 @@ export default function BillEditor() {
               <Receipt size={15} className="text-gold-500" />
               <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Payments & Receipts</h3>
             </div>
-            <div className="hidden overflow-x-auto md:block">
+            <div className="hidden overflow-x-auto xl:block">
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -190,7 +190,7 @@ export default function BillEditor() {
             </div>
 
             {/* Mobile: receipts as compact cards with the download action visible. */}
-            <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+            <div className="divide-y xl:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
               {bill.payments.map(p => (
                 <div key={p.payment_id} className="p-4">
                   <div className="flex items-start justify-between gap-3">

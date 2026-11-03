@@ -195,7 +195,7 @@ export default function Plans() {
       <TrialSettingsCard />
 
       <GlassCard hover={false} className="p-0 overflow-hidden">
-        <div className="hidden w-full max-w-full overflow-x-auto overscroll-x-contain md:block">
+        <div className="hidden w-full max-w-full overflow-x-auto overscroll-x-contain xl:block">
           <table className="w-full min-w-[900px]">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -288,7 +288,7 @@ export default function Plans() {
 
         {/* Mobile: stacked plan cards keep name, type, details, price and
             actions visible without horizontal table scrolling. */}
-        <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+        <div className="divide-y xl:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
           {isLoading ? (
             <div className="p-4 space-y-3">
               {[...Array(3)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}

@@ -361,7 +361,7 @@ export default function Billing() {
               <p className="text-sm p-6 text-center" style={{ color: 'var(--text-tertiary)' }}>No plans purchased yet.</p>
             ) : (
               <>
-                  <div className="hidden overflow-x-auto md:block">
+                  <div className="hidden overflow-x-auto xl:block">
                     <table className="w-full min-w-[680px]">
                       <thead>
                         <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -395,7 +395,7 @@ export default function Billing() {
                       </tbody>
                     </table>
                   </div>
-                  <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+                  <div className="divide-y xl:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
                     {history.map(h => {
                       const change = changeLabel(h.change_type)
                       const price = h.locked_price != null
