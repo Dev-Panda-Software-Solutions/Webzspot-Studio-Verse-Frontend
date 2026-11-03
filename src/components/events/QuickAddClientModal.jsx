@@ -237,7 +237,7 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
                 />
               </div>
 
-              <div className="rounded-xl overflow-hidden mb-4" style={{ border: '1px solid var(--border-subtle)', maxHeight: 220, overflowY: 'auto' }}>
+               <div className="rounded-xl overflow-hidden mb-4 popup-scrollbar" style={{ border: '1px solid var(--border-subtle)', maxHeight: 220, overflowY: 'auto' }}>
                 {filtered.length === 0 ? (
                   <div className="py-8 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
                     {allUsers.length === 0 ? 'No clients yet - create one first' : 'No matching clients'}

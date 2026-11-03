@@ -96,7 +96,7 @@ function ClientEventsModal({ client, onClose }) {
       ) : mappings.length === 0 ? (
         <p className="text-sm py-8 text-center" style={{ color: 'var(--text-tertiary)' }}>Not assigned to any event yet.</p>
       ) : (
-        <div className="rounded-xl overflow-hidden max-h-[55vh] overflow-y-auto" style={{ border: '1px solid var(--border-subtle)' }}>
+         <div className="rounded-xl overflow-hidden max-h-[55vh] overflow-y-auto popup-scrollbar" style={{ border: '1px solid var(--border-subtle)' }}>
           {mappings.map(m => (
             <MappingRow
               key={m.event_user_id}

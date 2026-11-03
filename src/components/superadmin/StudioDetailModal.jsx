@@ -277,7 +277,7 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
 
   return (
     <Modal open onClose={onClose} title={`${studioName} - Studio Details`} size="2xl">
-      <div className="max-h-[75vh] overflow-y-auto pr-1 -mr-1 space-y-6">
+       <div className="max-h-[75vh] overflow-y-auto pr-1 -mr-1 space-y-6 popup-scrollbar">
 
         {/* ── Overview ── */}
         <section>

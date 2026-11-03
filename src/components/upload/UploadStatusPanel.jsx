@@ -316,7 +316,7 @@ export default function UploadStatusPanel() {
 
             {/* ── Upload tab ── */}
             {activeTab === 'upload' && (
-              <div className="p-5 flex-1 overflow-y-auto">
+               <div className="p-5 flex-1 overflow-y-auto popup-scrollbar">
                 <div
                   ref={zoneRef}
                   onDrop={uploading ? undefined : onDrop}
@@ -452,7 +452,7 @@ export default function UploadStatusPanel() {
                     </div>
 
                     {/* File list */}
-                    <div className="flex-1 overflow-y-auto px-5">
+                     <div className="flex-1 overflow-y-auto px-5 popup-scrollbar">
                       {queue.map(item => (
                         <FileRow
                           key={item.id}

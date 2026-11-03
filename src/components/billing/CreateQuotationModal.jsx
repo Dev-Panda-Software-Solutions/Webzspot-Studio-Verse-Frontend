@@ -95,7 +95,7 @@ export default function CreateQuotationModal({ open, onClose }) {
               style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
             />
           </div>
-          <div className="rounded-xl overflow-hidden mb-4" style={{ border: '1px solid var(--border-subtle)', maxHeight: 260, overflowY: 'auto' }}>
+           <div className="rounded-xl overflow-hidden mb-4 popup-scrollbar" style={{ border: '1px solid var(--border-subtle)', maxHeight: 260, overflowY: 'auto' }}>
             {clients.length === 0 ? (
               <div className="py-8 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>No matching clients</div>
             ) : clients.map(c => (

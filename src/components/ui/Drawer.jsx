@@ -29,7 +29,7 @@ export default function Drawer({ open, onClose, title, children, side = 'right',
             onClick={onClose}
           />
           <motion.div
-            className={`absolute ${pos[side]} shadow-modal flex flex-col`}
+             className={`absolute ${pos[side]} shadow-modal flex flex-col overflow-hidden ${side === 'bottom' ? 'rounded-t-2xl' : 'rounded-l-2xl'}`}
             style={{
               width: side === 'right' ? width : '100%',
               maxHeight: side === 'bottom' ? '80vh' : '100vh',
@@ -51,7 +51,7 @@ export default function Drawer({ open, onClose, title, children, side = 'right',
                 <X size={16} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-5">{children}</div>
+             <div className="flex-1 overflow-y-auto p-5 popup-scrollbar">{children}</div>
           </motion.div>
         </div>
       )}

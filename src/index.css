@@ -113,6 +113,23 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
 
+/* Keep scrollbars visually inside rounded popup surfaces. The transparent
+   border gives the thumb breathing room while the parent clips the track to
+   its rounded corners. */
+.popup-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.popup-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+.popup-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.popup-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 999px;
+}
+.popup-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); background-clip: padding-box; }
+
 /* ─── Gold Shimmer Text ──────────────────────────────────── */
 .text-gold-shimmer {
   background: var(--gradient-gold);
