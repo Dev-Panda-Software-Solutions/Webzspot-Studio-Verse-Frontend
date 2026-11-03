@@ -109,20 +109,36 @@ body {
 
 /* ─── Scrollbar Styling ──────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+/* Hide every native arrow/stepper button variant. Chromium renders these at
+   both ends of the track and they look detached from the popup curve. */
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-button:single-button,
+::-webkit-scrollbar-button:double-button,
+::-webkit-scrollbar-button:start,
+::-webkit-scrollbar-button:end,
+::-webkit-scrollbar-button:vertical:decrement,
+::-webkit-scrollbar-button:vertical:increment,
+::-webkit-scrollbar-button:horizontal:decrement,
+::-webkit-scrollbar-button:horizontal:increment {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  -webkit-appearance: none !important;
+}
 ::-webkit-scrollbar-track { background: var(--bg-surface); }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
 
 /* Keep scrollbars visually inside rounded popup surfaces. The transparent
    border gives the thumb breathing room while the parent clips the track to
-   its rounded corners. */
-.popup-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-strong) transparent;
-}
+   its rounded corners.
+   Important: do NOT set scrollbar-width/scrollbar-color in Chromium. Those
+   standard properties switch the element to the native scrollbar and make
+   Chromium ignore all ::-webkit-scrollbar rules, which brings the native
+   arrow buttons back. They are applied only to non-webkit engines below. */
 .popup-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-.popup-scrollbar::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+.popup-scrollbar::-webkit-scrollbar-button { display: none !important; width: 0 !important; height: 0 !important; }
 .popup-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .popup-scrollbar::-webkit-scrollbar-thumb {
   background: var(--border-strong);
@@ -131,6 +147,16 @@ body {
   border-radius: 999px;
 }
 .popup-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); background-clip: padding-box; }
+
+/* Firefox and other engines without webkit scrollbar pseudo-elements still
+   get a thin themed scrollbar. Chromium skips this block so its webkit rules
+   (and the hidden arrow buttons) stay in control. */
+@supports not selector(::-webkit-scrollbar) {
+  .popup-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+}
 
 /* Access Board: fluid event columns that never crush each other, plus a
    contained scroll area when the full list is expanded. */
