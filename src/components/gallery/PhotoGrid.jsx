@@ -34,7 +34,10 @@ export default function PhotoGrid({
   const atFavouriteLimit = favouriteLimit != null && favouritedCount >= favouriteLimit
   const [lightboxIndex, setLightboxIndex] = useState(null)
   const [view, setView] = useState('masonry')
-  const [zoom, setZoom] = useState(6) // index 6 → 4 cols default
+  // index 6 → 4 cols (desktop); index 8 → 2 cols so photos stay readable on phones
+  const [zoom, setZoom] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 640 ? 8 : 6
+  )
   const [filterFavs, setFilterFavs] = useState(false)
   const gridRef = useRef(null)
 

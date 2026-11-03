@@ -18,6 +18,16 @@ import toast from 'react-hot-toast'
 
 const toDateInput = (value) => value ? new Date(value).toISOString().split('T')[0] : ''
 
+function ClientStatus({ client }) {
+  if (!client.isactive) return <Badge variant="error">Archived</Badge>
+  if (client.expiry_date) {
+    return <Badge variant={isExpired(client.expiry_date) ? 'error' : 'success'}>
+      {isExpired(client.expiry_date) ? 'Expired' : 'Active'}
+    </Badge>
+  }
+  return <Badge variant="success">Active</Badge>
+}
+
 function MappingRow({ mapping, onChanged }) {
   const [expiry, setExpiry] = useState(toDateInput(mapping.access_expires))
   const [saving, setSaving] = useState(false)
@@ -261,7 +271,7 @@ export default function Clients() {
       </div>
 
       <GlassCard hover={false} className="p-0 overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -306,17 +316,10 @@ export default function Clients() {
                     {u.expiry_date ? formatDate(u.expiry_date) : '-'}
                   </td>
                   <td className="px-6 py-4">
-                    {!u.isactive
-                      ? <Badge variant="error">Archived</Badge>
-                      : u.expiry_date
-                        ? <Badge variant={isExpired(u.expiry_date) ? 'error' : 'success'}>
-                            {isExpired(u.expiry_date) ? 'Expired' : 'Active'}
-                          </Badge>
-                        : <Badge variant="success">Active</Badge>
-                    }
+                    <ClientStatus client={u} />
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1">
                       <button
                         onClick={() => setEditingClient(u)}
                         title="Edit client details"
@@ -367,6 +370,88 @@ export default function Clients() {
             </tbody>
           </table>
         </div>
+
+        {/* Mobile: compact cards keep every required field visible without
+            sideways table scrolling. */}
+        <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+          {isLoading ? (
+            <div className="p-4 space-y-3">
+              {[...Array(4)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}
+            </div>
+          ) : items.length === 0 ? (
+            <p className="py-16 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
+              No clients yet - add one to get started.
+            </p>
+          ) : items.map(u => (
+            <div key={u.user_id} className="p-4">
+              <div className="flex items-start gap-3">
+                <Avatar name={u.user_name} size="sm" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-semibold break-words" style={{ color: 'var(--text-primary)' }}>
+                      {clientDisplayName(u)}
+                    </p>
+                    <ClientStatus client={u} />
+                  </div>
+                  <p className="text-xs truncate mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+                    {u.user_email_id || u.user_phone_number || '-'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  <button
+                    onClick={() => setEditingClient(u)}
+                    title="Edit client details"
+                    className="p-1.5 rounded"
+                    style={{ color: 'var(--text-tertiary)' }}
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  {u.isactive ? (
+                    <button
+                      onClick={() => handleSoftDelete(u.user_id, u.user_name)}
+                      title="Archive client"
+                      className="p-1.5 rounded"
+                      style={{ color: 'var(--text-tertiary)' }}
+                    >
+                      <UserX size={14} />
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleRestore(u.user_id, u.user_name)}
+                      title="Restore client"
+                      className="p-1.5 rounded"
+                      style={{ color: 'var(--text-tertiary)' }}
+                    >
+                      <RotateCcw size={14} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleHardDelete(u.user_id, u.user_name)}
+                    title="Permanently delete"
+                    className="p-1.5 rounded"
+                    style={{ color: 'var(--text-tertiary)' }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <button
+                  onClick={() => setEventsModalClient(u)}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium rounded-lg px-2.5 py-1.5"
+                  style={{ background: 'var(--accent-muted)', color: '#F59E0B' }}
+                >
+                  <CalendarDays size={12} />
+                  {u.event_names?.length ? `${u.event_names.length} event${u.event_names.length === 1 ? '' : 's'}` : 'Manage events'}
+                </button>
+                <span className="text-xs whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>
+                  {u.expiry_date ? `Expires ${formatDate(u.expiry_date)}` : 'No expiry'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
         {pages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t" style={{ borderColor: 'var(--border-default)' }}>
             <p className="text-xs text-[var(--text-tertiary)]">Page {page} of {pages}</p>

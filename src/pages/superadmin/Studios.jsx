@@ -160,7 +160,7 @@ export default function AdminStudios() {
       </div>
 
       <GlassCard hover={false} className="p-0 overflow-hidden">
-        <div className="w-full max-w-full overflow-x-auto overscroll-x-contain">
+        <div className="hidden w-full max-w-full overflow-x-auto overscroll-x-contain md:block">
           <table className="w-full min-w-[860px]">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -252,6 +252,89 @@ export default function AdminStudios() {
               )})}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile: each studio becomes a compact card, so no field is hidden
+            behind a sideways-scrolling table. */}
+        <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+          {isLoading ? (
+            <div className="p-4 space-y-3">
+              {[...Array(4)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}
+            </div>
+          ) : items.length === 0 ? (
+            <p className="py-14 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>No studios found.</p>
+          ) : items.map(t => {
+            const storageEntry = storageByTenantId[t.tenant_id]
+            return (
+              <div key={t.tenant_id} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-[var(--accent-muted)] flex items-center justify-center flex-shrink-0">
+                      <Building2 size={14} className="text-gold-500" />
+                    </div>
+                    <div className="min-w-0">
+                      <button
+                        onClick={() => setViewTenant(t)}
+                        className="text-sm font-semibold text-left break-words"
+                        style={{ color: 'var(--text-primary)' }}
+                      >
+                        {t.tenant_studio_name}
+                      </button>
+                      <p className="text-xs truncate mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+                        {t.tenant_email_id || '-'}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={t.isactive ? 'success' : 'error'}>{t.isactive ? 'Active' : 'Archived'}</Badge>
+                </div>
+
+                <div className="mt-3 flex items-center gap-2 flex-wrap">
+                  {isFreeAccessGrant(t) && <Badge variant="gold">Free Access</Badge>}
+                  <Badge variant="gold">{planLabel(t.subscription)}</Badge>
+                  {t.subscription && <Badge variant={planStatusVariant(t.subscription.status)}>{t.subscription.status}</Badge>}
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Owner</p>
+                    <p className="mt-0.5 truncate" style={{ color: 'var(--text-secondary)' }}>{t.tenant_name}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Storage</p>
+                    <p className="mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                      {storageEntry ? formatStorageKb(storageEntry.stored_kb) : '0 KB'}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-[11px] mt-2" style={{ color: 'var(--text-tertiary)' }}>
+                  Created {formatDate(t.createdAt)}
+                </p>
+
+                <div className="mt-3 flex items-center gap-3">
+                  <button onClick={() => setViewTenant(t)} className="p-1.5 text-[var(--text-tertiary)]" title="View studio details">
+                    <Eye size={15} />
+                  </button>
+                  {storageEntry?.stored_kb > 0 && (
+                    <button onClick={() => handleDeleteStorage(t.tenant_id, t.tenant_studio_name)} className="p-1.5 text-[var(--text-tertiary)]" title="Delete studio's storage/files">
+                      <HardDriveDownload size={15} />
+                    </button>
+                  )}
+                  {t.isactive ? (
+                    <button onClick={() => handleArchive(t.tenant_id, t.tenant_studio_name)} className="p-1.5 text-[var(--text-tertiary)]" title="Archive studio">
+                      <Archive size={15} />
+                    </button>
+                  ) : (
+                    <button onClick={() => handleRestore(t.tenant_id, t.tenant_studio_name)} className="p-1.5 text-[var(--text-tertiary)]" title="Restore studio">
+                      <RotateCcw size={15} />
+                    </button>
+                  )}
+                  <button onClick={() => handleHardDelete(t.tenant_id, t.tenant_studio_name)} className="p-1.5 text-[var(--text-tertiary)]" title="Permanently delete">
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              </div>
+            )
+          })}
         </div>
 
         {pages > 1 && (

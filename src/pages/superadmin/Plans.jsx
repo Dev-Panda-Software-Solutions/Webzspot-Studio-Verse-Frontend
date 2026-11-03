@@ -195,7 +195,7 @@ export default function Plans() {
       <TrialSettingsCard />
 
       <GlassCard hover={false} className="p-0 overflow-hidden">
-        <div className="w-full max-w-full overflow-x-auto overscroll-x-contain">
+        <div className="hidden w-full max-w-full overflow-x-auto overscroll-x-contain md:block">
           <table className="w-full min-w-[900px]">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -284,6 +284,82 @@ export default function Plans() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile: stacked plan cards keep name, type, details, price and
+            actions visible without horizontal table scrolling. */}
+        <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+          {isLoading ? (
+            <div className="p-4 space-y-3">
+              {[...Array(3)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}
+            </div>
+          ) : items.length === 0 ? (
+            <p className="py-14 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>No plans yet.</p>
+          ) : items.map((p, index) => (
+            <div key={p.subscription_plan_id} className="p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <button
+                    onClick={() => openEdit(p)}
+                    className="text-sm font-semibold text-left break-words"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    {p.plan_name}
+                  </button>
+                  {p.special_access_cutoff_date && (
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+                      Special access · joined before {formatDate(p.special_access_cutoff_date)}
+                    </p>
+                  )}
+                </div>
+                <Badge variant={p.isactive ? 'success' : 'error'}>{p.isactive ? 'Active' : 'Inactive'}</Badge>
+              </div>
+
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <Badge variant={p.plan_type === 'WALLET' ? 'gold' : 'info'}>{p.plan_type}</Badge>
+                {p.plan_type === 'WALLET' && (
+                  <Badge variant={p.wallet_tier === 'INITIAL' ? 'success' : 'info'}>
+                    {p.wallet_tier === 'INITIAL' ? 'Initial' : 'Top-up'}
+                  </Badge>
+                )}
+                {p.plan_type === 'SUBSCRIPTION' && (
+                  <Badge variant={p.includes_ai_media ? 'gold' : 'default'}>
+                    {p.includes_ai_media ? 'AI Media' : 'Photo Selection only'}
+                  </Badge>
+                )}
+              </div>
+
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <span className="text-xs min-w-0" style={{ color: 'var(--text-secondary)' }}>
+                  {p.plan_type === 'SUBSCRIPTION'
+                    ? `${p.photo_quota} photos / ${p.duration_value} ${p.duration_unit?.toLowerCase()}`
+                    : `${p.wallet_credits} credits`}
+                </span>
+                <span className="text-sm font-semibold whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
+                  ₹{Number(p.price).toLocaleString()}
+                </span>
+              </div>
+
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-1">
+                  <button onClick={() => move(index, -1)} disabled={index === 0} className="p-1.5 text-[var(--text-tertiary)] disabled:opacity-30" title="Move up">
+                    <ArrowUp size={15} />
+                  </button>
+                  <button onClick={() => move(index, 1)} disabled={index === items.length - 1} className="p-1.5 text-[var(--text-tertiary)] disabled:opacity-30" title="Move down">
+                    <ArrowDown size={15} />
+                  </button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => openSpecialAccess(p)} className="p-1.5 text-[var(--text-tertiary)]" title="Special access">
+                    <Users size={15} />
+                  </button>
+                  <button onClick={() => handleDelete(p.subscription_plan_id)} className="p-1.5 text-[var(--text-tertiary)]" title="Delete plan">
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </GlassCard>
 

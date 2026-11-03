@@ -360,7 +360,8 @@ export default function Billing() {
             ) : history.length === 0 ? (
               <p className="text-sm p-6 text-center" style={{ color: 'var(--text-tertiary)' }}>No plans purchased yet.</p>
             ) : (
-                  <div className="overflow-x-auto">
+              <>
+                  <div className="hidden overflow-x-auto md:block">
                     <table className="w-full min-w-[680px]">
                       <thead>
                         <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -394,6 +395,45 @@ export default function Billing() {
                       </tbody>
                     </table>
                   </div>
+                  <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+                    {history.map(h => {
+                      const change = changeLabel(h.change_type)
+                      const price = h.locked_price != null
+                        ? `₹${Number(h.locked_price).toLocaleString()}`
+                        : h.plan?.price != null
+                          ? `₹${Number(h.plan.price).toLocaleString()}`
+                          : '-'
+                      return (
+                        <div key={h.tenant_subscription_id} className="p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold break-words" style={{ color: 'var(--text-primary)' }}>
+                                {planLabel(h)}
+                              </p>
+                              <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                                {change && <Badge variant={change.variant}>{change.label}</Badge>}
+                                <Badge variant={planStatusVariant(h.status)}>{h.status}</Badge>
+                              </div>
+                            </div>
+                            <p className="text-sm font-semibold whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
+                              {price}
+                            </p>
+                          </div>
+                          <div className="mt-3 grid grid-cols-2 gap-2">
+                            <div>
+                              <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Started</p>
+                              <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>{formatDate(h.starts_at)}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Expires</p>
+                              <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>{h.expires_at ? formatDate(h.expires_at) : '-'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+              </>
             )}
           </GlassCard>
         </div>

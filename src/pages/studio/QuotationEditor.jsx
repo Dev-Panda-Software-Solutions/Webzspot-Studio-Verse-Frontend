@@ -183,7 +183,8 @@ export default function QuotationEditor() {
             No items added yet - click "Add Items" to build this quotation.
           </p>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -239,6 +240,75 @@ export default function QuotationEditor() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile: edit each line item as a compact card instead of a wide table. */}
+          <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+            {items.map((item, idx) => (
+              <div key={idx} className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-sm font-medium break-words" style={{ color: 'var(--text-primary)' }}>{item.name}</p>
+                  {editable && (
+                    <button onClick={() => removeItem(idx)} className="p-1.5 rounded text-red-400 flex-shrink-0" title="Remove item">
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  {editable ? (
+                    <>
+                      <label className="block">
+                        <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Price</span>
+                        <input
+                          type="number" min="0" step="0.01" value={item.price}
+                          onChange={e => updateItem(idx, { price: Number(e.target.value) || 0 })}
+                          className="mt-1 w-full text-sm rounded-lg px-2 py-1.5 outline-none"
+                          style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Qty</span>
+                        <input
+                          type="number" min="1" value={item.quantity}
+                          onChange={e => updateItem(idx, { quantity: Math.max(1, parseInt(e.target.value) || 1) })}
+                          className="mt-1 w-full text-sm rounded-lg px-2 py-1.5 outline-none"
+                          style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
+                        />
+                      </label>
+                      <label className="block">
+                        <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Discount/unit</span>
+                        <input
+                          type="number" min="0" step="0.01" value={item.discount_per_unit || 0}
+                          onChange={e => updateItem(idx, { discount_per_unit: Number(e.target.value) || 0 })}
+                          className="mt-1 w-full text-sm rounded-lg px-2 py-1.5 outline-none"
+                          style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
+                        />
+                      </label>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Price</span>
+                        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{money(item.price)}</p>
+                      </div>
+                      <div>
+                        <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Qty</span>
+                        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{item.quantity}</p>
+                      </div>
+                      <div>
+                        <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Discount/unit</span>
+                        <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{money(item.discount_per_unit)}</p>
+                      </div>
+                    </>
+                  )}
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Line total</span>
+                    <p className="text-sm font-semibold mt-1" style={{ color: 'var(--text-primary)' }}>{money(lineTotal(item))}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          </>
         )}
       </GlassCard>
 

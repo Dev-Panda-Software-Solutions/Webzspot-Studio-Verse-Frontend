@@ -71,7 +71,7 @@ export default function BillEditor() {
           <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Items</h3>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -92,6 +92,33 @@ export default function BillEditor() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile: item details stay readable without a wide table. */}
+        <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+          {(bill.items || []).map((item) => (
+            <div key={item.bill_item_id} className="p-4">
+              <p className="text-sm font-medium break-words" style={{ color: 'var(--text-primary)' }}>{item.name}</p>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Price</span>
+                  <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{money(item.price)}</p>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Qty</span>
+                  <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{item.quantity}</p>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Discount/unit</span>
+                  <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>{money(item.discount_per_unit)}</p>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Line total</span>
+                  <p className="text-sm font-semibold mt-1" style={{ color: 'var(--text-primary)' }}>{money(lineTotal(item))}</p>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </GlassCard>
 
@@ -130,7 +157,7 @@ export default function BillEditor() {
               <Receipt size={15} className="text-gold-500" />
               <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Payments & Receipts</h3>
             </div>
-            <div className="overflow-x-auto">
+            <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -160,6 +187,34 @@ export default function BillEditor() {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile: receipts as compact cards with the download action visible. */}
+            <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+              {bill.payments.map(p => (
+                <div key={p.payment_id} className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>#{p.receipt_number}</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>{formatDate(p.createdAt)}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="text-sm font-semibold" style={{ color: '#34D399' }}>{money(p.amount)}</span>
+                      <button
+                        onClick={() => openBillingPdf(`/payments/${p.payment_id}/pdf`)}
+                        title="Download receipt"
+                        className="p-1.5 rounded text-[var(--text-tertiary)]"
+                      >
+                        <Download size={14} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between gap-3 text-xs">
+                    <span style={{ color: 'var(--text-secondary)' }}>{METHOD_LABEL[p.method]}</span>
+                    <span className="truncate text-right" style={{ color: 'var(--text-tertiary)' }}>{p.remark || '-'}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </GlassCard>
         )}

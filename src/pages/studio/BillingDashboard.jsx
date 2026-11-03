@@ -294,7 +294,7 @@ export default function BillingDashboard() {
 
       {tab === 'quotations' ? (
         <GlassCard hover={false} className="p-0 overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[760px]">
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -337,6 +337,49 @@ export default function BillingDashboard() {
               </tbody>
             </table>
           </div>
+          <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+            {isLoading ? (
+              <div className="p-4 space-y-2">
+                {[...Array(4)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}
+              </div>
+            ) : filteredQuotations.length === 0 ? (
+              <p className="py-14 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                No quotations yet - create one to get started.
+              </p>
+            ) : filteredQuotations.map(q => (
+              <button
+                key={q.quotation_id}
+                type="button"
+                onClick={() => shutterNavigate(`/studio/billing-data/quotations/${q.quotation_id}`)}
+                className="w-full text-left p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                      #{q.quotation_number}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1.5 min-w-0">
+                      <Avatar name={q.client?.user_name || '?'} size="xs" />
+                      <span className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
+                        {q.client?.user_name || '-'}
+                      </span>
+                    </div>
+                  </div>
+                  <Badge variant={q.status === 'CONFIRMED' ? 'success' : 'gold'}>
+                    {q.status === 'CONFIRMED' ? 'Confirmed' : 'Draft'}
+                  </Badge>
+                </div>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                    {formatDate(q.createdAt)} · {q.items?.length || 0} items
+                  </span>
+                  <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    {money(q.payable_amount)}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
           {quotationsTotal > quotations.length && (
             <p className="px-6 py-3 text-xs border-t" style={{ color: 'var(--text-tertiary)', borderColor: 'var(--border-default)' }}>
               Showing latest {quotations.length} of {quotationsTotal} quotations - refine your search to find older ones.
@@ -345,7 +388,7 @@ export default function BillingDashboard() {
         </GlassCard>
       ) : (
         <GlassCard hover={false} className="p-0 overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[760px]">
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
@@ -387,6 +430,53 @@ export default function BillingDashboard() {
                 ))}
               </tbody>
             </table>
+          </div>
+          <div className="divide-y md:hidden" style={{ borderColor: 'var(--border-subtle)' }}>
+            {billsLoading ? (
+              <div className="p-4 space-y-2">
+                {[...Array(4)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}
+              </div>
+            ) : filteredBills.length === 0 ? (
+              <p className="py-14 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                No bills yet - confirm a quotation to generate one.
+              </p>
+            ) : filteredBills.map(b => (
+              <button
+                key={b.bill_id}
+                type="button"
+                onClick={() => shutterNavigate(`/studio/billing-data/bills/${b.bill_id}`)}
+                className="w-full text-left p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                      #{b.bill_number}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1.5 min-w-0">
+                      <Avatar name={b.client?.user_name || '?'} size="xs" />
+                      <span className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
+                        {b.client?.user_name || '-'}
+                      </span>
+                    </div>
+                  </div>
+                  <Badge variant={BILL_STATUS_VARIANT[b.status]}>{BILL_STATUS_LABEL[b.status]}</Badge>
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Payable</p>
+                    <p className="text-xs font-semibold mt-0.5" style={{ color: 'var(--text-primary)' }}>{money(b.payable_amount)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Paid</p>
+                    <p className="text-xs font-semibold mt-0.5" style={{ color: '#34D399' }}>{money(b.paid_amount)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Balance</p>
+                    <p className="text-xs font-semibold mt-0.5" style={{ color: b.balance_due > 0 ? '#F87171' : 'var(--text-tertiary)' }}>{money(b.balance_due)}</p>
+                  </div>
+                </div>
+              </button>
+            ))}
           </div>
           {billsTotal > bills.length && (
             <p className="px-6 py-3 text-xs border-t" style={{ color: 'var(--text-tertiary)', borderColor: 'var(--border-default)' }}>

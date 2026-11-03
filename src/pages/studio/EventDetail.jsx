@@ -804,14 +804,14 @@ export default function StudioEventDetail() {
               </div>
             )}
             <div className="absolute inset-0" style={{ background: 'var(--gradient-image-fade)' }} />
-            <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between">
-              <div>
-                <h1 className="font-display text-2xl font-semibold text-white">{event?.event_name}</h1>
-                <p className="text-sm text-white/70">
+            <div className="absolute bottom-4 left-4 right-4 sm:left-6 sm:right-6 flex flex-col items-start gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div className="min-w-0">
+                <h1 className="font-display text-xl sm:text-2xl font-semibold text-white break-words">{event?.event_name}</h1>
+                <p className="text-xs sm:text-sm text-white/70">
                   {formatDate(event?.event_date)}{event?.event_venue && ` · ${event.event_venue}`}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 {event?.is_ai_event && <Badge variant="gold"><Sparkles size={10} className="inline mr-1" />AI Media</Badge>}
                 <Badge variant={event?.published_at ? 'success' : 'default'}>{event?.published_at ? 'Published' : 'Unpublished'}</Badge>
                 <Badge variant="gold">{event?.isactive ? 'Active' : 'Archived'}</Badge>
@@ -828,10 +828,10 @@ export default function StudioEventDetail() {
           )}
 
           {/* Tabs */}
-          <div className="event-tabs flex items-center gap-1 border-b" style={{ borderColor: 'var(--border-default)' }}>
+          <div className="event-tabs flex items-center gap-1 border-b overflow-x-auto" style={{ borderColor: 'var(--border-default)' }}>
             {(event?.is_ai_event ? [BASE_TABS[0], 'AI Media', ...BASE_TABS.slice(1)] : BASE_TABS).map(t => (
               <button key={t} onClick={() => { setTab(t); setMediaPage(1) }}
-                className={`px-4 py-2.5 text-sm font-medium transition-all duration-200 border-b-2 -mb-px
+                className={`px-2 sm:px-4 py-2.5 text-xs sm:text-sm font-medium whitespace-nowrap flex-shrink-0 transition-all duration-200 border-b-2 -mb-px
                   ${tab === t
                     ? 'border-gold-500 text-gold-500'
                     : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
