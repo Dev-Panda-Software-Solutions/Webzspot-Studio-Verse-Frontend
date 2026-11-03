@@ -132,6 +132,24 @@ body {
 }
 .popup-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); background-clip: padding-box; }
 
+/* Access Board: fluid event columns that never crush each other, plus a
+   contained scroll area when the full list is expanded. */
+.access-events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.access-events-scroll {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+@media (max-width: 640px) {
+  .access-events-grid { grid-template-columns: 1fr; }
+  .access-events-scroll { max-height: 60vh; }
+}
+
 /* ─── Gold Shimmer Text ──────────────────────────────────── */
 .text-gold-shimmer {
   background: var(--gradient-gold);

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   CalendarClock, CheckCircle2, Ban, Search, Users, UserPlus, LayoutGrid,
-  ArrowRight, Clock3
+  ArrowRight, Clock3, ChevronDown, ChevronUp
 } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import Avatar from '../../components/ui/Avatar'
@@ -17,6 +17,7 @@ import QuickAddClientModal from '../../components/events/QuickAddClientModal'
 import toast from 'react-hot-toast'
 
 const today = new Date()
+const RECENT_EVENT_COUNT = 3
 
 const accessState = (mapping) => {
   if (!mapping?.isactive) return { label: 'Revoked', variant: 'error' }
@@ -180,7 +181,7 @@ function EventColumn({ event, mappings, selected, onSelect, onUpdate }) {
 
   return (
     <div
-      className="w-full min-w-0 max-w-[360px] rounded-2xl flex flex-col"
+      className="w-full min-w-0 rounded-2xl flex flex-col"
       style={{
         background: selected ? 'var(--bg-elevated)' : 'var(--bg-surface)',
         border: selected ? '1px solid rgba(245,158,11,0.45)' : '1px solid var(--border-subtle)',
@@ -230,6 +231,7 @@ export default function AccessBoard() {
   const [selectedEventId, setSelectedEventId] = useState(null)
   const [search, setSearch] = useState('')
   const [addClientOpen, setAddClientOpen] = useState(false)
+  const [showAllEvents, setShowAllEvents] = useState(false)
 
   const { data: eventData, isLoading: eventsLoading } = useQuery({
     queryKey: ['access-board-events'],
@@ -243,7 +245,22 @@ export default function AccessBoard() {
 
   const events = eventData?.data?.items || []
   const users = usersData?.data?.items || []
-  const activeEventId = selectedEventId || events[0]?.event_id || null
+
+  // Most recently created events first - the board starts with a short recent
+  // list instead of squeezing every event column into one row.
+  const sortedEvents = useMemo(() => {
+    return [...events].sort((a, b) => {
+      const aTime = new Date(a.createdAt || a.event_date || 0).getTime()
+      const bTime = new Date(b.createdAt || b.event_date || 0).getTime()
+      return bTime - aTime
+    })
+  }, [events])
+
+  const visibleEvents = showAllEvents
+    ? sortedEvents
+    : sortedEvents.slice(0, RECENT_EVENT_COUNT)
+
+  const activeEventId = selectedEventId || sortedEvents[0]?.event_id || null
 
   const { data: boardData, isLoading: mappingsLoading } = useQuery({
     queryKey: ['access-board-mappings', events.map(e => e.event_id).join('|')],
@@ -304,6 +321,21 @@ export default function AccessBoard() {
   const activeEvent = events.find(event => event.event_id === activeEventId)
   const loading = eventsLoading || usersLoading || mappingsLoading || refreshing
 
+  const toggleEventList = () => {
+    setShowAllEvents(prev => {
+      const next = !prev
+      // The selected event may be outside the recent list - fall back to the
+      // newest event so the Add Client panel never points at a hidden event.
+      if (!next && selectedEventId) {
+        const recentIds = sortedEvents.slice(0, RECENT_EVENT_COUNT).map(e => e.event_id)
+        if (!recentIds.includes(selectedEventId)) {
+          setSelectedEventId(sortedEvents[0]?.event_id || null)
+        }
+      }
+      return next
+    })
+  }
+
   return (
     <AppLayout
       title="Client Access Board"
@@ -341,9 +373,18 @@ export default function AccessBoard() {
           </GlassCard>
         ) : (
           <div className="grid xl:grid-cols-[1fr_360px] gap-5 items-start">
-            <div className="overflow-x-auto pb-3">
-              <div className="flex gap-4 min-h-[520px]">
-                {events.map(event => (
+            <div className="min-w-0">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>
+                  {showAllEvents ? 'All events' : 'Recent events'}
+                </p>
+                <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                  {visibleEvents.length} of {sortedEvents.length}
+                </p>
+              </div>
+
+              <div className={`access-events-grid ${showAllEvents ? 'access-events-scroll popup-scrollbar' : ''}`}>
+                {visibleEvents.map(event => (
                   <EventColumn
                     key={event.event_id}
                     event={event}
@@ -354,6 +395,24 @@ export default function AccessBoard() {
                   />
                 ))}
               </div>
+
+              {sortedEvents.length > RECENT_EVENT_COUNT && (
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                    {showAllEvents
+                      ? 'Scroll inside the list to see more events'
+                      : `Showing the ${RECENT_EVENT_COUNT} most recent events`}
+                  </p>
+                  <GoldButton
+                    size="sm"
+                    variant="outline"
+                    onClick={toggleEventList}
+                    icon={showAllEvents ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+                  >
+                    {showAllEvents ? 'Show recent only' : `View all ${sortedEvents.length} events`}
+                  </GoldButton>
+                </div>
+              )}
             </div>
 
             <GlassCard hover={false} className="sticky top-24">
