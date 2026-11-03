@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { UploadCloud, X, Sparkles, Crop, Check, Download, ShieldOff } from 'lucide-react'
 import Cropper from 'react-easy-crop'
@@ -54,6 +55,7 @@ function getCroppedBlob(imageSrc, pixelCrop) {
 
 export default function CreateEventModal({ open, onClose, onCreated, event: editEvent }) {
   const isEdit = !!editEvent
+  const navigate = useNavigate()
   const [form, setForm] = useState(EMPTY)
   const [coverPreview, setCoverPreview] = useState(null)
   const [coverFile, setCoverFile] = useState(null)
@@ -195,6 +197,14 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
 
       onCreated?.(res?.data)
       onClose()
+
+      // Creating an event should take the admin straight into it - no extra
+      // "created" screen and no hunting for the new card in the event list.
+      if (!isEdit) {
+        const created = res?.data?.event || res?.data?.data?.event || res?.data?.data || res?.data
+        const createdId = created?.event_id || created?.id
+        if (createdId) navigate(`/studio/events/${createdId}`)
+      }
     } catch (err) {
       toast.error(typeof err === 'string' ? err : isEdit ? 'Failed to update event' : 'Failed to create event')
     } finally {
