@@ -784,7 +784,7 @@ export default function StudioEventDetail() {
       <div ref={containerRef}>
         {/* Header */}
         <div className="event-header mb-6">
-          <button onClick={() => navigate('/studio')}
+          <button onClick={() => navigate('/studio/events')}
             className="flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-gold-500 transition-colors mb-4">
             <ArrowLeft size={14} /> Back to Events
           </button>

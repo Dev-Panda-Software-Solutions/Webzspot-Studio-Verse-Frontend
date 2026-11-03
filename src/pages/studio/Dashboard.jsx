@@ -2,7 +2,7 @@ import React, { useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { ImageIcon, Heart, TrendingUp, Camera, Star, Layers, Lock } from 'lucide-react'
+import { ImageIcon, Heart, Camera, Lock } from 'lucide-react'
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
@@ -15,12 +15,10 @@ import SkeletonLoader from '../../components/ui/SkeletonLoader'
 import GlassCard from '../../components/ui/GlassCard'
 import GoldButton from '../../components/ui/GoldButton'
 import Modal from '../../components/ui/Modal'
-import { getEvents, getDashboardAnalytics, deleteEvent, restoreEvent } from '../../api/events'
+import { getEvents, getDashboardAnalytics } from '../../api/events'
 import { getMySubscription } from '../../api/billing'
 import useAuthStore from '../../stores/authStore'
 import { greetingTime } from '../../utils/formatters'
-import { confirmDialog } from '../../components/ui/ConfirmDialog'
-import toast from 'react-hot-toast'
 
 /* ── One-time welcome popup for a brand-new free trial ─────── */
 function TrialWelcomeModal({ subscription }) {
@@ -186,45 +184,10 @@ export default function StudioDashboard() {
   const qc = useQueryClient()
   const containerRef = useRef(null)
   const [createOpen, setCreateOpen] = useState(false)
-  const [editingEvent, setEditingEvent] = useState(null)
-  const [page, setPage] = useState(1)
-  const [statusFilter, setStatusFilter] = useState('active')
-
-  const handleArchiveEvent = async (eventId, eventName) => {
-    const ok = await confirmDialog({
-      title: 'Archive event?',
-      message: `Archive "${eventName}"? Clients will immediately lose access and all its photos/videos will be hidden - nothing is deleted, and you can restore it any time.`,
-      confirmLabel: 'Archive',
-      danger: false,
-    })
-    if (!ok) return
-    try {
-      await deleteEvent(eventId)
-      toast.success('Event archived')
-      qc.invalidateQueries(['events'])
-      qc.invalidateQueries(['dashboard-analytics'])
-    } catch { toast.error('Failed to archive event') }
-  }
-
-  const handleRestoreEvent = async (eventId, eventName) => {
-    const ok = await confirmDialog({
-      title: 'Restore event?',
-      message: `Restore "${eventName}"? Clients will regain access to it and its photos/videos.`,
-      confirmLabel: 'Restore',
-      danger: false,
-    })
-    if (!ok) return
-    try {
-      await restoreEvent(eventId)
-      toast.success('Event restored')
-      qc.invalidateQueries(['events'])
-      qc.invalidateQueries(['dashboard-analytics'])
-    } catch { toast.error('Failed to restore event') }
-  }
 
   const { data, isLoading } = useQuery({
-    queryKey: ['events', page, statusFilter],
-    queryFn: () => getEvents({ page, limit: 8, status: statusFilter })
+    queryKey: ['events', 'recent'],
+    queryFn: () => getEvents({ page: 1, limit: 4, status: 'active' })
   })
 
   const { data: analyticsData, isLoading: aLoading } = useQuery({
@@ -240,7 +203,6 @@ export default function StudioDashboard() {
 
   const events = data?.data?.items || []
   const total = data?.data?.total || 0
-  const pages = data?.data?.pages || 1
   const analytics = analyticsData?.data || {}
   const totals = analytics.totals || {}
   const eventsByMonth = (analytics.events_by_month || []).map(d => ({ ...d, label: shortMonth(d.month) }))
@@ -466,81 +428,46 @@ export default function StudioDashboard() {
           </GlassCard>
         </div>
 
-        {/* ── Events Grid ─── */}
+        {/* Recent events only - the full event board lives on /studio/events */}
         <div className="chart-section">
           <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
             <div>
-              <h2 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>Your Events</h2>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>{total} total</p>
+              <h2 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>Recent Events</h2>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+                {total > events.length
+                  ? `Showing ${events.length} of ${total} active events`
+                  : `${total} active event${total === 1 ? '' : 's'}`}
+              </p>
             </div>
-            <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: 'var(--bg-elevated)' }}>
-              {[
-                { key: 'active', label: 'Active' },
-                { key: 'archived', label: 'Archived' },
-                { key: 'all', label: 'All' },
-              ].map(({ key, label }) => (
-                <button
-                  key={key}
-                  onClick={() => { setStatusFilter(key); setPage(1) }}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
-                  style={{
-                    background: statusFilter === key ? 'var(--bg-surface)' : 'transparent',
-                    color: statusFilter === key ? '#F59E0B' : 'var(--text-secondary)',
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            {pages > 1 && (
-              <div className="flex items-center gap-2">
-                <GoldButton size="sm" variant="outline" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>←</GoldButton>
-                <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{page} / {pages}</span>
-                <GoldButton size="sm" variant="outline" onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages}>→</GoldButton>
-              </div>
-            )}
+            <GoldButton size="sm" variant="outline" onClick={() => navigate('/studio/events')}>
+              View all events
+            </GoldButton>
           </div>
 
           {isLoading ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {[...Array(8)].map((_, i) => <SkeletonLoader key={i} type="event-card" />)}
+              {[...Array(4)].map((_, i) => <SkeletonLoader key={i} type="event-card" />)}
             </div>
+          ) : events.length === 0 ? (
+            <GlassCard hover={false} className="py-12 text-center">
+              <Camera size={30} className="mx-auto mb-3" style={{ color: 'var(--text-tertiary)' }} />
+              <p className="text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>No events yet</p>
+              <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>
+                Create your first event to start delivering galleries.
+              </p>
+              <GoldButton
+                size="sm"
+                icon={trialExhausted ? <Lock size={13} /> : <Camera size={13} />}
+                onClick={() => trialExhausted ? navigate('/studio/billing') : setCreateOpen(true)}
+              >
+                {trialExhausted ? 'Upgrade Plan' : 'Create Event'}
+              </GoldButton>
+            </GlassCard>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {events.map(item => (
-                <EventCard
-                  key={item.event_id}
-                  event={item}
-                  eventId={item.event_id}
-                  onEdit={ev => setEditingEvent(ev)}
-                  onArchive={handleArchiveEvent}
-                  onRestore={handleRestoreEvent}
-                />
+                <EventCard key={item.event_id} event={item} eventId={item.event_id} />
               ))}
-              {statusFilter !== 'archived' && (
-                trialExhausted ? (
-                  <div
-                    className="event-card rounded-xl overflow-hidden group min-h-[220px] flex flex-col justify-center items-center text-center p-6"
-                    style={{ border: '1px dashed var(--border-default)', background: 'var(--bg-surface)' }}
-                  >
-                    <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-                      style={{ background: 'var(--accent-muted)' }}>
-                      <Lock size={26} style={{ color: 'var(--accent-primary)' }} />
-                    </div>
-                    <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
-                      Upload quota used up
-                    </p>
-                    <p className="text-xs mb-4 max-w-[220px]" style={{ color: 'var(--text-tertiary)' }}>
-                      Your trial uploads are finished. Upgrade your plan to keep creating events.
-                    </p>
-                    <GoldButton size="sm" onClick={() => navigate('/studio/billing')}>
-                      Upgrade Plan
-                    </GoldButton>
-                  </div>
-                ) : (
-                  <EventCard isNew onCreate={() => setCreateOpen(true)} />
-                )
-              )}
             </div>
           )}
         </div>
@@ -549,12 +476,6 @@ export default function StudioDashboard() {
           open={createOpen}
           onClose={() => setCreateOpen(false)}
           onCreated={() => { qc.invalidateQueries(['events']); qc.invalidateQueries(['dashboard-analytics']) }}
-        />
-        <CreateEventModal
-          open={!!editingEvent}
-          event={editingEvent}
-          onClose={() => setEditingEvent(null)}
-          onCreated={() => { qc.invalidateQueries(['events']); qc.invalidateQueries(['dashboard-analytics']); setEditingEvent(null) }}
         />
       </div>
     </AppLayout>

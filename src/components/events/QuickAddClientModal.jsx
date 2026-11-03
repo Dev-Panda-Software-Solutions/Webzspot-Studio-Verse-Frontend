@@ -167,7 +167,7 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
           <div className="flex gap-3">
             <GoldButton
               icon={<CalendarPlus size={14} />}
-              onClick={() => { handleClose(); navigate('/studio') }}
+              onClick={() => { handleClose(); navigate('/studio/events') }}
               className="flex-1 justify-center"
             >
               Create an Event
