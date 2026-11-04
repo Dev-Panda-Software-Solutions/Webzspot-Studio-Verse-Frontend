@@ -64,23 +64,25 @@ function ClientAccessCard({ mapping, onUpdate }) {
       className="rounded-xl p-3 transition-colors"
       style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}
     >
-      <div className="flex items-start gap-3">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3">
         <Avatar name={user.user_name || 'Client'} size="sm" />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-           <p className="min-w-0 text-sm font-semibold break-words" style={{ color: 'var(--text-primary)' }}>
+          <div>
+            <p className="min-w-0 text-sm font-semibold break-words" style={{ color: 'var(--text-primary)' }}>
               {user.user_name || 'Unnamed client'}
             </p>
-            <Badge variant={state.variant}>{state.label}</Badge>
           </div>
           <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-tertiary)' }}>
             {user.user_email_id || user.user_phone_number || 'No contact saved'}
           </p>
         </div>
+        <div className="pt-0.5">
+          <Badge variant={state.variant}>{state.label}</Badge>
+        </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-end gap-2">
-         <div className="min-w-[7rem] flex-[2]">
+      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+         <div className="min-w-0 w-[11rem] max-w-full justify-self-end sm:col-start-2">
           <label className="text-[10px] block mb-1" style={{ color: 'var(--text-tertiary)' }}>
             Expiry
           </label>
@@ -96,7 +98,7 @@ function ClientAccessCard({ mapping, onUpdate }) {
             }}
           />
         </div>
-        <div className="min-w-[7rem] flex-1 flex gap-2">
+        <div className="min-w-0 flex gap-2 sm:col-span-2">
           <button
             type="button"
             disabled={saving}
