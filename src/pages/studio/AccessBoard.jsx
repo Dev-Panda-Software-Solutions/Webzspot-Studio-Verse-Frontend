@@ -477,7 +477,10 @@ export default function AccessBoard() {
               key={user.user_id}
               user={user}
               eventId={activeEventId}
-              onAssigned={refreshBoard}
+              onAssigned={() => {
+                closeAddClient()
+                return refreshBoard()
+              }}
             />
           ))}
         </div>
