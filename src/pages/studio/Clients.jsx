@@ -283,23 +283,24 @@ export default function Clients() {
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
-                {['Client', 'Email', 'Events', 'Expires', 'Status', ''].map(h => (
+                {['S.No', 'Client', 'Email', 'Events', 'Expires', 'Status', ''].map(h => (
                   <th key={h} className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
-                <tr><td colSpan={6} className="p-4">
+                <tr><td colSpan={7} className="p-4">
                   {[...Array(6)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}
                 </td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={6} className="py-16 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                <tr><td colSpan={7} className="py-16 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
                   No clients yet - add one to get started.
                 </td></tr>
-              ) : items.map(u => (
+              ) : items.map((u, index) => (
                 <tr key={u.user_id} className="border-b hover:bg-[var(--bg-elevated)] transition-colors group"
                   style={{ borderColor: 'var(--border-subtle)' }}>
+                  <td className="px-6 py-4 text-sm font-semibold" style={{ color: 'var(--text-tertiary)' }}>{((page - 1) * pageSize) + index + 1}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <Avatar name={u.user_name} size="sm" />
@@ -390,11 +391,16 @@ export default function Clients() {
             <p className="py-16 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
               No clients yet - add one to get started.
             </p>
-          ) : items.map(u => (
+          ) : items.map((u, index) => (
             <div key={u.user_id} className="p-4">
-              <div className="flex items-start gap-3">
-                <Avatar name={u.user_name} size="sm" />
-                <div className="min-w-0 flex-1">
+              <div className="grid grid-cols-[34px_minmax(0,1fr)] gap-3">
+                <div className="pt-1 text-sm font-semibold" style={{ color: 'var(--text-tertiary)' }}>
+                  {((page - 1) * pageSize) + index + 1}
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-start gap-3">
+                    <Avatar name={u.user_name} size="sm" />
+                    <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-semibold break-words" style={{ color: 'var(--text-primary)' }}>
                       {clientDisplayName(u)}
@@ -404,57 +410,39 @@ export default function Clients() {
                   <p className="text-xs truncate mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
                     {u.user_email_id || u.user_phone_number || '-'}
                   </p>
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button
-                    onClick={() => setEditingClient(u)}
-                    title="Edit client details"
-                    className="p-1.5 rounded"
-                    style={{ color: 'var(--text-tertiary)' }}
-                  >
-                    <Pencil size={14} />
-                  </button>
-                  {u.isactive ? (
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <button onClick={() => setEditingClient(u)} title="Edit client details" className="p-1.5 rounded" style={{ color: 'var(--text-tertiary)' }}>
+                        <Pencil size={14} />
+                      </button>
+                      {u.isactive ? (
+                        <button onClick={() => handleSoftDelete(u.user_id, u.user_name)} title="Archive client" className="p-1.5 rounded" style={{ color: 'var(--text-tertiary)' }}>
+                          <UserX size={14} />
+                        </button>
+                      ) : (
+                        <button onClick={() => handleRestore(u.user_id, u.user_name)} title="Restore client" className="p-1.5 rounded" style={{ color: 'var(--text-tertiary)' }}>
+                          <RotateCcw size={14} />
+                        </button>
+                      )}
+                      <button onClick={() => handleHardDelete(u.user_id, u.user_name)} title="Permanently delete" className="p-1.5 rounded" style={{ color: 'var(--text-tertiary)' }}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between gap-3">
                     <button
-                      onClick={() => handleSoftDelete(u.user_id, u.user_name)}
-                      title="Archive client"
-                      className="p-1.5 rounded"
-                      style={{ color: 'var(--text-tertiary)' }}
+                      onClick={() => setEventsModalClient(u)}
+                      className="inline-flex items-center gap-1.5 text-xs font-medium rounded-lg px-2.5 py-1.5"
+                      style={{ background: 'var(--accent-muted)', color: '#F59E0B' }}
                     >
-                      <UserX size={14} />
+                      <CalendarDays size={12} />
+                      {u.event_names?.length ? `${u.event_names.length} event${u.event_names.length === 1 ? '' : 's'}` : 'Manage events'}
                     </button>
-                  ) : (
-                    <button
-                      onClick={() => handleRestore(u.user_id, u.user_name)}
-                      title="Restore client"
-                      className="p-1.5 rounded"
-                      style={{ color: 'var(--text-tertiary)' }}
-                    >
-                      <RotateCcw size={14} />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleHardDelete(u.user_id, u.user_name)}
-                    title="Permanently delete"
-                    className="p-1.5 rounded"
-                    style={{ color: 'var(--text-tertiary)' }}
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                    <span className="text-xs whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>
+                      {u.expiry_date ? `Expires ${formatDate(u.expiry_date)}` : 'No expiry'}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-3 flex items-center justify-between gap-3">
-                <button
-                  onClick={() => setEventsModalClient(u)}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium rounded-lg px-2.5 py-1.5"
-                  style={{ background: 'var(--accent-muted)', color: '#F59E0B' }}
-                >
-                  <CalendarDays size={12} />
-                  {u.event_names?.length ? `${u.event_names.length} event${u.event_names.length === 1 ? '' : 's'}` : 'Manage events'}
-                </button>
-                <span className="text-xs whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>
-                  {u.expiry_date ? `Expires ${formatDate(u.expiry_date)}` : 'No expiry'}
-                </span>
               </div>
             </div>
           ))}
