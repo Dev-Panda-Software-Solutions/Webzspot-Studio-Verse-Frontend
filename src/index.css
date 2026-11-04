@@ -100,6 +100,17 @@ body {
   height: 100dvh;
 }
 @media (max-width: 767px) {
+  /* Keep role navigation hidden until the hamburger opens it. Explicitly
+     setting transform here prevents responsive utility ordering from making
+     the drawer visible on phones. */
+  .sidebar-shell[data-mobile-open="false"] {
+    transform: translateX(-100%) !important;
+  }
+
+  .sidebar-shell[data-mobile-open="true"] {
+    transform: translateX(0) !important;
+  }
+
   /* Keep the shared page navbar visible while each role's page scrolls. */
   .app-mobile-header {
     position: fixed;

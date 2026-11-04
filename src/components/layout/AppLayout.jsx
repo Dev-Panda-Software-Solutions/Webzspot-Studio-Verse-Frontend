@@ -88,8 +88,9 @@ export default function AppLayout({ children, title, subtitle, actions, fullBlee
             type="button"
             aria-label="Open navigation"
             onClick={openMobileNav}
-            className="fixed left-3 top-3 z-50 md:hidden flex h-10 w-10 items-center justify-center rounded-xl shadow-lg"
+            className="fixed left-3 z-[60] md:hidden flex h-10 w-10 items-center justify-center rounded-xl shadow-lg"
             style={{
+               top: 'max(0.75rem, env(safe-area-inset-top))',
               color: 'var(--accent-primary)',
               background: 'var(--bg-surface)',
               border: '1px solid var(--border-strong)',
@@ -103,7 +104,7 @@ export default function AppLayout({ children, title, subtitle, actions, fullBlee
         {title && (
           <header
             ref={mobileHeaderRef}
-            className={`app-mobile-header sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 px-4 py-3 md:px-8 flex-shrink-0 ${mobileHeaderFlush ? 'mobile-header-flush' : ''} ${mobileHeaderInline ? 'mobile-header-inline' : ''}`}
+            className={`app-mobile-header sticky top-0 z-50 flex flex-wrap items-center justify-between gap-2 px-4 py-3 md:px-8 flex-shrink-0 ${mobileHeaderFlush ? 'mobile-header-flush' : ''} ${mobileHeaderInline ? 'mobile-header-inline' : ''}`}
             style={{
               background: 'var(--bg-surface)',
               borderBottom: '1px solid var(--border-subtle)',
