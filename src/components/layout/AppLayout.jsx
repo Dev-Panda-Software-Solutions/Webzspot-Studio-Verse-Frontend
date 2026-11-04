@@ -60,8 +60,13 @@ export default function AppLayout({ children, title, subtitle, actions }) {
             type="button"
             aria-label="Open navigation"
             onClick={openMobileNav}
-            className="fixed left-3 top-3 z-40 md:hidden p-2 rounded-lg bg-black/50"
-            style={{ color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
+            className="fixed left-3 top-3 z-50 md:hidden flex h-10 w-10 items-center justify-center rounded-xl shadow-lg"
+            style={{
+              color: 'var(--accent-primary)',
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-strong)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.28)',
+            }}
           >
             <Menu size={19} />
           </button>
@@ -81,8 +86,12 @@ export default function AppLayout({ children, title, subtitle, actions }) {
                 type="button"
                 aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
                 onClick={() => mobileOpen ? setMobileOpen(false) : openMobileNav()}
-                className="md:hidden flex-shrink-0 p-2 -ml-2 rounded-lg"
-                style={{ color: 'var(--text-secondary)' }}
+            className="md:hidden flex-shrink-0 -ml-2 flex h-10 w-10 items-center justify-center rounded-xl shadow-sm"
+            style={{
+              color: 'var(--accent-primary)',
+              background: 'var(--bg-elevated)',
+              border: '1px solid var(--border-default)',
+            }}
               >
                 {mobileOpen ? <X size={20} /> : <Menu size={20} />}
               </button>

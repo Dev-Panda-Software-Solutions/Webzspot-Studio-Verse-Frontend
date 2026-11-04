@@ -131,8 +131,8 @@ export default function SidebarNav({ collapsed, onCollapse, mobileOpen = false, 
           type="button"
           aria-label="Close navigation"
           onClick={onMobileClose}
-          className="md:hidden ml-auto p-1.5 rounded-lg"
-          style={{ color: sb.textMuted }}
+          className="md:hidden ml-auto flex h-9 w-9 items-center justify-center rounded-xl"
+          style={{ color: sb.gold, background: sb.activeBg, border: `1px solid ${sb.border}` }}
         >
           <X size={18} />
         </button>
