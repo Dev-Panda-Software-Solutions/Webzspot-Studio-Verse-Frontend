@@ -51,7 +51,9 @@ function TrialWelcomeModal({ subscription }) {
           <> for the next <strong style={{ color: 'var(--text-primary)' }}>{daysLeft} day{daysLeft === 1 ? '' : 's'}</strong></>
         )}. Create your first event to get started.
       </p>
-      <GoldButton onClick={close} className="w-full justify-center">Let's go</GoldButton>
+          <div className="modal-actions">
+            <GoldButton onClick={close} className="w-full justify-center">Let's go</GoldButton>
+          </div>
     </Modal>
   )
 }

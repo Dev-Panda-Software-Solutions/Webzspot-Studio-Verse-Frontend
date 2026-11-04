@@ -463,7 +463,7 @@ export default function Billing() {
           <li>• Your already-used photo quota is carried over - if it exceeds the new plan's limit, uploads pause until renewal.</li>
           <li>• The downgrade takes effect immediately and will be recorded in your plan history.</li>
         </ul>
-        <div className="flex flex-col-reverse sm:flex-row gap-3">
+        <div className="modal-actions flex flex-col-reverse sm:flex-row gap-3">
           <GoldButton
             variant="danger"
             className="w-full sm:flex-1 justify-center"

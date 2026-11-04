@@ -175,7 +175,7 @@ function EditClientModal({ client, onClose }) {
             style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
           />
         </div>
-        <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+        <div className="modal-actions flex flex-col-reverse sm:flex-row gap-3 pt-2">
           <GoldButton type="submit" loading={saving} className="w-full sm:flex-1 justify-center">Save Changes</GoldButton>
           <GoldButton type="button" variant="ghost" onClick={onClose} className="w-full sm:w-auto justify-center">Cancel</GoldButton>
         </div>

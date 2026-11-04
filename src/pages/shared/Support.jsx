@@ -108,7 +108,7 @@ function TicketDetailModal({ ticketId, onClose, isSuperAdmin }) {
           )}
 
           {ticket.status !== 'CLOSED' && (
-            <form onSubmit={handleReply} className="flex items-end gap-2">
+            <form onSubmit={handleReply} className="modal-actions flex items-end gap-2">
               <div className="flex-1">
                 <GoldInput label="Reply" name="reply" value={reply} onChange={e => setReply(e.target.value)} />
               </div>
