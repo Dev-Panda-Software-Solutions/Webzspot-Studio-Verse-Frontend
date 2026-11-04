@@ -122,7 +122,7 @@ export default function AddItemsButton({ onAdd }) {
           </div>
           <div className="mb-4">
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>Price (Optional)</label>
-            <div className="flex items-center rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-default)', background: 'var(--bg-elevated)' }}>
+            <div className="quotation-amount-field flex items-center rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-default)', background: 'var(--bg-elevated)' }}>
               <span className="px-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>₹</span>
               <input
                 type="number" min="0" step="0.01"
@@ -135,7 +135,7 @@ export default function AddItemsButton({ onAdd }) {
           </div>
           <div className="mb-5">
             <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>Discount (optional)</label>
-            <div className="flex items-center rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-default)', background: 'var(--bg-elevated)' }}>
+            <div className="quotation-amount-field flex items-center rounded-xl overflow-hidden" style={{ border: '1px solid var(--border-default)', background: 'var(--bg-elevated)' }}>
               <span className="px-3 text-sm" style={{ color: 'var(--text-tertiary)' }}>₹</span>
               <input
                 type="number" min="0" step="0.01"

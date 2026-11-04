@@ -290,6 +290,11 @@ body {
   outline-offset: 2px;
 }
 
+.quotation-amount-field:focus-within {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
 /* ─── Grain texture overlay ──────────────────────────────── */
 .grain::after {
   content: '';
