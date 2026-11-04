@@ -8,23 +8,26 @@ import { mediaViewUrl } from '../../utils/apiUrl'
 import { downloadFavouritesZip } from '../../api/media'
 import useAuthStore from '../../stores/authStore'
 import toast from 'react-hot-toast'
+import WatermarkOverlay from './WatermarkOverlay'
 
-function ThumbImage({ media }) {
+function ThumbMedia({ media, watermarkSrc }) {
   const { token } = useMediaToken(media.media_url ? null : media.media_id)
   const src = media.media_url || (token ? mediaViewUrl(token) : null)
   if (!src) return <div className="skeleton w-20 h-20 rounded-lg flex-shrink-0" />
+  const isVideo = media?.media_type?.startsWith('video/')
   return (
-    <img
-      src={src}
-      alt=""
-      className="w-20 h-20 object-cover rounded-lg flex-shrink-0 no-select"
-      draggable={false}
-      onContextMenu={(e) => e.preventDefault()}
-    />
+    <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0" onContextMenu={(e) => e.preventDefault()}>
+      {isVideo ? (
+        <video src={src} muted playsInline preload="metadata" className="w-full h-full object-cover" />
+      ) : (
+        <img src={src} alt="" className="w-full h-full object-cover no-select" draggable={false} />
+      )}
+      <WatermarkOverlay src={watermarkSrc} size="sm" />
+    </div>
   )
 }
 
-export default function FavouritesDrawer({ open, onClose, mediaList = [], eventId, eventName, allowDownload, favouritesSubmitted = false }) {
+export default function FavouritesDrawer({ open, onClose, mediaList = [], eventId, eventName, allowDownload, favouritesSubmitted = false, watermarkSrc }) {
   const { user } = useAuthStore()
   const { getFavouritedMediaIds } = useGalleryStore()
   const [downloading, setDownloading] = useState(false)
@@ -70,7 +73,7 @@ export default function FavouritesDrawer({ open, onClose, mediaList = [], eventI
         ) : (
           <>
             <div className="flex gap-3 overflow-x-auto pb-2">
-              {favouritedMedia.map(m => <ThumbImage key={m.media_id} media={m} />)}
+              {favouritedMedia.map(m => <ThumbMedia key={m.media_id} media={m} watermarkSrc={watermarkSrc} />)}
             </div>
             <div className="mt-4 flex items-center justify-end gap-3">
               {!favouritesSubmitted ? (

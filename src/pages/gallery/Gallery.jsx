@@ -338,6 +338,7 @@ export default function Gallery() {
         eventName={eventName}
         allowDownload={event?.allow_download !== false}
         favouritesSubmitted={isSubmitted}
+        watermarkSrc={watermarkSrc}
       />
     </div>
     </AppLayout>
