@@ -55,11 +55,11 @@ function TrialSettingsCard() {
         <h3 className="text-sm font-semibold text-[var(--text-primary)]">Free Trial (applies to every new signup)</h3>
       </div>
       <div className="flex flex-wrap items-end gap-4">
-        <div className="w-40">
+        <div className="w-full sm:w-40">
           <GoldInput label="Trial Length (days)" name="trial_duration_days" type="number" min="1"
             value={days} onChange={e => setDays(e.target.value)} />
         </div>
-        <div className="w-40">
+        <div className="w-full sm:w-40">
           <GoldInput label="Trial Photo Quota" name="trial_photo_quota" type="number" min="1"
             value={quota} onChange={e => setQuota(e.target.value)} />
         </div>

@@ -140,7 +140,7 @@ export default function Billing() {
         {subscription?.status === 'GRACE' && (
           <div className="rounded-xl p-4 flex items-start gap-3" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.35)' }}>
             <AlertTriangle size={18} className="mt-0.5 flex-shrink-0" style={{ color: '#F59E0B' }} />
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                 Your billing period ended - you're in the grace period
               </p>
@@ -157,7 +157,7 @@ export default function Billing() {
         {!subscription && !subLoading && history[0]?.status === 'EXPIRED' && (
           <div className="rounded-xl p-4 flex items-start gap-3" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.35)' }}>
             <AlertTriangle size={18} className="mt-0.5 flex-shrink-0" style={{ color: '#F87171' }} />
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Your last subscription expired</p>
               <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
                 Its grace period lapsed without renewal, so its events, photos, and shared links were permanently deleted. Subscribe to a plan below to start fresh.
@@ -175,8 +175,8 @@ export default function Billing() {
               </h3>
               {subscription ? (
                 <>
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                  <div className="flex items-start justify-between gap-3 mb-1">
+                    <p className="min-w-0 text-sm font-medium break-words" style={{ color: 'var(--text-primary)' }}>
                       {subscription.plan?.plan_name || 'Free Trial'}
                       {subscription.is_free_grant && (
                         <span className="ml-2 text-[10px] font-bold uppercase tracking-wide text-gold-500">
@@ -184,7 +184,7 @@ export default function Billing() {
                         </span>
                       )}
                     </p>
-                    <Badge variant={planStatusVariant(subscription.status)}>
+                    <Badge variant={planStatusVariant(subscription.status)} className="flex-shrink-0">
                       {subscription.status}
                     </Badge>
                   </div>
@@ -274,9 +274,9 @@ export default function Billing() {
 
               return (
                 <GlassCard key={plan.subscription_plan_id} hover={false} className="flex flex-col">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{plan.plan_name}</p>
-                    <Badge variant="info">{plan.plan_type}</Badge>
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <p className="min-w-0 font-semibold break-words" style={{ color: 'var(--text-primary)' }}>{plan.plan_name}</p>
+                    <Badge variant="info" className="flex-shrink-0">{plan.plan_type}</Badge>
                   </div>
                   <p className="text-2xl font-display font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
                     ₹{Number(plan.price).toLocaleString()}
@@ -284,8 +284,9 @@ export default function Billing() {
                   <p className="text-xs mb-4 flex-1" style={{ color: 'var(--text-secondary)' }}>
                     {plan.photo_quota} photos / {plan.duration_value} {plan.duration_unit?.toLowerCase()}
                   </p>
-                  <GoldButton
-                    variant={isCurrent ? 'ghost' : 'outline'}
+                    <GoldButton
+                      className="w-full justify-center"
+                      variant={isCurrent ? 'ghost' : 'outline'}
                     disabled={isCurrent}
                     loading={actingId === plan.subscription_plan_id}
                     onClick={() => {
@@ -323,9 +324,9 @@ export default function Billing() {
            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {walletPlansToShow.map(plan => (
               <GlassCard key={plan.subscription_plan_id} hover={false} className="flex flex-col">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{plan.plan_name}</p>
-                  <Badge variant={plan.wallet_tier === 'INITIAL' ? 'success' : 'gold'}>
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <p className="min-w-0 font-semibold break-words" style={{ color: 'var(--text-primary)' }}>{plan.plan_name}</p>
+                  <Badge variant={plan.wallet_tier === 'INITIAL' ? 'success' : 'gold'} className="flex-shrink-0">
                     {plan.wallet_tier === 'INITIAL' ? 'Initial' : 'Top-up'}
                   </Badge>
                 </div>
@@ -336,6 +337,7 @@ export default function Billing() {
                   {plan.wallet_credits} credits · unlocks AI events
                 </p>
                 <GoldButton
+                  className="w-full justify-center"
                   variant="solid"
                   loading={actingId === plan.subscription_plan_id}
                   onClick={() => handleRecharge(plan.subscription_plan_id)}
@@ -461,17 +463,17 @@ export default function Billing() {
           <li>• Your already-used photo quota is carried over - if it exceeds the new plan's limit, uploads pause until renewal.</li>
           <li>• The downgrade takes effect immediately and will be recorded in your plan history.</li>
         </ul>
-        <div className="flex gap-3">
+        <div className="flex flex-col-reverse sm:flex-row gap-3">
           <GoldButton
             variant="danger"
-            className="flex-1"
+            className="w-full sm:flex-1 justify-center"
             loading={actingId === downgradeTarget?.planId}
             onClick={() => handleDowngrade(downgradeTarget.planId, downgradeTarget.planName)}
           >
             <ArrowUpRight className="rotate-90" size={14} />
             Confirm Downgrade - No Refund
           </GoldButton>
-          <GoldButton variant="ghost" onClick={() => setDowngradeTarget(null)}>Cancel</GoldButton>
+          <GoldButton variant="ghost" onClick={() => setDowngradeTarget(null)} className="w-full sm:w-auto justify-center">Cancel</GoldButton>
         </div>
       </Modal>
     </AppLayout>
