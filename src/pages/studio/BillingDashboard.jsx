@@ -99,7 +99,7 @@ function RecentActivity({ quotations, bills, payments }) {
   }
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1 h-[190px] overflow-y-auto popup-scrollbar pr-1">
       {events.map(ev => (
         <div key={ev.id} className="flex items-center gap-3 py-2.5 border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
           <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--bg-elevated)' }}>
