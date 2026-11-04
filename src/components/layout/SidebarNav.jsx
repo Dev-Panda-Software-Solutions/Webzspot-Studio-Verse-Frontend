@@ -100,7 +100,7 @@ export default function SidebarNav({ collapsed, onCollapse, mobileOpen = false, 
       ref={sidebarRef}
       data-mobile-open={mobileOpen}
       aria-label="Main navigation"
-      className={`sidebar-shell fixed left-0 top-0 h-screen min-h-[100dvh] flex flex-col z-40 select-none
+      className={`sidebar-shell fixed left-0 top-0 h-screen min-h-[100dvh] flex flex-col z-[60] select-none
         transition-transform duration-300 md:translate-x-0
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
       style={{

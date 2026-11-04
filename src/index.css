@@ -99,6 +99,15 @@ body {
   height: 100vh;
   height: 100dvh;
 }
+
+/* Client gallery uses its own branded header instead of the titled AppLayout
+   header. Keep it pinned during gallery scrolling as well. */
+.gallery-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 50 !important;
+  will-change: transform;
+}
 @media (max-width: 767px) {
   /* Keep role navigation hidden until the hamburger opens it. Explicitly
      setting transform here prevents responsive utility ordering from making
