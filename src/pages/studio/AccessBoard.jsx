@@ -362,21 +362,22 @@ export default function AccessBoard() {
         actions={<GoldButton size="sm" className="flex-shrink-0 justify-center" icon={<LayoutGrid size={14} />} loading={refreshing} onClick={() => refreshBoard({ notify: true })}>Refresh</GoldButton>}
     >
       <div className="access-board-page w-full min-w-0 space-y-6 p-4 md:p-8">
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-4">
           {[
             { label: 'Events', value: events.length, icon: CalendarClock },
             { label: 'Clients', value: users.length, icon: Users },
             { label: 'Active Access', value: totals.active, icon: CheckCircle2 },
             { label: 'Revoked / Expired', value: `${totals.revoked}/${totals.expired}`, icon: Ban },
           ].map(({ label, value, icon: Icon }) => (
-            <GlassCard key={label} hover={false} className="p-4">
-              <div className="flex items-center justify-between">
+            <GlassCard key={label} hover={false} className="p-3 sm:p-4">
+              <div className="flex items-center justify-between gap-2">
                 <div>
-                  <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{label}</p>
-                  <p className="text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>{value}</p>
+                  <p className="text-[11px] sm:text-xs leading-tight" style={{ color: 'var(--text-tertiary)' }}>{label}</p>
+                  <p className="text-xl sm:text-2xl font-bold mt-1" style={{ color: 'var(--text-primary)' }}>{value}</p>
                 </div>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--accent-muted)', color: '#F59E0B' }}>
-                  <Icon size={18} />
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ background: 'var(--accent-muted)', color: '#F59E0B' }}>
+                  <Icon size={16} className="sm:hidden" />
+                  <Icon size={18} className="hidden sm:block" />
                 </div>
               </div>
             </GlassCard>
