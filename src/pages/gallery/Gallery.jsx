@@ -196,19 +196,19 @@ export default function Gallery() {
         {!showFolderGrid && activeEventId && hasMultiple ? (
           <button
             onClick={() => navigate('/gallery')}
-            className="font-display italic text-lg md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2
-              flex items-center gap-1.5 hover:text-gold-400 transition-colors truncate max-w-[42%] md:max-w-none"
+             className="order-3 w-full justify-center md:order-none md:w-auto font-display italic text-lg md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2
+               flex items-center gap-1.5 hover:text-gold-400 transition-colors truncate max-w-full md:max-w-none"
             title="Back to all events"
           >
             <ArrowLeft size={15} />
             {eventName}
           </button>
         ) : !showFolderGrid ? (
-            <h1 className="font-display italic text-lg md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2 truncate max-w-[42%] md:max-w-none">
+            <h1 className="order-3 w-full text-center md:order-none md:w-auto font-display italic text-lg md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2 truncate max-w-full md:max-w-none">
             {eventName}
           </h1>
         ) : (
-          <h1 className="font-display italic text-lg md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2 truncate max-w-[42%] md:max-w-none">
+          <h1 className="order-3 w-full text-center md:order-none md:w-auto font-display italic text-lg md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2 truncate max-w-full md:max-w-none">
             My Events
           </h1>
         )}

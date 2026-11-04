@@ -202,10 +202,10 @@ export default function BillingDashboard() {
       subtitle="Quotations, bills and payments for your studio"
       actions={
         <div className="flex gap-2 flex-wrap justify-end max-w-full">
-          <GoldButton variant="outline" icon={<Landmark size={14} />} onClick={() => setGstOpen(true)}>
+          <GoldButton size="sm" className="w-full sm:w-auto justify-center" variant="outline" icon={<Landmark size={14} />} onClick={() => setGstOpen(true)}>
             {settings.gstin_number ? 'Edit GST' : 'Add GST Number'}
           </GoldButton>
-          <GoldButton icon={<Plus size={14} />} onClick={() => setCreateOpen(true)}>Create Quotation</GoldButton>
+          <GoldButton size="sm" className="w-full sm:w-auto justify-center" icon={<Plus size={14} />} onClick={() => setCreateOpen(true)}>Create Quotation</GoldButton>
         </div>
       }
     >
@@ -244,7 +244,7 @@ export default function BillingDashboard() {
 
       <div className="flex items-stretch justify-between mb-4 gap-3 flex-wrap">
         <div className="flex items-center gap-3 flex-wrap min-w-0 max-w-full">
-          <div className="flex gap-1 p-1 rounded-xl w-fit max-w-full overflow-x-auto" style={{ background: 'var(--bg-elevated)' }}>
+          <div className="flex flex-wrap gap-1 p-1 rounded-xl w-full sm:w-fit max-w-full" style={{ background: 'var(--bg-elevated)' }}>
             {[
               { key: 'quotations', label: 'Quotations' },
               { key: 'bills', label: 'Bills' },
@@ -252,7 +252,7 @@ export default function BillingDashboard() {
               <button
                 key={key}
                 onClick={() => { setTab(key); setStatusFilter('all') }}
-                className="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
+                className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
                 style={{
                   background: tab === key ? 'var(--bg-surface)' : 'transparent',
                   color: tab === key ? '#F59E0B' : 'var(--text-secondary)',
@@ -263,12 +263,12 @@ export default function BillingDashboard() {
               </button>
             ))}
           </div>
-          <div className="flex gap-1 p-1 rounded-xl w-fit max-w-full overflow-x-auto" style={{ background: 'var(--bg-elevated)' }}>
+          <div className="flex flex-wrap gap-1 p-1 rounded-xl w-full sm:w-fit max-w-full" style={{ background: 'var(--bg-elevated)' }}>
             {statusOptions.map(({ key, label }) => (
               <button
                 key={key}
                 onClick={() => setStatusFilter(key)}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+                className="flex-1 sm:flex-none px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
                 style={{
                   background: statusFilter === key ? 'var(--bg-surface)' : 'transparent',
                   color: statusFilter === key ? '#F59E0B' : 'var(--text-secondary)',

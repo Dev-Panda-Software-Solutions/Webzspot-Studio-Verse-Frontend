@@ -47,15 +47,15 @@ export default function BillEditor() {
       title={`Bill #${bill.bill_number}`}
       subtitle={`From Quotation #${bill.quotation?.quotation_number ?? '-'} · ${bill.client?.user_name || ''}`}
       actions={
-        <div className="flex gap-2">
-          <GoldButton variant="ghost" icon={<ArrowLeft size={14} />} onClick={() => navigate('/studio/billing-data')}>Back</GoldButton>
-          <GoldButton variant="outline" icon={<Download size={14} />} onClick={() => openBillingPdf(`/bills/${id}/pdf`)}>PDF</GoldButton>
+        <div className="flex w-full sm:w-auto flex-wrap gap-2 justify-end">
+          <GoldButton size="sm" variant="ghost" icon={<ArrowLeft size={14} />} onClick={() => navigate('/studio/billing-data')} className="flex-1 sm:flex-none justify-center">Back</GoldButton>
+          <GoldButton size="sm" variant="outline" icon={<Download size={14} />} onClick={() => openBillingPdf(`/bills/${id}/pdf`)} className="flex-1 sm:flex-none justify-center">PDF</GoldButton>
           <Badge variant={STATUS_VARIANT[bill.status]}>{STATUS_LABEL[bill.status]}</Badge>
         </div>
       }
     >
       {bill.client && (
-        <GlassCard hover={false} className="flex items-center gap-3 mb-5">
+        <GlassCard hover={false} className="flex items-center gap-3 mb-5 p-4 sm:p-6">
           <Avatar name={bill.client.user_name} size="sm" />
           <div>
             <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{bill.client.user_name}</p>
@@ -67,7 +67,7 @@ export default function BillEditor() {
       <BillingStatusTracker bill={bill} />
 
       <GlassCard hover={false} className="p-0 overflow-hidden mb-5">
-        <div className="px-6 py-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
+          <div className="px-4 sm:px-6 py-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
           <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Items</h3>
         </div>
 

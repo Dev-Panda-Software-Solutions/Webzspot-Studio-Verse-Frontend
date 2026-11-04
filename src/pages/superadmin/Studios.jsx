@@ -135,10 +135,10 @@ export default function AdminStudios() {
     <AppLayout
       title="Studios"
       subtitle={`${total} total studios on the platform`}
-      actions={<GoldButton onClick={() => setCreateOpen(true)}>+ Add Studio</GoldButton>}
+       actions={<GoldButton size="sm" className="w-full sm:w-auto justify-center" onClick={() => setCreateOpen(true)}>+ Add Studio</GoldButton>}
     >
 
-      <div className="flex gap-1 p-1 rounded-xl mb-4 w-fit" style={{ background: 'var(--bg-elevated)' }}>
+      <div className="flex w-full sm:w-fit gap-1 p-1 rounded-xl mb-4" style={{ background: 'var(--bg-elevated)' }}>
         {[
           { key: 'active', label: 'Active' },
           { key: 'archived', label: 'Archived' },
@@ -147,7 +147,7 @@ export default function AdminStudios() {
           <button
             key={key}
             onClick={() => { setStatus(key); setPage(1) }}
-            className="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
+            className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
             style={{
               background: status === key ? 'var(--bg-surface)' : 'transparent',
               color: status === key ? '#F59E0B' : 'var(--text-secondary)',
@@ -338,7 +338,7 @@ export default function AdminStudios() {
         </div>
 
         {pages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t" style={{ borderColor: 'var(--border-default)' }}>
+          <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 border-t" style={{ borderColor: 'var(--border-default)' }}>
             <p className="text-xs text-[var(--text-tertiary)]">Page {page} of {pages}</p>
             <div className="flex gap-2">
               <GoldButton size="sm" variant="outline" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>←</GoldButton>

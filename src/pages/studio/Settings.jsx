@@ -317,8 +317,8 @@ export default function StudioSettings() {
             Plan &amp; Billing
           </h3>
           {subscription ? (
-            <div className="flex items-center justify-between mb-4">
-              <div>
+             <div className="flex items-start justify-between gap-3 mb-4">
+               <div className="min-w-0">
                 <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                   {subscription.plan?.plan_name || 'Free Trial'}
                 </p>
@@ -335,7 +335,7 @@ export default function StudioSettings() {
           ) : (
             <p className="text-sm mb-4" style={{ color: 'var(--text-tertiary)' }}>No active subscription found.</p>
           )}
-          <GoldButton variant="outline" onClick={() => navigate('/studio/billing')}>Manage Billing</GoldButton>
+           <GoldButton size="sm" className="w-full sm:w-auto justify-center" variant="outline" onClick={() => navigate('/studio/billing')}>Manage Billing</GoldButton>
         </GlassCard>
 
         {/* ── Watermark ── */}

@@ -190,7 +190,7 @@ export default function Plans() {
     <AppLayout
       title="Plans"
       subtitle="Manage subscription and wallet plans available to studios"
-      actions={<GoldButton onClick={openCreate}>+ Add Plan</GoldButton>}
+       actions={<GoldButton size="sm" className="w-full sm:w-auto justify-center" onClick={openCreate}>+ Add Plan</GoldButton>}
     >
       <TrialSettingsCard />
 

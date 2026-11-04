@@ -92,11 +92,11 @@ export default function StudioEvents() {
       title="Events"
       subtitle="Create, manage and open every event gallery from one place"
       actions={trialExhausted
-        ? <GoldButton onClick={() => navigate('/studio/billing')} icon={<Lock size={14} />}>Upgrade Plan</GoldButton>
-        : <GoldButton onClick={() => setCreateOpen(true)} icon={<Camera size={14} />}>New Event</GoldButton>}
+         ? <GoldButton size="sm" className="w-full sm:w-auto justify-center" onClick={() => navigate('/studio/billing')} icon={<Lock size={14} />}>Upgrade Plan</GoldButton>
+         : <GoldButton size="sm" className="w-full sm:w-auto justify-center" onClick={() => setCreateOpen(true)} icon={<Camera size={14} />}>New Event</GoldButton>}
     >
       <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
-        <div className="flex gap-1 p-1 rounded-xl w-fit" style={{ background: 'var(--bg-elevated)' }}>
+         <div className="flex w-full sm:w-fit gap-1 p-1 rounded-xl" style={{ background: 'var(--bg-elevated)' }}>
           {[
             { key: 'active', label: 'Active' },
             { key: 'archived', label: 'Archived' },
@@ -106,7 +106,7 @@ export default function StudioEvents() {
               key={key}
               type="button"
               onClick={() => changeFilter(key)}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+               className="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
               style={{
                 background: statusFilter === key ? 'var(--bg-surface)' : 'transparent',
                 color: statusFilter === key ? '#F59E0B' : 'var(--text-secondary)',
