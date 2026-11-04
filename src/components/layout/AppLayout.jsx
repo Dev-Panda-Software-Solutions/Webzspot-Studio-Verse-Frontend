@@ -6,7 +6,7 @@ import UploadStatusPanel from '../upload/UploadStatusPanel'
 
 const getSavedCollapsed = () => localStorage.getItem('sv-sidebar-collapsed') === 'true'
 
-export default function AppLayout({ children, title, subtitle, actions }) {
+export default function AppLayout({ children, title, subtitle, actions, fullBleed = false }) {
   const [collapsed, setCollapsed] = useState(getSavedCollapsed)
   const [mobileOpen, setMobileOpen] = useState(false)
   const touchStartX = useRef(null)
@@ -131,7 +131,7 @@ export default function AppLayout({ children, title, subtitle, actions }) {
           </header>
         )}
 
-        <main className="flex-1 min-w-0 p-4 md:p-8">
+        <main className={`flex-1 min-w-0 ${fullBleed ? 'p-0' : 'p-4 md:p-8'}`}>
           {children}
         </main>
       </div>

@@ -174,11 +174,17 @@ export default function Gallery() {
   const showFolderGrid = !activeEventId && allUserEvents.length > 0 && accessibleEvents.length !== 1
 
   return (
-    <AppLayout>
+    <AppLayout fullBleed>
     <div ref={containerRef} className="min-h-screen grain" style={{ background: 'var(--bg-base)' }}>
       {/* Header */}
       <header className="gallery-header sticky top-0 z-30 pl-14 pr-4 py-4 md:px-6 flex flex-wrap items-center justify-between gap-2"
-        style={{ background: 'rgba(10,10,11,0.92)', borderBottom: '1px solid var(--border-subtle)' }}>
+        style={{
+          background: 'rgba(10,10,11,0.96)',
+          borderBottom: '1px solid var(--border-subtle)',
+          boxShadow: '0 4px 18px rgba(0,0,0,0.18)',
+          backdropFilter: 'blur(12px)',
+          paddingTop: 'max(1rem, env(safe-area-inset-top))',
+        }}>
 
         {/* Left: studio logo / brand */}
         <div className="flex items-center gap-3 min-w-0">
