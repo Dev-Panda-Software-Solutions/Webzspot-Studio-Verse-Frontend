@@ -375,21 +375,25 @@ export default function BillingDashboard() {
                 onClick={() => shutterNavigate(`/studio/billing-data/quotations/${q.quotation_id}`)}
                 className="w-full text-left p-4"
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="grid grid-cols-[minmax(68px,auto)_minmax(0,1fr)_auto] items-start gap-3">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Quotation #</p>
+                    <p className="text-sm font-semibold mt-1" style={{ color: 'var(--text-primary)' }}>#{q.quotation_number}</p>
+                  </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                      #{q.quotation_number}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1.5 min-w-0">
+                    <p className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>Client</p>
+                    <div className="flex items-center gap-2 mt-1 min-w-0">
                       <Avatar name={q.client?.user_name || '?'} size="xs" />
-                      <span className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
+                      <span className="text-xs break-words" style={{ color: 'var(--text-secondary)' }}>
                         {q.client?.user_name || '-'}
                       </span>
                     </div>
                   </div>
-                  <Badge variant={q.status === 'CONFIRMED' ? 'success' : 'gold'}>
-                    {q.status === 'CONFIRMED' ? 'Confirmed' : 'Draft'}
-                  </Badge>
+                  <div className="pt-4">
+                    <Badge variant={q.status === 'CONFIRMED' ? 'success' : 'gold'}>
+                      {q.status === 'CONFIRMED' ? 'Confirmed' : 'Draft'}
+                    </Badge>
+                  </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between gap-3">
                   <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
