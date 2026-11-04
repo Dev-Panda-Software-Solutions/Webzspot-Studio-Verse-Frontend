@@ -393,12 +393,12 @@ export default function Clients() {
             </p>
           ) : items.map((u, index) => (
             <div key={u.user_id} className="p-4">
-              <div className="grid grid-cols-[34px_minmax(0,1fr)] gap-3">
-                <div className="pt-1 text-sm font-semibold" style={{ color: 'var(--text-tertiary)' }}>
+              <div className="grid grid-cols-[22px_minmax(0,1fr)] gap-2">
+                <div className="pt-1 text-xs font-semibold" style={{ color: 'var(--text-tertiary)' }}>
                   {((page - 1) * pageSize) + index + 1}
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-2">
                     <Avatar name={u.user_name} size="sm" />
                     <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -411,23 +411,23 @@ export default function Clients() {
                     {u.user_email_id || u.user_phone_number || '-'}
                   </p>
                     </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <button onClick={() => setEditingClient(u)} title="Edit client details" className="p-1.5 rounded" style={{ color: 'var(--text-tertiary)' }}>
-                        <Pencil size={14} />
+                  </div>
+                  <div className="flex items-center justify-end gap-1 mt-1">
+                    <button onClick={() => setEditingClient(u)} title="Edit client details" className="p-1 rounded" style={{ color: 'var(--text-tertiary)' }}>
+                      <Pencil size={13} />
+                    </button>
+                    {u.isactive ? (
+                      <button onClick={() => handleSoftDelete(u.user_id, u.user_name)} title="Archive client" className="p-1 rounded" style={{ color: 'var(--text-tertiary)' }}>
+                        <UserX size={13} />
                       </button>
-                      {u.isactive ? (
-                        <button onClick={() => handleSoftDelete(u.user_id, u.user_name)} title="Archive client" className="p-1.5 rounded" style={{ color: 'var(--text-tertiary)' }}>
-                          <UserX size={14} />
-                        </button>
-                      ) : (
-                        <button onClick={() => handleRestore(u.user_id, u.user_name)} title="Restore client" className="p-1.5 rounded" style={{ color: 'var(--text-tertiary)' }}>
-                          <RotateCcw size={14} />
-                        </button>
-                      )}
-                      <button onClick={() => handleHardDelete(u.user_id, u.user_name)} title="Permanently delete" className="p-1.5 rounded" style={{ color: 'var(--text-tertiary)' }}>
-                        <Trash2 size={14} />
+                    ) : (
+                      <button onClick={() => handleRestore(u.user_id, u.user_name)} title="Restore client" className="p-1 rounded" style={{ color: 'var(--text-tertiary)' }}>
+                        <RotateCcw size={13} />
                       </button>
-                    </div>
+                    )}
+                    <button onClick={() => handleHardDelete(u.user_id, u.user_name)} title="Permanently delete" className="p-1 rounded" style={{ color: 'var(--text-tertiary)' }}>
+                      <Trash2 size={13} />
+                    </button>
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-3">
                     <button
