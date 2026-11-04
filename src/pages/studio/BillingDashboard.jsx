@@ -125,6 +125,7 @@ export default function BillingDashboard() {
   const [tab, setTab] = useState('quotations')
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [sort, setSort] = useState('newest')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [gstOpen, setGstOpen] = useState(false)
@@ -149,7 +150,7 @@ export default function BillingDashboard() {
     (!search.trim() ||
       q.client?.user_name?.toLowerCase().includes(search.toLowerCase()) ||
       String(q.quotation_number).includes(search))
-  )
+  ).sort((a, b) => sort === 'amount' ? Number(b.payable_amount || 0) - Number(a.payable_amount || 0) : new Date(b.createdAt) - new Date(a.createdAt))
 
   const { data: billsData, isLoading: billsLoading } = useQuery({
     queryKey: ['bills'],
@@ -162,7 +163,7 @@ export default function BillingDashboard() {
     (!search.trim() ||
       b.client?.user_name?.toLowerCase().includes(search.toLowerCase()) ||
       String(b.bill_number).includes(search))
-  )
+  ).sort((a, b) => sort === 'amount' ? Number(b.payable_amount || 0) - Number(a.payable_amount || 0) : new Date(b.createdAt) - new Date(a.createdAt))
 
   const { data: paymentsData } = useQuery({
     queryKey: ['payments'],
@@ -299,6 +300,11 @@ export default function BillingDashboard() {
             className="w-full pl-8 pr-3 py-2 text-sm rounded-xl outline-none"
             style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
           />
+          <select value={sort} onChange={e => { setSort(e.target.value); setPage(1) }} aria-label="Sort billing records"
+            className="w-full sm:w-auto rounded-xl px-3 py-2 text-sm outline-none" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border-default)' }}>
+            <option value="newest" style={{ background: '#18181b' }}>Newest first</option>
+            <option value="amount" style={{ background: '#18181b' }}>Highest amount</option>
+          </select>
         </div>
       </div>
 
