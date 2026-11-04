@@ -14,7 +14,7 @@ export default function EventFolderGrid({ events, onOpen }) {
         Select an event to view its photos
       </p>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 min-[380px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
         {events.map(ev => {
           const locked = ev._access?.has_current_access === false
           const expiresDate = ev._access?.access_expires ? new Date(ev._access.access_expires) : null
@@ -49,7 +49,7 @@ export default function EventFolderGrid({ events, onOpen }) {
                 )}
               </div>
               <div className="min-w-0 w-full px-4 pb-5 -mt-1">
-                <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                 <p className="text-sm font-semibold whitespace-normal break-words" style={{ color: 'var(--text-primary)' }}>
                   {ev.event_name}
                 </p>
                 {ev.event_date && (

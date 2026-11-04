@@ -70,8 +70,8 @@ function TicketDetailModal({ ticketId, onClose, isSuperAdmin }) {
         <SkeletonLoader type="table-row" />
       ) : (
         <>
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+          <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
+            <p className="text-xs break-words" style={{ color: 'var(--text-tertiary)' }}>
               Raised by {ticket.raised_by_name} · {formatDate(ticket.createdAt)}
             </p>
             {isSuperAdmin ? (
@@ -98,7 +98,7 @@ function TicketDetailModal({ ticketId, onClose, isSuperAdmin }) {
               {ticket.replies.map(r => (
                 <div key={r.support_ticket_reply_id} className="rounded-xl p-3"
                   style={{ background: r.responder_role === 'SUPER_ADMIN' ? 'rgba(245,158,11,0.08)' : 'var(--bg-elevated)' }}>
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-start justify-between gap-2 flex-wrap mb-1">
                     <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{r.responder_name}</p>
                     <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{formatDate(r.createdAt)}</p>
                   </div>
@@ -125,16 +125,16 @@ function TicketDetailModal({ ticketId, onClose, isSuperAdmin }) {
 function TicketRow({ ticket, onOpen }) {
   return (
     <button onClick={() => onOpen(ticket.support_ticket_id)} className="w-full text-left">
-      <div className="flex items-center gap-4 px-5 py-4 border-b transition-colors hover:bg-[var(--bg-elevated)]"
+         <div className="flex items-start gap-3 sm:gap-4 px-4 sm:px-5 py-4 border-b transition-colors hover:bg-[var(--bg-elevated)]"
         style={{ borderColor: 'var(--border-subtle)' }}>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{ticket.subject}</p>
-          <p className="text-xs truncate mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
+           <p className="text-sm font-medium break-words" style={{ color: 'var(--text-primary)' }}>{ticket.subject}</p>
+           <p className="text-xs break-words mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
             {ticket.raised_by_name} · {formatDate(ticket.createdAt)}
             {ticket.replies?.length > 0 ? ` · ${ticket.replies.length} repl${ticket.replies.length === 1 ? 'y' : 'ies'}` : ''}
           </p>
         </div>
-        <Badge variant={statusVariant(ticket.status)}>{ticket.status.replace('_', ' ')}</Badge>
+         <span className="flex-shrink-0"><Badge variant={statusVariant(ticket.status)}>{ticket.status.replace('_', ' ')}</Badge></span>
       </div>
     </button>
   )

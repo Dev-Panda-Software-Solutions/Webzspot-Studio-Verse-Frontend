@@ -103,7 +103,7 @@ export default function GalleryFavourites() {
       ) : null}
     >
       <div ref={containerRef} className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
-        <main className="px-4 py-8">
+        <main className="px-3 sm:px-4 py-5 sm:py-8">
         {!favouritesSubmitted && (
           <div className="mb-6 px-4 py-3 rounded-lg flex items-center gap-3" style={{ background: 'rgba(251,191,36,0.10)', border: '1px solid rgba(251,191,36,0.25)' }}>
             <p className="text-sm" style={{ color: '#FBBF24' }}>

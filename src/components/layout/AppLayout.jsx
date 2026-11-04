@@ -126,11 +126,11 @@ export default function AppLayout({ children, title, subtitle, actions, fullBlee
                 {mobileOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
               <div className="min-w-0">
-                <h1 className="text-base font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                <h1 className="text-base font-semibold break-words" style={{ color: 'var(--text-primary)' }}>
                   {title}
                 </h1>
                 {subtitle && (
-                  <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-tertiary)' }}>
+                  <p className="text-xs mt-0.5 break-words" style={{ color: 'var(--text-tertiary)' }}>
                     {subtitle}
                   </p>
                 )}

@@ -30,8 +30,8 @@ export default function Drawer({ open, onClose, title, children, side = 'right',
           />
           <motion.div
              className={`absolute ${pos[side]} shadow-modal flex flex-col overflow-hidden ${side === 'bottom' ? 'rounded-t-2xl' : 'rounded-l-2xl'}`}
-            style={{
-              width: side === 'right' ? width : '100%',
+             style={{
+               width: side === 'right' ? `min(${width}, calc(100vw - 1rem))` : '100%',
               maxHeight: side === 'bottom' ? '80vh' : '100vh',
               background: 'var(--bg-surface)',
               borderLeft: side === 'right' ? '1px solid var(--border-default)' : 'none',

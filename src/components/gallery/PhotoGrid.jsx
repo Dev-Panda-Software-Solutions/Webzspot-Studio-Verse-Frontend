@@ -106,7 +106,7 @@ export default function PhotoGrid({
 
   return (
     <>
-      <div className="flex items-center gap-3 flex-wrap mb-5">
+      <div className="flex items-stretch sm:items-center gap-3 flex-wrap mb-5 w-full">
         <GalleryControls
           view={view} onView={v => { setView(v); setFilterFavs(false) }}
           zoom={zoom} onZoom={setZoom}
@@ -117,7 +117,7 @@ export default function PhotoGrid({
         {showTenantFav && (
           <button
             onClick={() => setFilterFavs(f => !f)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ml-auto ${
+             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 sm:ml-auto ${
               filterFavs
                 ? 'text-[var(--bg-base)]'
                 : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'

@@ -177,7 +177,7 @@ export default function Gallery() {
     <AppLayout fullBleed>
     <div ref={containerRef} className="min-h-screen grain" style={{ background: 'var(--bg-base)' }}>
       {/* Header */}
-      <header className="gallery-header sticky top-0 z-30 pl-14 pr-4 py-4 md:px-6 flex flex-wrap items-center justify-between gap-2"
+      <header className="gallery-header sticky top-0 z-30 pl-14 pr-3 sm:pr-4 py-3 sm:py-4 md:px-6 flex flex-wrap items-center justify-between gap-2"
         style={{
           background: 'rgba(10,10,11,0.96)',
           borderBottom: '1px solid var(--border-subtle)',
@@ -203,18 +203,18 @@ export default function Gallery() {
           <button
             onClick={() => navigate('/gallery')}
              className="order-3 w-full justify-center md:order-none md:w-auto font-display italic text-lg md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2
-               flex items-center gap-1.5 hover:text-gold-400 transition-colors truncate max-w-full md:max-w-none"
+               flex items-center gap-1.5 hover:text-gold-400 transition-colors break-words text-center max-w-full md:max-w-none"
             title="Back to all events"
           >
             <ArrowLeft size={15} />
             {eventName}
           </button>
         ) : !showFolderGrid ? (
-            <h1 className="order-3 w-full text-center md:order-none md:w-auto font-display italic text-lg md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2 truncate max-w-full md:max-w-none">
+            <h1 className="order-3 w-full text-center md:order-none md:w-auto font-display italic text-lg md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2 break-words max-w-full md:max-w-none">
             {eventName}
           </h1>
         ) : (
-          <h1 className="order-3 w-full text-center md:order-none md:w-auto font-display italic text-lg md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2 truncate max-w-full md:max-w-none">
+          <h1 className="order-3 w-full text-center md:order-none md:w-auto font-display italic text-lg md:absolute md:left-1/2 md:-translate-x-1/2 break-words max-w-full md:max-w-none">
             My Events
           </h1>
         )}
@@ -280,7 +280,7 @@ export default function Gallery() {
       )}
 
       {/* Main */}
-      <main className="px-4 py-8">
+      <main className="px-3 sm:px-4 py-5 sm:py-8">
 
         {/* No events assigned at all */}
         {allUserEvents.length === 0 && (

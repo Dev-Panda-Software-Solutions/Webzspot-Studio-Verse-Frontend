@@ -127,22 +127,27 @@ body {
   }
 
   .mobile-header-inline {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
   }
 
   .mobile-header-inline > div:first-child {
     min-width: 0;
+    flex: 1 1 auto;
   }
 
   .mobile-header-inline > div:last-child {
     flex-shrink: 0;
-    max-width: 52%;
-    overflow-x: auto;
-    flex-wrap: nowrap;
+    max-width: 100%;
+    overflow-x: visible;
+    flex-wrap: wrap;
   }
 
   .mobile-header-inline > div:last-child > .w-full {
     width: auto;
+  }
+
+  .mobile-header-inline > div:last-child > * {
+    max-width: 100%;
   }
 
 }
