@@ -276,7 +276,7 @@ export default function Clients() {
         ))}
       </div>
 
-      <TableToolbar value={search} onChange={value => { setSearch(value); setPage(1) }} placeholder="Search clients by name, email or phone…" sortValue={sort} onSortChange={value => { setSort(value); setPage(1) }} sortOptions={[{ value: 'name', label: 'Sort: Name' }, { value: 'createdAt', label: 'Sort: Newest' }]} resultCount={total} />
+      <TableToolbar value={search} onChange={value => { setSearch(value); setPage(1) }} placeholder="Search clients by name, email or phone…" sortValue={sort} onSortChange={value => { setSort(value); setPage(1) }} sortOptions={[{ value: 'name', label: 'Sort: Name' }, { value: 'createdAt', label: 'Sort: Newest' }]} pageSize={pageSize} onPageSizeChange={size => { setPageSize(size); setPage(1) }} resultCount={total} />
 
       <GlassCard hover={false} className="p-0 overflow-hidden">
         <div className="hidden overflow-x-auto xl:block">
@@ -460,7 +460,7 @@ export default function Clients() {
           ))}
         </div>
 
-        <TablePagination page={page} pages={pages} total={total} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1) }} />
+        <TablePagination page={page} pages={pages} total={total} onPageChange={setPage} />
       </GlassCard>
 
       <ClientEventsModal client={eventsModalClient} onClose={() => setEventsModalClient(null)} />

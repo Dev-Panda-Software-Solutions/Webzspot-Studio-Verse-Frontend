@@ -291,19 +291,25 @@ export default function BillingDashboard() {
             ))}
           </div>
         </div>
-        <div className="relative w-full sm:max-w-sm sm:flex-1 min-w-0">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:flex-1 sm:justify-end min-w-0">
+          <div className="relative flex-1 min-w-[220px] sm:max-w-sm">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
           <input
             value={search}
              onChange={e => changeSearch(e.target.value)}
             placeholder={tab === 'quotations' ? 'Search by client or quotation #…' : 'Search by client or bill #…'}
             className="w-full pl-8 pr-3 py-2 text-sm rounded-xl outline-none"
-            style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
-          />
+             style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
+           />
+          </div>
           <select value={sort} onChange={e => { setSort(e.target.value); setPage(1) }} aria-label="Sort billing records"
-            className="w-full sm:w-auto rounded-xl px-3 py-2 text-sm outline-none" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border-default)' }}>
+            className="rounded-xl px-3 py-2 text-sm outline-none" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border-default)' }}>
             <option value="newest" style={{ background: '#18181b' }}>Newest first</option>
             <option value="amount" style={{ background: '#18181b' }}>Highest amount</option>
+          </select>
+          <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1) }} aria-label="Rows per page"
+            className="rounded-xl px-3 py-2 text-sm outline-none" style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border-default)' }}>
+            {[10, 15, 25, 50].map(size => <option key={size} value={size} style={{ background: '#18181b' }}>{size} / page</option>)}
           </select>
         </div>
       </div>
@@ -396,7 +402,7 @@ export default function BillingDashboard() {
               </button>
             ))}
           </div>
-          <TablePagination page={page} pages={Math.ceil(filteredQuotations.length / pageSize)} total={filteredQuotations.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1) }} />
+          <TablePagination page={page} pages={Math.ceil(filteredQuotations.length / pageSize)} total={filteredQuotations.length} onPageChange={setPage} />
         </GlassCard>
       ) : (
         <GlassCard hover={false} className="p-0 overflow-hidden">
@@ -490,7 +496,7 @@ export default function BillingDashboard() {
               </button>
             ))}
           </div>
-          <TablePagination page={page} pages={Math.ceil(filteredBills.length / pageSize)} total={filteredBills.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1) }} />
+          <TablePagination page={page} pages={Math.ceil(filteredBills.length / pageSize)} total={filteredBills.length} onPageChange={setPage} />
         </GlassCard>
       )}
 

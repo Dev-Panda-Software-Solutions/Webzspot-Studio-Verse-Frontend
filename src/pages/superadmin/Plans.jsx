@@ -200,7 +200,7 @@ export default function Plans() {
     >
       <TrialSettingsCard />
 
-      <TableToolbar value={search} onChange={value => { setSearch(value); setPage(1) }} placeholder="Search plans by name or type…" resultCount={filteredItems.length} />
+      <TableToolbar value={search} onChange={value => { setSearch(value); setPage(1) }} placeholder="Search plans by name or type…" pageSize={pageSize} onPageSizeChange={size => { setPageSize(size); setPage(1) }} resultCount={filteredItems.length} />
 
       <GlassCard hover={false} className="p-0 overflow-hidden">
         <div className="hidden w-full max-w-full overflow-x-auto overscroll-x-contain xl:block">
@@ -369,7 +369,7 @@ export default function Plans() {
             </div>
           ))}
         </div>
-        <TablePagination page={page} pages={Math.ceil(filteredItems.length / pageSize)} total={filteredItems.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1) }} />
+        <TablePagination page={page} pages={Math.ceil(filteredItems.length / pageSize)} total={filteredItems.length} onPageChange={setPage} />
        </GlassCard>
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editingId ? 'Edit Plan' : 'Create Plan'}>

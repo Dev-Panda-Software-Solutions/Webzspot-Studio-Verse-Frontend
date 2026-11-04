@@ -14,8 +14,6 @@ import { confirmDialog } from '../../components/ui/ConfirmDialog'
 import toast from 'react-hot-toast'
 import { TableToolbar } from '../../components/ui/TableControls'
 
-const PAGE_SIZE = 12
-
 export default function StudioEvents() {
   const navigate = useNavigate()
   const qc = useQueryClient()
@@ -24,10 +22,11 @@ export default function StudioEvents() {
   const [page, setPage] = useState(1)
   const [statusFilter, setStatusFilter] = useState('active')
   const [search, setSearch] = useState('')
+  const [pageSize, setPageSize] = useState(12)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['events', page, statusFilter, search],
-    queryFn: () => getEvents({ page, limit: PAGE_SIZE, status: statusFilter, search: search.trim() || undefined }),
+    queryKey: ['events', page, pageSize, statusFilter, search],
+    queryFn: () => getEvents({ page, limit: pageSize, status: statusFilter, search: search.trim() || undefined }),
   })
 
   const { data: subData } = useQuery({
@@ -150,7 +149,7 @@ export default function StudioEvents() {
           )}
         </div>
       </div>
-      <TableToolbar value={search} onChange={value => { setSearch(value); setPage(1) }} placeholder="Search events by name or venue…" resultCount={total} />
+      <TableToolbar value={search} onChange={value => { setSearch(value); setPage(1) }} placeholder="Search events by name or venue…" pageSize={pageSize} onPageSizeChange={size => { setPageSize(size); setPage(1) }} resultCount={total} />
 
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

@@ -216,7 +216,7 @@ export default function Support() {
           </div>
           )}
 
-          <TableToolbar value={search} onChange={value => { setSearch(value); setPage(1) }} placeholder="Search tickets, subject or requester…" resultCount={filteredTickets.length} />
+          <TableToolbar value={search} onChange={value => { setSearch(value); setPage(1) }} placeholder="Search tickets, subject or requester…" pageSize={pageSize} onPageSizeChange={size => { setPageSize(size); setPage(1) }} resultCount={filteredTickets.length} />
 
         <GlassCard hover={false} className="p-0 overflow-hidden">
           {isLoading ? (
@@ -232,7 +232,7 @@ export default function Support() {
               <TicketRow key={t.support_ticket_id} ticket={t} onOpen={setOpenTicketId} />
             ))
           )}
-          <TablePagination page={page} pages={Math.ceil(filteredTickets.length / pageSize)} total={filteredTickets.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1) }} />
+          <TablePagination page={page} pages={Math.ceil(filteredTickets.length / pageSize)} total={filteredTickets.length} onPageChange={setPage} />
         </GlassCard>
       </div>
 

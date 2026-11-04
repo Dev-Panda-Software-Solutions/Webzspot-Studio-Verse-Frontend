@@ -162,7 +162,7 @@ export default function AdminStudios() {
         ))}
       </div>
 
-      <TableToolbar value={search} onChange={value => { setSearch(value); setPage(1) }} placeholder="Search studios, owners or email…" resultCount={total} />
+      <TableToolbar value={search} onChange={value => { setSearch(value); setPage(1) }} placeholder="Search studios, owners or email…" pageSize={pageSize} onPageSizeChange={size => { setPageSize(size); setPage(1) }} resultCount={total} />
 
       <GlassCard hover={false} className="p-0 overflow-hidden">
         <div className="hidden w-full max-w-full overflow-x-auto overscroll-x-contain xl:block">
@@ -342,7 +342,7 @@ export default function AdminStudios() {
           })}
         </div>
 
-        <TablePagination page={page} pages={pages} total={total} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1) }} />
+        <TablePagination page={page} pages={pages} total={total} onPageChange={setPage} />
       </GlassCard>
 
       <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Create Studio">
