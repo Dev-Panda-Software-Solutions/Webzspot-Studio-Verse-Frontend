@@ -139,20 +139,20 @@ export default function QuotationEditor() {
       title={isEdit ? `Quotation #${quotation?.quotation_number ?? ''}` : 'New Quotation'}
       subtitle={client ? `For ${client.user_name}` : 'Add products, services or packages'}
       actions={
-        <div className="flex gap-2 items-center">
-          <GoldButton variant="ghost" icon={<ArrowLeft size={14} />} onClick={() => navigate('/studio/billing-data')}>Back</GoldButton>
+        <div className="flex w-full sm:w-auto flex-wrap gap-2 items-center justify-end">
+          <GoldButton variant="ghost" size="sm" icon={<ArrowLeft size={14} />} onClick={() => navigate('/studio/billing-data')} className="flex-1 sm:flex-none justify-center">Back</GoldButton>
           {isEdit && (
-            <GoldButton variant="outline" icon={<Download size={14} />} onClick={() => openBillingPdf(`/quotations/${id}/pdf`)}>PDF</GoldButton>
+            <GoldButton variant="outline" size="sm" icon={<Download size={14} />} onClick={() => openBillingPdf(`/quotations/${id}/pdf`)} className="flex-1 sm:flex-none justify-center">PDF</GoldButton>
           )}
           {isConfirmed && <Badge variant="success">Confirmed</Badge>}
-          {isEdit && !isConfirmed && <GoldButton variant="danger" icon={<Trash2 size={14} />} onClick={handleDelete}>Delete</GoldButton>}
+          {isEdit && !isConfirmed && <GoldButton variant="danger" size="sm" icon={<Trash2 size={14} />} onClick={handleDelete} className="flex-1 sm:flex-none justify-center">Delete</GoldButton>}
         </div>
       }
     >
       {client && (
-        <GlassCard hover={false} className="flex items-center gap-3 mb-5">
+        <GlassCard hover={false} className="flex items-center gap-3 mb-5 p-4 sm:p-6">
           <Avatar name={client.user_name} size="sm" />
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{client.user_name}</p>
             <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{client.user_email_id || client.user_phone_number || '-'}</p>
           </div>
@@ -160,9 +160,9 @@ export default function QuotationEditor() {
       )}
 
       {isConfirmed && billSummary && (
-        <div className="flex items-center justify-between gap-3 mb-5 px-4 py-3 rounded-xl text-sm" style={{ background: 'var(--accent-muted)', color: '#F59E0B' }}>
-          <span>This quotation has been confirmed and is now locked. Edits happen on the generated bill.</span>
-          <GoldButton size="sm" onClick={() => navigate(`/studio/billing-data/bills/${billSummary.bill_id}`)}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 px-4 py-3 rounded-xl text-sm" style={{ background: 'var(--accent-muted)', color: '#F59E0B' }}>
+          <span className="flex-1 min-w-0">This quotation has been confirmed and is now locked. Edits happen on the generated bill.</span>
+          <GoldButton size="sm" onClick={() => navigate(`/studio/billing-data/bills/${billSummary.bill_id}`)} className="w-full sm:w-auto justify-center flex-shrink-0">
             View Bill #{billSummary.bill_number}
           </GoldButton>
         </div>
@@ -172,14 +172,14 @@ export default function QuotationEditor() {
         <BillingStatusTracker bill={billSummary} />
       )}
 
-      <GlassCard hover={false} className="p-0 overflow-hidden mb-5">
-        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
+      <GlassCard hover={false} className="p-0 overflow-visible mb-5">
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
           <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Items</h3>
           {editable && <AddItemsButton onAdd={addItem} />}
         </div>
 
         {items.length === 0 ? (
-          <p className="py-12 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
+          <p className="px-4 py-12 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
             No items added yet - click "Add Items" to build this quotation.
           </p>
         ) : (
@@ -246,7 +246,7 @@ export default function QuotationEditor() {
             {items.map((item, idx) => (
               <div key={idx} className="p-4">
                 <div className="flex items-start justify-between gap-3">
-                  <p className="text-sm font-medium break-words" style={{ color: 'var(--text-primary)' }}>{item.name}</p>
+                  <p className="min-w-0 flex-1 text-sm font-medium break-words" style={{ color: 'var(--text-primary)' }}>{item.name}</p>
                   {editable && (
                     <button onClick={() => removeItem(idx)} className="p-1.5 rounded text-red-400 flex-shrink-0" title="Remove item">
                       <Trash2 size={14} />
@@ -312,13 +312,13 @@ export default function QuotationEditor() {
         )}
       </GlassCard>
 
-      <GlassCard hover={false} className="max-w-sm ml-auto">
+      <GlassCard hover={false} className="w-full sm:max-w-sm ml-auto">
         <div className="flex items-center justify-between mb-3 text-sm">
           <span style={{ color: 'var(--text-tertiary)' }}>Items Total</span>
           <span style={{ color: 'var(--text-primary)' }}>{money(itemsTotal)}</span>
         </div>
         <div className="flex items-center justify-between mb-4 text-sm gap-3">
-          <span style={{ color: 'var(--text-tertiary)' }}>Overall Discount (₹)</span>
+          <span className="min-w-0" style={{ color: 'var(--text-tertiary)' }}>Overall Discount (₹)</span>
           {editable ? (
             <input
               type="number" min="0" step="0.01" value={discountAmount}

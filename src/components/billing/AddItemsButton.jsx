@@ -72,7 +72,7 @@ export default function AddItemsButton({ onAdd }) {
 
       {open && (
         <div
-          className="absolute right-0 mt-2 w-64 rounded-xl overflow-hidden z-20 shadow-modal"
+          className="absolute right-0 mt-2 z-30 w-64 max-w-[calc(100vw-2rem)] rounded-xl overflow-hidden shadow-modal"
           style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)' }}
         >
           {services.length === 0 ? (
@@ -80,7 +80,7 @@ export default function AddItemsButton({ onAdd }) {
               No saved services yet - add some in Studio Profile.
             </p>
           ) : (
-            <div className="max-h-64 overflow-y-auto">
+            <div className="max-h-64 overflow-y-auto popup-scrollbar">
               {services.map(s => (
                 <div key={s.studio_service_id} className="flex items-center justify-between gap-2 px-4 py-2.5 border-b last:border-b-0"
                   style={{ borderColor: 'var(--border-subtle)' }}>
