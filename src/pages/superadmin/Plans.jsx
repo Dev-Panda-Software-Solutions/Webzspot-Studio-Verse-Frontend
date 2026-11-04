@@ -435,7 +435,7 @@ export default function Plans() {
             </>
           )}
 
-          <div className="flex gap-3 pt-2">
+          <div className="modal-actions flex gap-3 pt-2">
             <GoldButton type="submit" loading={saving} className="flex-1">{editingId ? 'Save' : 'Create'}</GoldButton>
             <GoldButton type="button" variant="ghost" onClick={() => setModalOpen(false)}>Cancel</GoldButton>
           </div>
@@ -450,7 +450,7 @@ export default function Plans() {
           </p>
           <GoldInput label="Visible only to studios that joined before" name="cutoff_date" type="date"
             value={cutoffDate} onChange={e => setCutoffDate(e.target.value)} />
-          <div className="flex gap-3 pt-2">
+          <div className="modal-actions flex gap-3 pt-2">
             <GoldButton type="submit" loading={savingAccess} className="flex-1">Save</GoldButton>
             {specialAccessPlan?.special_access_cutoff_date && (
               <GoldButton type="button" variant="outline" loading={savingAccess} onClick={handleClearSpecialAccess}>

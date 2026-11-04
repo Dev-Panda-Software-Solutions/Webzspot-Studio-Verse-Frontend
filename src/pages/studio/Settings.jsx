@@ -115,7 +115,7 @@ function ServicesSection() {
         <form onSubmit={handleSubmit}>
           <GoldInput label="Name *" name="name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
           <GoldInput label="Price (optional)" name="price" type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} />
-          <div className="flex gap-3 pt-2">
+          <div className="modal-actions flex gap-3 pt-2">
             <GoldButton type="submit" loading={saving} className="flex-1 justify-center">{editing ? 'Save' : 'Add'}</GoldButton>
             <GoldButton type="button" variant="ghost" onClick={() => setFormOpen(false)}>Cancel</GoldButton>
           </div>

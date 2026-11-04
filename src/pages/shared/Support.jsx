@@ -240,7 +240,7 @@ export default function Support() {
               style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
             />
           </div>
-          <div className="flex gap-3 pt-2">
+          <div className="modal-actions flex gap-3 pt-2">
             <GoldButton type="submit" loading={creating} className="flex-1">Submit</GoldButton>
             <GoldButton type="button" variant="ghost" onClick={() => setCreateOpen(false)}>Cancel</GoldButton>
           </div>

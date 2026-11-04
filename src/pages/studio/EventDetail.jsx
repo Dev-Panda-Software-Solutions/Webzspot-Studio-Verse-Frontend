@@ -392,7 +392,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
             </div>
           )}
 
-          <div className="flex gap-3">
+          <div className="modal-actions flex gap-3">
             <GoldButton
               onClick={handleAssignExisting}
               loading={assigning}
@@ -458,7 +458,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
                   </div>
                 ))}
               </div>
-              <div className="flex gap-3">
+              <div className="modal-actions flex gap-3">
                 <GoldButton type="submit" variant="outline" loading={creating} className="flex-1 justify-center">
                   Create new client anyway
                 </GoldButton>
@@ -468,7 +468,7 @@ function AddClientModal({ open, onClose, eventId, qc }) {
           )}
 
           {(!duplicates || duplicates.length === 0) && (
-            <div className="flex gap-3 pt-1">
+            <div className="modal-actions flex gap-3 pt-1">
               <GoldButton type="submit" loading={creating || checkingDuplicates} className="flex-1">Create &amp; Add to Event</GoldButton>
               <GoldButton type="button" variant="ghost" onClick={handleClose}>Cancel</GoldButton>
             </div>

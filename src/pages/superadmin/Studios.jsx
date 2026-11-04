@@ -385,7 +385,7 @@ export default function AdminStudios() {
           {grantOpen && (
             <FreeAccessGrantFields value={grantValue} onChange={setGrantValue} />
           )}
-          <div className="flex gap-3 pt-2">
+          <div className="modal-actions flex gap-3 pt-2">
             <GoldButton type="submit" loading={creating} className="flex-1">Create</GoldButton>
             <GoldButton type="button" variant="ghost" onClick={() => setCreateOpen(false)}>Cancel</GoldButton>
           </div>
@@ -406,7 +406,7 @@ export default function AdminStudios() {
             <span className="text-sm font-mono text-[var(--text-primary)]">{generatedCreds?.password}</span>
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="modal-actions flex gap-3">
           <GoldButton type="button" onClick={copyCreds} className="flex-1">
             {copied ? <><CheckCircle2 size={14} className="inline mr-1.5" />Copied</> : <><Copy size={14} className="inline mr-1.5" />Copy Credentials</>}
           </GoldButton>
