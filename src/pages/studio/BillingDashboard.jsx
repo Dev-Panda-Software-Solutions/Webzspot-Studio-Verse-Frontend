@@ -106,7 +106,7 @@ function RecentActivity({ quotations, bills, payments }) {
             <ev.icon size={13} className="text-gold-500" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>{ev.text}</p>
+            <p className="text-sm leading-snug break-words whitespace-normal" style={{ color: 'var(--text-primary)' }}>{ev.text}</p>
             <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{timeAgo(ev.at)}</p>
           </div>
            <span className="text-xs sm:text-sm font-semibold flex-shrink-0 whitespace-nowrap" style={{ color: ev.positive ? '#34D399' : 'var(--text-secondary)' }}>
