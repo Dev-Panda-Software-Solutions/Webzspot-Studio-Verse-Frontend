@@ -119,6 +119,13 @@ body {
 
   .mobile-header-inline > div:last-child {
     flex-shrink: 0;
+    max-width: 52%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .mobile-header-inline > div:last-child > .w-full {
+    width: auto;
   }
 
 }

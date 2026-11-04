@@ -6,7 +6,7 @@ import UploadStatusPanel from '../upload/UploadStatusPanel'
 
 const getSavedCollapsed = () => localStorage.getItem('sv-sidebar-collapsed') === 'true'
 
-export default function AppLayout({ children, title, subtitle, actions, fullBleed = false, mobileHeaderFlush = false, mobileHeaderInline = false }) {
+export default function AppLayout({ children, title, subtitle, actions, fullBleed = false, mobileHeaderFlush = false, mobileHeaderInline = true }) {
   const [collapsed, setCollapsed] = useState(getSavedCollapsed)
   const [mobileOpen, setMobileOpen] = useState(false)
   const touchStartX = useRef(null)
