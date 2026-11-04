@@ -79,8 +79,8 @@ function ClientAccessCard({ mapping, onUpdate }) {
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-end gap-2">
-         <div className="min-w-[9rem] flex-1">
+      <div className="mt-3 flex items-end gap-2">
+         <div className="min-w-0 flex-[2]">
           <label className="text-[10px] block mb-1" style={{ color: 'var(--text-tertiary)' }}>
             Expiry
           </label>
@@ -100,7 +100,7 @@ function ClientAccessCard({ mapping, onUpdate }) {
           type="button"
           disabled={saving}
           onClick={saveExpiry}
-          className="rounded-lg px-3 py-2 text-xs font-semibold disabled:opacity-50"
+           className="min-w-0 flex-1 rounded-lg px-2 py-2 text-xs font-semibold disabled:opacity-50"
           style={{ background: 'var(--accent-muted)', color: '#F59E0B' }}
         >
           Save
@@ -109,7 +109,7 @@ function ClientAccessCard({ mapping, onUpdate }) {
           type="button"
           disabled={saving}
           onClick={toggleAccess}
-          className="rounded-lg p-2 disabled:opacity-50"
+           className="min-w-0 flex-1 rounded-lg p-2 disabled:opacity-50"
           style={{
             background: mapping.isactive ? 'rgba(248,113,113,0.12)' : 'rgba(52,211,153,0.12)',
             color: mapping.isactive ? '#F87171' : '#34D399',
