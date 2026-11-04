@@ -105,6 +105,10 @@ body {
     max-width: calc(100vw - 32px);
   }
 
+  .mobile-header-flush {
+    margin-top: -20px;
+  }
+
 }
 
 /* ─── Scrollbar Styling ──────────────────────────────────── */
