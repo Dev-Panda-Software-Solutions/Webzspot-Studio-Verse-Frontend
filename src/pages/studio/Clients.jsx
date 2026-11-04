@@ -431,16 +431,16 @@ export default function Clients() {
                       <Trash2 size={13} />
                     </button>
                   </div>
-                  <div className="mt-3 flex items-center justify-between gap-3">
+                  <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                     <button
                       onClick={() => setEventsModalClient(u)}
-                      className="inline-flex items-center gap-1.5 text-xs font-medium rounded-lg px-2.5 py-1.5"
+                      className="min-w-0 max-w-full inline-flex items-center justify-center gap-1.5 text-xs font-medium rounded-lg px-2.5 py-1.5"
                       style={{ background: 'var(--accent-muted)', color: '#F59E0B' }}
                     >
                       <CalendarDays size={12} />
                       {u.event_names?.length ? `${u.event_names.length} event${u.event_names.length === 1 ? '' : 's'}` : 'Manage events'}
                     </button>
-                    <span className="text-xs whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>
+                    <span className="justify-self-end text-right text-xs whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>
                       {u.expiry_date ? `Expires ${formatDate(u.expiry_date)}` : 'No expiry'}
                     </span>
                   </div>
