@@ -16,6 +16,7 @@ import { getTenants, createTenant, deleteTenant, hardDeleteTenant, restoreTenant
 import { getDashboardAnalytics } from '../../api/events'
 import { formatDate, formatFileSize, planLabel, planStatusVariant } from '../../utils/formatters'
 import toast from 'react-hot-toast'
+import { TableToolbar, TablePagination } from '../../components/ui/TableControls'
 
 const formatStorageKb = (kb = 0) => formatFileSize((Number(kb) || 0) * 1024)
 
@@ -26,6 +27,8 @@ const BLANK_FORM = { tenant_studio_name: '', tenant_name: '', tenant_email_id: '
 export default function AdminStudios() {
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [search, setSearch] = useState('')
   const [status, setStatus] = useState('active')
   const [createOpen, setCreateOpen] = useState(false)
   const [form, setForm] = useState(BLANK_FORM)
@@ -40,8 +43,8 @@ export default function AdminStudios() {
   const [copied, setCopied] = useState(false)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['tenants', page, status],
-    queryFn: () => getTenants({ page, limit: 10, status })
+    queryKey: ['tenants', page, pageSize, status, search],
+    queryFn: () => getTenants({ page, limit: pageSize, status, search: search.trim() || undefined })
   })
   // Storage-per-studio isn't tracked on the tenant row itself - reuse the
   // same aggregation the Dashboard already computes rather than duplicating it.
@@ -158,6 +161,8 @@ export default function AdminStudios() {
           </button>
         ))}
       </div>
+
+      <TableToolbar value={search} onChange={value => { setSearch(value); setPage(1) }} placeholder="Search studios, owners or email…" resultCount={total} />
 
       <GlassCard hover={false} className="p-0 overflow-hidden">
         <div className="hidden w-full max-w-full overflow-x-auto overscroll-x-contain xl:block">
@@ -337,15 +342,7 @@ export default function AdminStudios() {
           })}
         </div>
 
-        {pages > 1 && (
-          <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 border-t" style={{ borderColor: 'var(--border-default)' }}>
-            <p className="text-xs text-[var(--text-tertiary)]">Page {page} of {pages}</p>
-            <div className="flex gap-2">
-              <GoldButton size="sm" variant="outline" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>←</GoldButton>
-              <GoldButton size="sm" variant="outline" onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages}>→</GoldButton>
-            </div>
-          </div>
-        )}
+        <TablePagination page={page} pages={pages} total={total} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1) }} />
       </GlassCard>
 
       <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="Create Studio">

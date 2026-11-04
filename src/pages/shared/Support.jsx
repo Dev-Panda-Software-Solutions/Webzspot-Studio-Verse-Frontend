@@ -12,6 +12,7 @@ import useAuthStore from '../../stores/authStore'
 import { createTicket, getMyTickets, getAllTickets, getTicketById, updateTicketStatus, addTicketReply } from '../../api/supportTickets'
 import { formatDate } from '../../utils/formatters'
 import toast from 'react-hot-toast'
+import { TableToolbar, TablePagination } from '../../components/ui/TableControls'
 
 const STATUS_OPTIONS = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']
 
@@ -149,6 +150,9 @@ export default function Support() {
   const [creating, setCreating] = useState(false)
   const [openTicketId, setOpenTicketId] = useState(null)
   const [statusFilter, setStatusFilter] = useState('')
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   const { data: myData, isLoading: myLoading } = useQuery({
     queryKey: ['my-tickets'],
@@ -163,6 +167,8 @@ export default function Support() {
 
   const tickets = isSuperAdmin ? (allData?.data?.items || []) : (myData?.data?.items || [])
   const isLoading = isSuperAdmin ? allLoading : myLoading
+  const filteredTickets = tickets.filter(ticket => !search.trim() || `${ticket.subject} ${ticket.description} ${ticket.raised_by_name}`.toLowerCase().includes(search.toLowerCase()))
+  const visibleTickets = filteredTickets.slice((page - 1) * pageSize, page * pageSize)
 
   const handleCreate = async (e) => {
     e.preventDefault()
@@ -197,7 +203,7 @@ export default function Support() {
             {['', ...STATUS_OPTIONS].map(s => (
               <button
                 key={s || 'all'}
-                onClick={() => setStatusFilter(s)}
+                 onClick={() => { setStatusFilter(s); setPage(1) }}
                 className="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
                 style={{
                   background: statusFilter === s ? 'var(--bg-surface)' : 'transparent',
@@ -208,22 +214,25 @@ export default function Support() {
               </button>
             ))}
           </div>
-        )}
+          )}
+
+          <TableToolbar value={search} onChange={value => { setSearch(value); setPage(1) }} placeholder="Search tickets, subject or requester…" resultCount={filteredTickets.length} />
 
         <GlassCard hover={false} className="p-0 overflow-hidden">
           {isLoading ? (
             <div className="p-4 space-y-2">
               {[...Array(4)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}
             </div>
-          ) : tickets.length === 0 ? (
+          ) : visibleTickets.length === 0 ? (
             <div className="py-16 text-center">
               <p className="text-sm" style={{ color: 'var(--text-tertiary)' }}>No support tickets yet</p>
             </div>
           ) : (
-            tickets.map(t => (
+             visibleTickets.map(t => (
               <TicketRow key={t.support_ticket_id} ticket={t} onOpen={setOpenTicketId} />
             ))
           )}
+          <TablePagination page={page} pages={Math.ceil(filteredTickets.length / pageSize)} total={filteredTickets.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1) }} />
         </GlassCard>
       </div>
 

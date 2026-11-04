@@ -18,6 +18,7 @@ import { formatDate, timeAgo } from '../../utils/formatters'
 import { useShutterNavigate } from '../../context/ShutterContext'
 import useAuthStore from '../../stores/authStore'
 import toast from 'react-hot-toast'
+import { TablePagination } from '../../components/ui/TableControls'
 
 const money = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`
 const GOLD = '#F59E0B'
@@ -124,6 +125,8 @@ export default function BillingDashboard() {
   const [tab, setTab] = useState('quotations')
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [gstOpen, setGstOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
   const [savingGst, setSavingGst] = useState(false)
@@ -184,6 +187,11 @@ export default function BillingDashboard() {
   const statusOptions = tab === 'quotations'
     ? [{ key: 'all', label: 'All' }, { key: 'DRAFT', label: 'Draft' }, { key: 'CONFIRMED', label: 'Confirmed' }]
     : [{ key: 'all', label: 'All' }, { key: 'UNPAID', label: 'Unpaid' }, { key: 'PARTIALLY_PAID', label: 'Partial' }, { key: 'PAID', label: 'Paid' }]
+
+  const visibleQuotations = filteredQuotations.slice((page - 1) * pageSize, page * pageSize)
+  const visibleBills = filteredBills.slice((page - 1) * pageSize, page * pageSize)
+  const changeTab = key => { setTab(key); setStatusFilter('all'); setPage(1) }
+  const changeSearch = value => { setSearch(value); setPage(1) }
 
   const handleSaveGst = async (form) => {
     setSavingGst(true)
@@ -253,7 +261,7 @@ export default function BillingDashboard() {
             ].map(({ key, label }) => (
               <button
                 key={key}
-                onClick={() => { setTab(key); setStatusFilter('all') }}
+                 onClick={() => changeTab(key)}
                 className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
                 style={{
                   background: tab === key ? 'var(--bg-surface)' : 'transparent',
@@ -269,7 +277,7 @@ export default function BillingDashboard() {
             {statusOptions.map(({ key, label }) => (
               <button
                 key={key}
-                onClick={() => setStatusFilter(key)}
+                 onClick={() => { setStatusFilter(key); setPage(1) }}
                 className="flex-1 sm:flex-none px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
                 style={{
                   background: statusFilter === key ? 'var(--bg-surface)' : 'transparent',
@@ -286,7 +294,7 @@ export default function BillingDashboard() {
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-tertiary)' }} />
           <input
             value={search}
-            onChange={e => setSearch(e.target.value)}
+             onChange={e => changeSearch(e.target.value)}
             placeholder={tab === 'quotations' ? 'Search by client or quotation #…' : 'Search by client or bill #…'}
             className="w-full pl-8 pr-3 py-2 text-sm rounded-xl outline-none"
             style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
@@ -314,7 +322,7 @@ export default function BillingDashboard() {
                   <tr><td colSpan={6} className="py-16 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
                     No quotations yet - create one to get started.
                   </td></tr>
-                ) : filteredQuotations.map(q => (
+                ) : visibleQuotations.map(q => (
                   <tr
                     key={q.quotation_id}
                     onClick={() => shutterNavigate(`/studio/billing-data/quotations/${q.quotation_id}`)}
@@ -348,7 +356,7 @@ export default function BillingDashboard() {
               <p className="py-14 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
                 No quotations yet - create one to get started.
               </p>
-            ) : filteredQuotations.map(q => (
+             ) : visibleQuotations.map(q => (
               <button
                 key={q.quotation_id}
                 type="button"
@@ -382,11 +390,7 @@ export default function BillingDashboard() {
               </button>
             ))}
           </div>
-          {quotationsTotal > quotations.length && (
-            <p className="px-6 py-3 text-xs border-t" style={{ color: 'var(--text-tertiary)', borderColor: 'var(--border-default)' }}>
-              Showing latest {quotations.length} of {quotationsTotal} quotations - refine your search to find older ones.
-            </p>
-          )}
+          <TablePagination page={page} pages={Math.ceil(filteredQuotations.length / pageSize)} total={filteredQuotations.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1) }} />
         </GlassCard>
       ) : (
         <GlassCard hover={false} className="p-0 overflow-hidden">
@@ -408,7 +412,7 @@ export default function BillingDashboard() {
                   <tr><td colSpan={6} className="py-16 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
                     No bills yet - confirm a quotation to generate one.
                   </td></tr>
-                ) : filteredBills.map(b => (
+                ) : visibleBills.map(b => (
                   <tr
                     key={b.bill_id}
                     onClick={() => shutterNavigate(`/studio/billing-data/bills/${b.bill_id}`)}
@@ -442,7 +446,7 @@ export default function BillingDashboard() {
               <p className="py-14 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
                 No bills yet - confirm a quotation to generate one.
               </p>
-            ) : filteredBills.map(b => (
+             ) : visibleBills.map(b => (
               <button
                 key={b.bill_id}
                 type="button"
@@ -480,11 +484,7 @@ export default function BillingDashboard() {
               </button>
             ))}
           </div>
-          {billsTotal > bills.length && (
-            <p className="px-6 py-3 text-xs border-t" style={{ color: 'var(--text-tertiary)', borderColor: 'var(--border-default)' }}>
-              Showing latest {bills.length} of {billsTotal} bills - refine your search to find older ones.
-            </p>
-          )}
+          <TablePagination page={page} pages={Math.ceil(filteredBills.length / pageSize)} total={filteredBills.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1) }} />
         </GlassCard>
       )}
 

@@ -15,6 +15,7 @@ import { getEventsByUser, updateEventUserMapping } from '../../api/events'
 import { formatDate, isExpired, clientDisplayName } from '../../utils/formatters'
 import { confirmDialog } from '../../components/ui/ConfirmDialog'
 import toast from 'react-hot-toast'
+import { TableToolbar, TablePagination } from '../../components/ui/TableControls'
 
 const toDateInput = (value) => value ? new Date(value).toISOString().split('T')[0] : ''
 
@@ -187,14 +188,17 @@ function EditClientModal({ client, onClose }) {
 export default function Clients() {
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(15)
+  const [search, setSearch] = useState('')
+  const [sort, setSort] = useState('name')
   const [status, setStatus] = useState('active')
   const [eventsModalClient, setEventsModalClient] = useState(null)
   const [editingClient, setEditingClient] = useState(null)
   const [addOpen, setAddOpen] = useState(false)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['tenant-users', page, status],
-    queryFn: () => getUsers({ page, limit: 15, status })
+    queryKey: ['tenant-users', page, pageSize, status, search, sort],
+    queryFn: () => getUsers({ page, limit: pageSize, status, search: search.trim() || undefined, sort: sort === 'name' ? 'user_name' : sort })
   })
   const items = data?.data?.items || []
   const total = data?.data?.total || 0
@@ -271,6 +275,8 @@ export default function Clients() {
           </button>
         ))}
       </div>
+
+      <TableToolbar value={search} onChange={value => { setSearch(value); setPage(1) }} placeholder="Search clients by name, email or phone…" sortValue={sort} onSortChange={value => { setSort(value); setPage(1) }} sortOptions={[{ value: 'name', label: 'Sort: Name' }, { value: 'createdAt', label: 'Sort: Newest' }]} resultCount={total} />
 
       <GlassCard hover={false} className="p-0 overflow-hidden">
         <div className="hidden overflow-x-auto xl:block">
@@ -454,15 +460,7 @@ export default function Clients() {
           ))}
         </div>
 
-        {pages > 1 && (
-          <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 border-t" style={{ borderColor: 'var(--border-default)' }}>
-            <p className="text-xs text-[var(--text-tertiary)]">Page {page} of {pages}</p>
-            <div className="flex gap-2">
-              <GoldButton size="sm" variant="outline" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>←</GoldButton>
-              <GoldButton size="sm" variant="outline" onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages}>→</GoldButton>
-            </div>
-          </div>
-        )}
+        <TablePagination page={page} pages={pages} total={total} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1) }} />
       </GlassCard>
 
       <ClientEventsModal client={eventsModalClient} onClose={() => setEventsModalClient(null)} />

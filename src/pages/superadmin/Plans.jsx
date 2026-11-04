@@ -13,6 +13,7 @@ import { getPlatformSettings, updatePlatformSettings } from '../../api/platformS
 import { formatDate } from '../../utils/formatters'
 import { confirmDialog } from '../../components/ui/ConfirmDialog'
 import toast from 'react-hot-toast'
+import { TableToolbar, TablePagination } from '../../components/ui/TableControls'
 
 function TrialSettingsCard() {
   const qc = useQueryClient()
@@ -89,6 +90,9 @@ export default function Plans() {
   const [specialAccessPlan, setSpecialAccessPlan] = useState(null)
   const [cutoffDate, setCutoffDate] = useState('')
   const [savingAccess, setSavingAccess] = useState(false)
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   const { data, isLoading } = useQuery({
     queryKey: ['plans'],
@@ -96,6 +100,8 @@ export default function Plans() {
   })
 
   const items = data?.data?.items || []
+  const filteredItems = items.filter(plan => !search.trim() || `${plan.plan_name} ${plan.plan_type}`.toLowerCase().includes(search.toLowerCase()))
+  const displayItems = filteredItems.slice((page - 1) * pageSize, page * pageSize)
 
   const update = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -194,6 +200,8 @@ export default function Plans() {
     >
       <TrialSettingsCard />
 
+      <TableToolbar value={search} onChange={value => { setSearch(value); setPage(1) }} placeholder="Search plans by name or type…" resultCount={filteredItems.length} />
+
       <GlassCard hover={false} className="p-0 overflow-hidden">
         <div className="hidden w-full max-w-full overflow-x-auto overscroll-x-contain xl:block">
           <table className="w-full min-w-[900px]">
@@ -211,18 +219,18 @@ export default function Plans() {
                 <tr><td colSpan={7} className="p-4">
                   {[...Array(3)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}
                 </td></tr>
-              ) : items.map((p, index) => (
+              ) : displayItems.map((p, index) => (
                 <tr key={p.subscription_plan_id}
                   className="border-b hover:bg-[var(--bg-elevated)] transition-colors group"
                   style={{ borderColor: 'var(--border-subtle)' }}
                   onClick={() => openEdit(p)}>
                   <td className="px-6 py-4" onClick={e => e.stopPropagation()}>
                     <div className="flex flex-col gap-1">
-                      <button onClick={() => move(index, -1)} disabled={index === 0}
+                       <button onClick={() => move(index + ((page - 1) * pageSize), -1)} disabled={index + ((page - 1) * pageSize) === 0}
                         className="p-1 text-[var(--text-tertiary)] hover:text-gold-500 disabled:opacity-30 transition-colors">
                         <ArrowUp size={14} />
                       </button>
-                      <button onClick={() => move(index, 1)} disabled={index === items.length - 1}
+                       <button onClick={() => move(index + ((page - 1) * pageSize), 1)} disabled={index + ((page - 1) * pageSize) === items.length - 1}
                         className="p-1 text-[var(--text-tertiary)] hover:text-gold-500 disabled:opacity-30 transition-colors">
                         <ArrowDown size={14} />
                       </button>
@@ -293,9 +301,9 @@ export default function Plans() {
             <div className="p-4 space-y-3">
               {[...Array(3)].map((_, i) => <SkeletonLoader key={i} type="table-row" />)}
             </div>
-          ) : items.length === 0 ? (
+           ) : displayItems.length === 0 ? (
             <p className="py-14 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>No plans yet.</p>
-          ) : items.map((p, index) => (
+           ) : displayItems.map((p, index) => (
             <div key={p.subscription_plan_id} className="p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -342,10 +350,10 @@ export default function Plans() {
 
               <div className="mt-3 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-1">
-                  <button onClick={() => move(index, -1)} disabled={index === 0} className="p-1.5 text-[var(--text-tertiary)] disabled:opacity-30" title="Move up">
+                   <button onClick={() => move(index + ((page - 1) * pageSize), -1)} disabled={index + ((page - 1) * pageSize) === 0} className="p-1.5 text-[var(--text-tertiary)] disabled:opacity-30" title="Move up">
                     <ArrowUp size={15} />
                   </button>
-                  <button onClick={() => move(index, 1)} disabled={index === items.length - 1} className="p-1.5 text-[var(--text-tertiary)] disabled:opacity-30" title="Move down">
+                   <button onClick={() => move(index + ((page - 1) * pageSize), 1)} disabled={index + ((page - 1) * pageSize) === items.length - 1} className="p-1.5 text-[var(--text-tertiary)] disabled:opacity-30" title="Move down">
                     <ArrowDown size={15} />
                   </button>
                 </div>
@@ -361,7 +369,8 @@ export default function Plans() {
             </div>
           ))}
         </div>
-      </GlassCard>
+        <TablePagination page={page} pages={Math.ceil(filteredItems.length / pageSize)} total={filteredItems.length} pageSize={pageSize} onPageChange={setPage} onPageSizeChange={size => { setPageSize(size); setPage(1) }} />
+       </GlassCard>
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editingId ? 'Edit Plan' : 'Create Plan'}>
         <form onSubmit={handleSave}>
