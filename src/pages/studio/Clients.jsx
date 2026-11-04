@@ -398,20 +398,20 @@ export default function Clients() {
                   {((page - 1) * pageSize) + index + 1}
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-start gap-2">
+                  <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2">
                     <Avatar name={u.user_name} size="sm" />
                     <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2 flex-nowrap">
-                    <p className="min-w-0 flex-1 text-sm font-semibold break-words" style={{ color: 'var(--text-primary)' }}>
+                  <div>
+                    <p className="text-sm font-semibold break-words" style={{ color: 'var(--text-primary)' }}>
                       {clientDisplayName(u)}
                     </p>
-                    <span className="flex-shrink-0">
-                      <ClientStatus client={u} />
-                    </span>
                   </div>
                   <p className="text-xs truncate mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
                     {u.user_email_id || u.user_phone_number || '-'}
                   </p>
+                    </div>
+                    <div className="pt-0.5">
+                      <ClientStatus client={u} />
                     </div>
                   </div>
                   <div className="flex items-center justify-end gap-1 mt-1">
