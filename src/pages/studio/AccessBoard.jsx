@@ -359,7 +359,7 @@ export default function AccessBoard() {
       title="Client Access Board"
       subtitle="Map clients to events and control gallery access from one place"
       fullBleed
-       actions={<GoldButton size="sm" className="w-full sm:w-auto justify-center" icon={<LayoutGrid size={14} />} loading={refreshing} onClick={() => refreshBoard({ notify: true })}>Refresh</GoldButton>}
+        actions={<GoldButton size="sm" className="flex-shrink-0 justify-center" icon={<LayoutGrid size={14} />} loading={refreshing} onClick={() => refreshBoard({ notify: true })}>Refresh</GoldButton>}
     >
       <div className="access-board-page w-full min-w-0 space-y-6 p-4 md:p-8">
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
