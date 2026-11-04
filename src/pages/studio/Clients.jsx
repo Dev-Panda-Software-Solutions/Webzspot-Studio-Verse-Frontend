@@ -280,11 +280,11 @@ export default function Clients() {
 
       <GlassCard hover={false} className="p-0 overflow-hidden">
         <div className="hidden overflow-x-auto xl:block">
-          <table className="w-full">
+          <table className="w-full table-fixed">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-default)' }}>
                 {['S.No', 'Client', 'Email', 'Events', 'Expires', 'Status', ''].map(h => (
-                  <th key={h} className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]">{h}</th>
+                  <th key={h} className={`${h === 'S.No' ? 'w-10 px-2' : 'px-4'} py-3 text-left text-xs font-semibold uppercase tracking-wider text-[var(--text-tertiary)]`}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -300,18 +300,18 @@ export default function Clients() {
               ) : items.map((u, index) => (
                 <tr key={u.user_id} className="border-b hover:bg-[var(--bg-elevated)] transition-colors group"
                   style={{ borderColor: 'var(--border-subtle)' }}>
-                  <td className="px-6 py-4 text-sm font-semibold" style={{ color: 'var(--text-tertiary)' }}>{((page - 1) * pageSize) + index + 1}</td>
-                  <td className="px-6 py-4">
+                  <td className="w-10 px-2 py-4 text-sm font-semibold" style={{ color: 'var(--text-tertiary)' }}>{((page - 1) * pageSize) + index + 1}</td>
+                  <td className="px-4 py-4">
                     <div className="flex items-center gap-3">
                       <Avatar name={u.user_name} size="sm" />
-                      <div>
-                        <p className="text-sm font-medium text-[var(--text-primary)]">{clientDisplayName(u)}</p>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium break-words text-[var(--text-primary)]">{clientDisplayName(u)}</p>
                         <p className="text-xs text-[var(--text-tertiary)]">{u.user_phone_number || '-'}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">{u.user_email_id || '-'}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4 text-sm break-all text-[var(--text-secondary)]">{u.user_email_id || '-'}</td>
+                  <td className="px-4 py-4">
                     <button
                       onClick={() => setEventsModalClient(u)}
                       className="inline-flex items-center gap-1.5 text-xs font-medium rounded-lg px-2.5 py-1.5 transition-colors"
@@ -321,13 +321,13 @@ export default function Clients() {
                       {u.event_names?.length ? `${u.event_names.length} event${u.event_names.length === 1 ? '' : 's'}` : 'Manage events'}
                     </button>
                   </td>
-                  <td className="px-6 py-4 text-sm text-[var(--text-tertiary)]">
+                  <td className="px-4 py-4 text-sm text-[var(--text-tertiary)]">
                     {u.expiry_date ? formatDate(u.expiry_date) : '-'}
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4">
                     <ClientStatus client={u} />
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-4">
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => setEditingClient(u)}
