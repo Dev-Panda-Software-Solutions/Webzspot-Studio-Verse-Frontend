@@ -99,6 +99,7 @@ export default function SidebarNav({ collapsed, onCollapse, mobileOpen = false, 
     <aside
       ref={sidebarRef}
       data-mobile-open={mobileOpen}
+      aria-label="Main navigation"
       className={`sidebar-shell fixed left-0 top-0 h-screen min-h-[100dvh] flex flex-col z-40 select-none
         transition-transform duration-300 md:translate-x-0
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}
@@ -256,7 +257,7 @@ export default function SidebarNav({ collapsed, onCollapse, mobileOpen = false, 
       {/* ── Collapse pill ── */}
       <button
         onClick={handleCollapseClick}
-        className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full
+        className="hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full
           flex items-center justify-center z-50 transition-colors duration-150"
         style={{
           background: sb.bg,

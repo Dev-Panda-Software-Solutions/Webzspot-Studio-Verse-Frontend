@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import SidebarNav from './SidebarNav'
 // import ThemeToggle from '../ui/ThemeToggle' // dark/light toggle disabled site-wide - see themeStore.js
@@ -10,6 +10,23 @@ export default function AppLayout({ children, title, subtitle, actions }) {
   const [collapsed, setCollapsed] = useState(getSavedCollapsed)
   const [mobileOpen, setMobileOpen] = useState(false)
   const touchStartX = useRef(null)
+
+  // Keep the page fixed behind the drawer so the Clients list cannot scroll
+  // underneath the mobile navigation.
+  useEffect(() => {
+    if (!mobileOpen || window.innerWidth >= 768) return undefined
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = previousOverflow }
+  }, [mobileOpen])
+
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') setMobileOpen(false)
+    }
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [])
 
   const openMobileNav = () => {
     if (window.innerWidth < 768) setCollapsed(false)
@@ -48,7 +65,7 @@ export default function AppLayout({ children, title, subtitle, actions }) {
           type="button"
           aria-label="Close navigation"
           onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 z-30 bg-black/60 md:hidden"
+           className="fixed inset-0 z-30 bg-black/70 backdrop-blur-[2px] md:hidden"
         />
       )}
       {/* Spacer that matches sidebar width */}
@@ -79,6 +96,7 @@ export default function AppLayout({ children, title, subtitle, actions }) {
               background: 'var(--bg-surface)',
               borderBottom: '1px solid var(--border-subtle)',
               boxShadow: '0 1px 0 rgba(0,0,0,0.1)',
+              paddingTop: 'max(0.75rem, env(safe-area-inset-top))',
             }}
           >
             <div className="flex items-center gap-3 min-w-0">
