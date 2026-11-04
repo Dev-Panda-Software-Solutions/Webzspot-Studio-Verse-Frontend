@@ -21,9 +21,9 @@ import toast from 'react-hot-toast'
 
 function ServiceRow({ service, onEdit, onDelete }) {
   return (
-    <div className="flex items-center gap-3 py-3 border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
+    <div className="flex items-start gap-3 py-3 border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{service.name}</p>
+        <p className="text-sm font-medium whitespace-normal break-words" style={{ color: 'var(--text-primary)' }}>{service.name}</p>
       </div>
       <p className="text-sm font-semibold flex-shrink-0" style={{ color: 'var(--text-primary)' }}>
         {service.price != null ? `₹${Number(service.price).toLocaleString('en-IN')}` : '-'}
