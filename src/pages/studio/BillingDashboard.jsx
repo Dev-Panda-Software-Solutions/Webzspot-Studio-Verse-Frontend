@@ -217,14 +217,15 @@ export default function BillingDashboard() {
       </div>
 
       <div className="grid xl:grid-cols-3 gap-5 mb-6">
-        <GlassCard hover={false} className="xl:col-span-2">
+        <GlassCard hover={false} className="min-w-0 overflow-hidden xl:col-span-2">
           <h3 className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>Revenue Collected</h3>
           <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>Last 6 months</p>
-          <ResponsiveContainer width="100%" height={190}>
-            <BarChart data={revenueByMonth} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+          <div className="w-full min-w-0 h-[190px] overflow-hidden">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={50}>
+            <BarChart data={revenueByMonth} margin={{ top: 4, right: 2, left: -22, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-              <XAxis dataKey="label" tick={{ fill: '#6B6B76', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#6B6B76', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${v / 1000}k` : v} />
+              <XAxis dataKey="label" interval="preserveStartEnd" tick={{ fill: '#6B6B76', fontSize: 10 }} axisLine={false} tickLine={false} tickMargin={4} />
+              <YAxis width={36} tick={{ fill: '#6B6B76', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${v / 1000}k` : v} />
               <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(245,158,11,0.06)' }} />
               <Bar dataKey="amount" name="Collected" radius={[4, 4, 0, 0]}>
                 {revenueByMonth.map((_, i) => (
@@ -232,7 +233,8 @@ export default function BillingDashboard() {
                 ))}
               </Bar>
             </BarChart>
-          </ResponsiveContainer>
+            </ResponsiveContainer>
+          </div>
         </GlassCard>
 
         <GlassCard hover={false}>
