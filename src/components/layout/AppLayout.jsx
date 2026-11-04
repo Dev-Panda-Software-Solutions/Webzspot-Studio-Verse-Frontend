@@ -6,7 +6,7 @@ import UploadStatusPanel from '../upload/UploadStatusPanel'
 
 const getSavedCollapsed = () => localStorage.getItem('sv-sidebar-collapsed') === 'true'
 
-export default function AppLayout({ children, title, subtitle, actions, fullBleed = false, mobileHeaderFlush = false }) {
+export default function AppLayout({ children, title, subtitle, actions, fullBleed = false, mobileHeaderFlush = false, mobileHeaderInline = false }) {
   const [collapsed, setCollapsed] = useState(getSavedCollapsed)
   const [mobileOpen, setMobileOpen] = useState(false)
   const touchStartX = useRef(null)
@@ -91,7 +91,7 @@ export default function AppLayout({ children, title, subtitle, actions, fullBlee
         {/* Sticky page top bar */}
         {title && (
           <header
-            className={`sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 px-4 py-3 md:px-8 flex-shrink-0 ${mobileHeaderFlush ? 'mobile-header-flush' : ''}`}
+            className={`sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 px-4 py-3 md:px-8 flex-shrink-0 ${mobileHeaderFlush ? 'mobile-header-flush' : ''} ${mobileHeaderInline ? 'mobile-header-inline' : ''}`}
             style={{
               background: 'var(--bg-surface)',
               borderBottom: '1px solid var(--border-subtle)',

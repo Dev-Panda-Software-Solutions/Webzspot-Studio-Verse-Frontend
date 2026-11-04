@@ -360,9 +360,10 @@ export default function AccessBoard() {
       subtitle="Map clients to events and control gallery access from one place"
       fullBleed
       mobileHeaderFlush
-        actions={<GoldButton size="sm" className="flex-shrink-0 justify-center" icon={<LayoutGrid size={14} />} loading={refreshing} onClick={() => refreshBoard({ notify: true })}>Refresh</GoldButton>}
+      mobileHeaderInline
+      actions={<GoldButton size="sm" className="flex-shrink-0 justify-center" icon={<LayoutGrid size={14} />} loading={refreshing} onClick={() => refreshBoard({ notify: true })}>Refresh</GoldButton>}
     >
-      <div className="access-board-page w-full min-w-0 space-y-6 p-4 md:p-8">
+      <div className="access-board-page w-full min-w-0 space-y-6 px-4 pb-4 pt-8 md:p-8">
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-4">
           {[
             { label: 'Events', value: events.length, icon: CalendarClock },

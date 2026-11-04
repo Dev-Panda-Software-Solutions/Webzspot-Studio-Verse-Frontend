@@ -109,6 +109,18 @@ body {
     margin-top: -20px;
   }
 
+  .mobile-header-inline {
+    flex-wrap: nowrap;
+  }
+
+  .mobile-header-inline > div:first-child {
+    min-width: 0;
+  }
+
+  .mobile-header-inline > div:last-child {
+    flex-shrink: 0;
+  }
+
 }
 
 /* ─── Scrollbar Styling ──────────────────────────────────── */
