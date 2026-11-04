@@ -61,8 +61,8 @@ export default function RecordPaymentModal({ open, bill, onClose, onRecorded }) 
               type="number" min="0" step="0.01" max={balanceDue}
               value={amount}
               onChange={e => setAmount(e.target.value)}
-              className="flex-1 text-sm py-2.5 pr-3 outline-none bg-transparent"
-              style={{ color: 'var(--text-primary)' }}
+              className="flex-1 text-sm py-2.5 pr-3 outline-none bg-transparent border-0 focus:border-0 focus:ring-0"
+              style={{ color: 'var(--text-primary)', border: '0', boxShadow: 'none' }}
             />
           </div>
         </div>

@@ -152,15 +152,17 @@ function LightboxVideo({ media, watermarkSrc }) {
             className="max-h-[80vh] max-w-[85vw] rounded-lg outline-none"
             controls
             autoPlay
+            playsInline
+            preload="metadata"
             controlsList="nodownload nofullscreen"
             disablePictureInPicture
             disableRemotePlayback
             onContextMenu={(e) => e.preventDefault()}
             onError={handleError}
-            style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+            style={{ userSelect: 'none', WebkitUserSelect: 'none', transform: 'translateZ(0)' }}
           />
           <div className="absolute inset-0 pointer-events-none select-none"
-            style={{ zIndex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: 44 }}>
+            style={{ zIndex: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: 44, transform: 'translateZ(0)' }}>
             <WatermarkOverlay src={watermarkSrc} size="lg" />
           </div>
         </div>

@@ -246,6 +246,7 @@ function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
             <Play size={9} className="text-white fill-white" />
           </div>
         )}
+        {loaded && <WatermarkOverlay src={watermarkSrc} size="sm" />}
       </div>
 
       {/* Info */}

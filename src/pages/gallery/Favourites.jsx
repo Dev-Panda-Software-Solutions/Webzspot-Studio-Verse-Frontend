@@ -12,6 +12,7 @@ import useBrandColours from '../../hooks/useBrandColours'
 import useAuthStore from '../../stores/authStore'
 import useGalleryStore from '../../stores/galleryStore'
 import GoldButton from '../../components/ui/GoldButton'
+import { backendAssetUrl } from '../../utils/apiUrl'
 import toast from 'react-hot-toast'
 
 export default function GalleryFavourites() {
@@ -45,6 +46,9 @@ export default function GalleryFavourites() {
     queryFn: () => getTenantSettings(tenantId),
     enabled: !!tenantId,
   })
+  const watermarkSrc = settingsData?.data?.tenant_watermark_path
+    ? backendAssetUrl(settingsData.data.tenant_watermark_path)
+    : null
   useBrandColours(
     containerRef,
     settingsData?.data?.primary_color,
@@ -120,6 +124,7 @@ export default function GalleryFavourites() {
           <PhotoGrid
             mediaList={favouriteMedia}
             eventId={eventId}
+            watermarkSrc={watermarkSrc}
             loading={mediaLoading}
             showFavourite
             frozen={favouritesSubmitted}
