@@ -214,7 +214,7 @@ export default function Gallery() {
         </div>
       )}
     >
-    <div ref={containerRef} className="min-h-screen grain" style={{ background: 'var(--bg-base)' }}>
+    <div ref={containerRef} className="min-h-screen" style={{ background: '#FAFAF8', color: '#111113' }}>
       {/* Submitted banner - favourites are frozen */}
       {!showFolderGrid && isSubmitted && !isLocked && (
         <div className="px-6 py-2.5 flex items-center gap-3"
