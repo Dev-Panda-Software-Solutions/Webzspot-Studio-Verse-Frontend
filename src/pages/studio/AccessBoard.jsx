@@ -18,7 +18,7 @@ import QuickAddClientModal from '../../components/events/QuickAddClientModal'
 import toast from 'react-hot-toast'
 
 const today = new Date()
-const RECENT_EVENT_COUNT = 3
+const RECENT_EVENT_COUNT = 4
 
 const accessState = (mapping) => {
   if (!mapping?.isactive) return { label: 'Revoked', variant: 'error' }
