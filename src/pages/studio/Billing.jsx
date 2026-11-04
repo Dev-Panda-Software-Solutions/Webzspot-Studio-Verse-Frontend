@@ -413,13 +413,15 @@ export default function Billing() {
                                 {planLabel(h)}
                               </p>
                               <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                                {change && <Badge variant={change.variant}>{change.label}</Badge>}
                                 <Badge variant={planStatusVariant(h.status)}>{h.status}</Badge>
                               </div>
                             </div>
-                            <p className="text-sm font-semibold whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
-                              {price}
-                            </p>
+                            <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                              <p className="text-sm font-semibold whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
+                                {price}
+                              </p>
+                              {change && <Badge variant={change.variant}>{change.label}</Badge>}
+                            </div>
                           </div>
                           <div className="mt-3 grid grid-cols-2 gap-2">
                             <div>
