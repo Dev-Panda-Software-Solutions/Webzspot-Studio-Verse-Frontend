@@ -218,7 +218,7 @@ export default function BillingDashboard() {
         </div>
       }
     >
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6 mt-4 md:mt-0">
         <StatCard icon={FileText} label="Total Quotations" value={quotations.length} />
         <StatCard icon={ReceiptIcon} label="Draft Quotations" value={draftCount} />
         <StatCard icon={Landmark} label="Total Quoted Value" value={money(totalQuoted)} />
