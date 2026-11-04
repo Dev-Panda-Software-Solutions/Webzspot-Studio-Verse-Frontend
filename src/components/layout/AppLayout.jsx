@@ -9,7 +9,18 @@ const getSavedCollapsed = () => localStorage.getItem('sv-sidebar-collapsed') ===
 export default function AppLayout({ children, title, subtitle, actions, fullBleed = false, mobileHeaderFlush = false, mobileHeaderInline = true }) {
   const [collapsed, setCollapsed] = useState(getSavedCollapsed)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [mobileHeaderHeight, setMobileHeaderHeight] = useState(72)
   const touchStartX = useRef(null)
+  const mobileHeaderRef = useRef(null)
+
+  useEffect(() => {
+    if (!title || !mobileHeaderRef.current || typeof ResizeObserver === 'undefined') return undefined
+    const updateHeight = () => setMobileHeaderHeight(mobileHeaderRef.current?.offsetHeight || 72)
+    updateHeight()
+    const observer = new ResizeObserver(updateHeight)
+    observer.observe(mobileHeaderRef.current)
+    return () => observer.disconnect()
+  }, [title])
 
   // Keep the page fixed behind the drawer so the Clients list cannot scroll
   // underneath the mobile navigation.
@@ -91,6 +102,7 @@ export default function AppLayout({ children, title, subtitle, actions, fullBlee
         {/* Sticky page top bar */}
         {title && (
           <header
+            ref={mobileHeaderRef}
             className={`app-mobile-header sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 px-4 py-3 md:px-8 flex-shrink-0 ${mobileHeaderFlush ? 'mobile-header-flush' : ''} ${mobileHeaderInline ? 'mobile-header-inline' : ''}`}
             style={{
               background: 'var(--bg-surface)',
@@ -131,7 +143,10 @@ export default function AppLayout({ children, title, subtitle, actions, fullBlee
           </header>
         )}
 
-        <main className={`app-main-with-header flex-1 min-w-0 ${title ? 'app-main-has-header' : ''} ${fullBleed ? 'p-0' : 'p-4 md:p-8'}`}>
+        <main
+          className={`app-main-with-header flex-1 min-w-0 ${title ? 'app-main-has-header' : ''} ${fullBleed ? 'p-0' : 'p-4 md:p-8'}`}
+          style={title ? { '--mobile-header-height': `${mobileHeaderHeight}px` } : undefined}
+        >
           {children}
         </main>
       </div>

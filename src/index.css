@@ -114,7 +114,7 @@ body {
   }
 
   .app-main-has-header {
-    padding-top: 72px !important;
+    padding-top: max(72px, var(--mobile-header-height, 72px)) !important;
   }
 
   .sidebar-shell {
