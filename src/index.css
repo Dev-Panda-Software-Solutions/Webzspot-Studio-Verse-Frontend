@@ -158,6 +158,16 @@ body {
   background: var(--bg-surface);
   border-top: 1px solid var(--border-subtle);
 }
+.modal-actions::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2rem;
+  height: 2rem;
+  background: var(--bg-surface);
+  pointer-events: none;
+}
 @media (min-width: 640px) {
   .modal-actions {
     margin-left: -1.5rem;
