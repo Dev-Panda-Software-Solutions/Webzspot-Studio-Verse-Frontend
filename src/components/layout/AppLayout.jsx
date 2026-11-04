@@ -83,7 +83,7 @@ export default function AppLayout({ children, title, subtitle, actions, fullBlee
       <div className="hidden md:block flex-shrink-0 transition-all duration-300" style={{ width: collapsed ? 64 : 240 }} />
 
       <div className="flex-1 min-w-0 max-w-full overflow-x-clip flex flex-col min-h-screen">
-        {!title && (
+        {!title && !mobileOpen && (
           <button
             type="button"
             aria-label="Open navigation"
@@ -104,7 +104,7 @@ export default function AppLayout({ children, title, subtitle, actions, fullBlee
         {title && (
           <header
             ref={mobileHeaderRef}
-            className={`app-mobile-header sticky top-0 z-50 flex flex-wrap items-center justify-between gap-2 px-4 py-3 md:px-8 flex-shrink-0 ${mobileHeaderFlush ? 'mobile-header-flush' : ''} ${mobileHeaderInline ? 'mobile-header-inline' : ''}`}
+            className={`app-mobile-header sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 px-4 py-3 md:px-8 flex-shrink-0 ${mobileHeaderFlush ? 'mobile-header-flush' : ''} ${mobileHeaderInline ? 'mobile-header-inline' : ''}`}
             style={{
               background: 'var(--bg-surface)',
               borderBottom: '1px solid var(--border-subtle)',
@@ -113,7 +113,7 @@ export default function AppLayout({ children, title, subtitle, actions, fullBlee
             }}
           >
             <div className="flex items-center gap-3 min-w-0">
-              <button
+              {!mobileOpen && <button
                 type="button"
                 aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
                 onClick={() => mobileOpen ? setMobileOpen(false) : openMobileNav()}
@@ -125,7 +125,7 @@ export default function AppLayout({ children, title, subtitle, actions, fullBlee
             }}
               >
                 {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
+              </button>}
               <div className="min-w-0">
                 <h1 className="text-base font-semibold break-words" style={{ color: 'var(--text-primary)' }}>
                   {title}
