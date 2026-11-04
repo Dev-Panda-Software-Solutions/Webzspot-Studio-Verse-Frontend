@@ -100,7 +100,7 @@ export default function RecordPaymentModal({ open, bill, onClose, onRecorded }) 
           />
         </div>
 
-        <div className="flex gap-3">
+        <div className="modal-actions flex gap-3">
           <GoldButton type="submit" loading={saving} className="flex-1 justify-center">Record Payment</GoldButton>
           <GoldButton type="button" variant="ghost" onClick={onClose}>Cancel</GoldButton>
         </div>

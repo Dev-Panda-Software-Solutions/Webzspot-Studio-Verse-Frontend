@@ -367,7 +367,7 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
           </div>
         )}
 
-        <div className="flex gap-3 pt-2">
+        <div className="modal-actions flex gap-3 pt-2">
           <GoldButton type="submit" loading={loading} className="flex-1 justify-center">
             {isEdit ? 'Save Changes' : 'Create Event'}
           </GoldButton>

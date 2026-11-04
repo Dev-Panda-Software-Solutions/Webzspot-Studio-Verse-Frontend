@@ -78,7 +78,7 @@ export default function CreateQuotationModal({ open, onClose }) {
         <form onSubmit={handleCreateUser}>
           <GoldInput label="Name *" name="name" value={newClient.name} onChange={e => setNewClient(f => ({ ...f, name: e.target.value }))} />
           <GoldInput label="Email Address or Phone Number *" name="contact" value={newClient.contact} onChange={e => setNewClient(f => ({ ...f, contact: e.target.value }))} />
-          <div className="flex gap-3 pt-2">
+          <div className="modal-actions flex gap-3 pt-2">
             <GoldButton type="submit" loading={saving} className="flex-1 justify-center">Create User</GoldButton>
             <GoldButton type="button" variant="ghost" onClick={handleClose}>Cancel</GoldButton>
           </div>
@@ -118,7 +118,7 @@ export default function CreateQuotationModal({ open, onClose }) {
               </button>
             ))}
           </div>
-          <div className="flex gap-3">
+          <div className="modal-actions flex gap-3">
             <GoldButton disabled={!selected} onClick={() => goToQuotation(selected.user_id)} className="flex-1 justify-center">
               {selected ? `Continue with ${selected.user_name}` : 'Select a client above'}
             </GoldButton>

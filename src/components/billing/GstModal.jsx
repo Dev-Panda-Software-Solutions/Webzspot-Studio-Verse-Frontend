@@ -41,7 +41,7 @@ export default function GstModal({ open, onClose, settings, onSave, saving }) {
             {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
-        <div className="flex gap-3 pt-2">
+        <div className="modal-actions flex gap-3 pt-2">
           <GoldButton type="submit" loading={saving} disabled={!form.gstin_number.trim() || !form.gst_state} className="flex-1 justify-center">
             Save
           </GoldButton>

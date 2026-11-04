@@ -146,7 +146,7 @@ export default function AddItemsButton({ onAdd }) {
               />
             </div>
           </div>
-          <div className="flex gap-3">
+          <div className="modal-actions flex gap-3">
             <GoldButton type="button" variant="ghost" onClick={() => setCustomOpen(false)}>Close</GoldButton>
             <GoldButton type="submit" loading={savingCustom} className="flex-1 justify-center">Submit</GoldButton>
           </div>

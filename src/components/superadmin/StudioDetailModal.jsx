@@ -585,7 +585,7 @@ export default function StudioDetailModal({ tenantId, studioName, storageLabel, 
               </button>
             ))}
         </div>
-        <div className="flex gap-3">
+        <div className="modal-actions flex gap-3">
           <GoldButton onClick={handleSetPlan} loading={planSaving} disabled={!selectedPlanId} className="flex-1">
             Assign Plan
           </GoldButton>

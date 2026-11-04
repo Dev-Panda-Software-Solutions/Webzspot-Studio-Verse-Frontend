@@ -148,6 +148,25 @@ body {
 }
 .popup-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); background-clip: padding-box; }
 
+/* Modal action bars stay reachable while long forms scroll. */
+.modal-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  margin: 1rem -1rem -1rem;
+  padding: 0.75rem 1rem 1rem;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-subtle);
+}
+@media (min-width: 640px) {
+  .modal-actions {
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
 /* Firefox and other engines without webkit scrollbar pseudo-elements still
    get a thin themed scrollbar. Chromium skips this block so its webkit rules
    (and the hidden arrow buttons) stay in control. */

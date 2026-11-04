@@ -164,7 +164,7 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
           <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--text-secondary)' }}>
             To create or add a client, you need to create an event first. Clients are added to a specific event so they can access its gallery.
           </p>
-          <div className="flex flex-col-reverse sm:flex-row gap-3">
+          <div className="modal-actions flex flex-col-reverse sm:flex-row gap-3">
             <GoldButton
               icon={<CalendarPlus size={14} />}
               onClick={() => { handleClose(); navigate('/studio/events') }}
@@ -280,7 +280,7 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
                 </div>
               )}
 
-              <div className="flex flex-col-reverse sm:flex-row gap-3">
+              <div className="modal-actions flex flex-col-reverse sm:flex-row gap-3">
                 <GoldButton onClick={handleAssignExisting} loading={assigning} disabled={!selected} className="w-full sm:flex-1 justify-center">
                   {selected ? `Assign ${selected.user_name}` : 'Select a client above'}
                 </GoldButton>
@@ -337,7 +337,7 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
                       </div>
                     ))}
                   </div>
-                  <div className="flex flex-col-reverse sm:flex-row gap-3">
+                  <div className="modal-actions flex flex-col-reverse sm:flex-row gap-3">
                     <GoldButton type="submit" variant="outline" loading={creating} className="w-full sm:flex-1 justify-center">
                       Create new client anyway
                     </GoldButton>
@@ -347,7 +347,7 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
               )}
 
               {(!duplicates || duplicates.length === 0) && (
-                <div className="flex flex-col-reverse sm:flex-row gap-3 pt-1">
+                <div className="modal-actions flex flex-col-reverse sm:flex-row gap-3 pt-1">
                   <GoldButton type="submit" loading={creating || checkingDuplicates} className="w-full sm:flex-1 justify-center">
                     Create &amp; Add to Event
                   </GoldButton>

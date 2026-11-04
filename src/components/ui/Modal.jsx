@@ -41,12 +41,15 @@ export default function Modal({ open, onClose, title, children, size = 'md' }) {
             transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
           >
             <div className="max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain p-4 sm:p-6 popup-scrollbar">
-              <div className="flex items-start justify-between gap-3 mb-6">
+              <div className="sticky top-0 z-20 -mx-4 -mt-4 mb-6 flex items-start justify-between gap-3 border-b px-4 pb-3 pt-4 sm:-mx-6 sm:-mt-6 sm:px-6 sm:pt-6"
+                style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-subtle)' }}>
                 <h2 className="min-w-0 break-words text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
                 <button
                   onClick={onClose}
+                  type="button"
+                  aria-label="Close dialog"
                   className="p-1.5 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--text-primary)]
-                    hover:bg-[var(--bg-elevated)] transition-colors"
+                    hover:bg-[var(--bg-elevated)] transition-colors flex-shrink-0"
                 >
                   <X size={16} />
                 </button>
