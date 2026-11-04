@@ -129,7 +129,7 @@ export default function AddItemsButton({ onAdd }) {
                 value={custom.price}
                 onChange={e => setCustom(f => ({ ...f, price: e.target.value }))}
                 className="flex-1 text-sm py-2.5 pr-3 outline-none bg-transparent border-0 focus:border-0 focus:ring-0"
-                style={{ color: 'var(--text-primary)', border: '0', boxShadow: 'none' }}
+                style={{ color: 'var(--text-primary)', border: '0', boxShadow: 'none', outline: 'none' }}
               />
             </div>
           </div>
@@ -142,7 +142,7 @@ export default function AddItemsButton({ onAdd }) {
                 value={custom.discount}
                 onChange={e => setCustom(f => ({ ...f, discount: e.target.value }))}
                 className="flex-1 text-sm py-2.5 pr-3 outline-none bg-transparent border-0 focus:border-0 focus:ring-0"
-                style={{ color: 'var(--text-primary)', border: '0', boxShadow: 'none' }}
+                style={{ color: 'var(--text-primary)', border: '0', boxShadow: 'none', outline: 'none' }}
               />
             </div>
           </div>
