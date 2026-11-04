@@ -177,7 +177,7 @@ export default function Gallery() {
     <AppLayout fullBleed>
     <div ref={containerRef} className="min-h-screen grain" style={{ background: 'var(--bg-base)' }}>
       {/* Header */}
-      <header className="gallery-header sticky top-0 z-30 pl-14 pr-3 sm:pr-4 py-3 sm:py-4 md:px-6 flex flex-wrap items-center justify-between gap-2"
+      <header className="gallery-header sticky top-0 z-30 pl-14 pr-3 sm:pr-4 py-3 sm:py-4 md:px-6 flex items-center gap-2 min-w-0"
         style={{
           background: 'rgba(10,10,11,0.96)',
           borderBottom: '1px solid var(--border-subtle)',
@@ -186,47 +186,35 @@ export default function Gallery() {
           paddingTop: 'max(1rem, env(safe-area-inset-top))',
         }}>
 
-        {/* Left: studio logo / brand */}
-        <div className="flex items-center gap-3 min-w-0">
-          {watermarkSrc ? (
-            <img src={watermarkSrc} alt="Studio" className="h-7 object-contain opacity-80" />
-          ) : (
-            <div className="flex items-center gap-2">
-              <Camera size={16} className="text-gold-500" />
-              <span className="font-display text-sm text-gold-500">Studio Verse</span>
-            </div>
-          )}
-        </div>
-
         {/* Center: event name, with a way back to the folder grid if there's more than one event */}
         {!showFolderGrid && activeEventId && hasMultiple ? (
           <button
             onClick={() => navigate('/gallery')}
-             className="order-3 w-full justify-center md:order-none md:w-auto font-display italic text-lg md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2
-               flex items-center gap-1.5 hover:text-gold-400 transition-colors break-words text-center max-w-full md:max-w-none"
+             className="flex-1 min-w-0 justify-center font-display italic text-base md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2
+               flex items-center gap-1.5 hover:text-gold-400 transition-colors truncate text-center md:max-w-none"
             title="Back to all events"
           >
             <ArrowLeft size={15} />
             {eventName}
           </button>
         ) : !showFolderGrid ? (
-            <h1 className="order-3 w-full text-center md:order-none md:w-auto font-display italic text-lg md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2 break-words max-w-full md:max-w-none">
+            <h1 className="flex-1 min-w-0 text-center font-display italic text-base md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2 truncate md:max-w-none">
             {eventName}
           </h1>
         ) : (
-          <h1 className="order-3 w-full text-center md:order-none md:w-auto font-display italic text-lg md:absolute md:left-1/2 md:-translate-x-1/2 break-words max-w-full md:max-w-none">
+          <h1 className="flex-1 min-w-0 text-center font-display italic text-base md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2 truncate md:max-w-none">
             My Events
           </h1>
         )}
 
         {/* Right: favourites + theme */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           {!showFolderGrid && favouriteLimit != null && (
             <span className="text-xs font-medium whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>
               {getFavouritedMediaIds().size} / {favouriteLimit} selected
             </span>
           )}
-          {!showFolderGrid && !isLocked && (
+          {!showFolderGrid && !isLocked && (isSubmitted || getFavouritedMediaIds().size > 0) && (
             isSubmitted ? (
               <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap"
                 style={{ background: 'rgba(52,211,153,0.12)', color: '#34D399', border: '1px solid rgba(52,211,153,0.3)' }}>
