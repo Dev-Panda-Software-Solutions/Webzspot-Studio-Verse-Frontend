@@ -82,7 +82,7 @@ function ClientAccessCard({ mapping, onUpdate }) {
       </div>
 
       <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-         <div className="min-w-0 w-[11rem] max-w-full justify-self-end sm:col-start-2">
+         <div className="col-span-full min-w-0 w-full sm:col-start-1 sm:col-span-2">
           <label className="text-[10px] block mb-1" style={{ color: 'var(--text-tertiary)' }}>
             Expiry
           </label>
