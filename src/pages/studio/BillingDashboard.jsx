@@ -101,7 +101,7 @@ function RecentActivity({ quotations, bills, payments }) {
   return (
     <div className="space-y-1 h-[190px] overflow-y-auto popup-scrollbar pr-1">
       {events.map(ev => (
-        <div key={ev.id} className="flex items-center gap-3 py-2.5 border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
+         <div key={ev.id} className="flex items-center gap-2 sm:gap-3 py-2.5 border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
           <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--bg-elevated)' }}>
             <ev.icon size={13} className="text-gold-500" />
           </div>
@@ -109,7 +109,7 @@ function RecentActivity({ quotations, bills, payments }) {
             <p className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>{ev.text}</p>
             <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>{timeAgo(ev.at)}</p>
           </div>
-          <span className="text-sm font-semibold flex-shrink-0" style={{ color: ev.positive ? '#34D399' : 'var(--text-secondary)' }}>
+           <span className="text-xs sm:text-sm font-semibold flex-shrink-0 whitespace-nowrap" style={{ color: ev.positive ? '#34D399' : 'var(--text-secondary)' }}>
             {ev.positive ? '+' : ''}{money(ev.amount)}
           </span>
         </div>
@@ -225,8 +225,8 @@ export default function BillingDashboard() {
         <StatCard icon={Wallet} label="Total Collected" value={money(totalCollected)} />
       </div>
 
-      <div className="grid xl:grid-cols-3 gap-5 mb-6">
-        <GlassCard hover={false} className="min-w-0 overflow-hidden xl:col-span-2">
+       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+         <GlassCard hover={false} className="min-w-0 overflow-hidden lg:col-span-2">
           <h3 className="text-sm font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>Revenue Collected</h3>
           <p className="text-xs mb-4" style={{ color: 'var(--text-tertiary)' }}>Last 6 months</p>
           <div className="w-full min-w-0 h-[190px] overflow-hidden">
