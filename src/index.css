@@ -100,6 +100,23 @@ body {
   height: 100dvh;
 }
 @media (max-width: 767px) {
+  /* Keep the shared page navbar visible while each role's page scrolls. */
+  .app-mobile-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+  }
+
+  .app-mobile-header.mobile-header-flush {
+    margin-top: 0;
+  }
+
+  .app-main-has-header {
+    padding-top: 72px !important;
+  }
+
   .sidebar-shell {
     width: 280px !important;
     max-width: calc(100vw - 32px);

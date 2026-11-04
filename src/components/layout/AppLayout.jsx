@@ -91,7 +91,7 @@ export default function AppLayout({ children, title, subtitle, actions, fullBlee
         {/* Sticky page top bar */}
         {title && (
           <header
-            className={`sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 px-4 py-3 md:px-8 flex-shrink-0 ${mobileHeaderFlush ? 'mobile-header-flush' : ''} ${mobileHeaderInline ? 'mobile-header-inline' : ''}`}
+            className={`app-mobile-header sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 px-4 py-3 md:px-8 flex-shrink-0 ${mobileHeaderFlush ? 'mobile-header-flush' : ''} ${mobileHeaderInline ? 'mobile-header-inline' : ''}`}
             style={{
               background: 'var(--bg-surface)',
               borderBottom: '1px solid var(--border-subtle)',
@@ -131,7 +131,7 @@ export default function AppLayout({ children, title, subtitle, actions, fullBlee
           </header>
         )}
 
-        <main className={`flex-1 min-w-0 ${fullBleed ? 'p-0' : 'p-4 md:p-8'}`}>
+        <main className={`app-main-with-header flex-1 min-w-0 ${title ? 'app-main-has-header' : ''} ${fullBleed ? 'p-0' : 'p-4 md:p-8'}`}>
           {children}
         </main>
       </div>
