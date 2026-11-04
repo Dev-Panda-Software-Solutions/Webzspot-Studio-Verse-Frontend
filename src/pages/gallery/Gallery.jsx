@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Heart, Camera, Clock, Lock, ArrowLeft, CheckCircle2, Send } from 'lucide-react'
+import { Heart, Camera, Clock, Lock, CheckCircle2, Send } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import PhotoGrid from '../../components/gallery/PhotoGrid'
 import EventFolderGrid from '../../components/gallery/EventFolderGrid'
@@ -174,51 +174,22 @@ export default function Gallery() {
   const showFolderGrid = !activeEventId && allUserEvents.length > 0 && accessibleEvents.length !== 1
 
   return (
-    <AppLayout fullBleed>
-    <div ref={containerRef} className="min-h-screen grain" style={{ background: 'var(--bg-base)' }}>
-      {/* Header */}
-      <header className="gallery-header sticky top-0 z-30 pl-14 pr-3 sm:pr-4 py-3 sm:py-4 md:px-6 flex items-center gap-2 min-w-0"
-        style={{
-          background: 'rgba(10,10,11,0.96)',
-          borderBottom: '1px solid var(--border-subtle)',
-          boxShadow: '0 4px 18px rgba(0,0,0,0.18)',
-          backdropFilter: 'blur(12px)',
-          paddingTop: 'max(1rem, env(safe-area-inset-top))',
-        }}>
-
-        {/* Center: event name, with a way back to the folder grid if there's more than one event */}
-        {!showFolderGrid && activeEventId && hasMultiple ? (
-          <button
-            onClick={() => navigate('/gallery')}
-             className="flex-1 min-w-0 justify-center font-display italic text-base md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2
-               flex items-center gap-1.5 hover:text-gold-400 transition-colors truncate text-center md:max-w-none"
-            title="Back to all events"
-          >
-            <ArrowLeft size={15} />
-            {eventName}
-          </button>
-        ) : !showFolderGrid ? (
-            <h1 className="flex-1 min-w-0 text-center font-display italic text-base md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2 truncate md:max-w-none">
-            {eventName}
-          </h1>
-        ) : (
-          <h1 className="flex-1 min-w-0 text-center font-display italic text-base md:text-xl text-gold-500 md:absolute md:left-1/2 md:-translate-x-1/2 truncate md:max-w-none">
-            My Events
-          </h1>
-        )}
-
-        {/* Right: favourites + theme */}
+    <AppLayout
+      fullBleed
+      title={showFolderGrid ? 'My Gallery' : eventName}
+      subtitle={showFolderGrid ? 'Select an event to view photos' : 'Your event gallery'}
+      actions={(
         <div className="flex items-center gap-1.5 flex-shrink-0">
           {!showFolderGrid && favouriteLimit != null && (
-            <span className="text-xs font-medium whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>
+            <span className="hidden sm:inline text-xs font-medium whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>
               {getFavouritedMediaIds().size} / {favouriteLimit} selected
             </span>
           )}
           {!showFolderGrid && !isLocked && (isSubmitted || getFavouritedMediaIds().size > 0) && (
             isSubmitted ? (
-              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap"
+              <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap"
                 style={{ background: 'rgba(52,211,153,0.12)', color: '#34D399', border: '1px solid rgba(52,211,153,0.3)' }}>
-                <CheckCircle2 size={12} /> Submitted
+                <CheckCircle2 size={12} /> <span className="hidden sm:inline">Submitted</span>
               </span>
             ) : (
               <GoldButton size="sm" icon={<Send size={12} />} loading={submitting} onClick={handleSubmitFavourites}>
@@ -227,23 +198,23 @@ export default function Gallery() {
             )
           )}
           {!showFolderGrid && (
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="relative p-2 rounded-full hover:bg-[var(--accent-muted)] transition-colors"
-          >
-            <Heart size={18} className="text-[var(--text-secondary)]" />
-            {getFavouritedMediaIds().size > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-gold-500 text-obsidian-base text-xs
-                rounded-full flex items-center justify-center font-bold">
-                {getFavouritedMediaIds().size}
-              </span>
-            )}
-          </button>
+            <button
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Open favourites"
+              className="relative p-2 rounded-full hover:bg-[var(--accent-muted)] transition-colors"
+            >
+              <Heart size={18} style={{ color: 'var(--text-secondary)' }} />
+              {getFavouritedMediaIds().size > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-gold-500 text-obsidian-base text-xs rounded-full flex items-center justify-center font-bold">
+                  {getFavouritedMediaIds().size}
+                </span>
+              )}
+            </button>
           )}
-          {/* <ThemeToggle /> dark/light toggle disabled site-wide */}
         </div>
-      </header>
-
+      )}
+    >
+    <div ref={containerRef} className="min-h-screen grain" style={{ background: 'var(--bg-base)' }}>
       {/* Submitted banner - favourites are frozen */}
       {!showFolderGrid && isSubmitted && !isLocked && (
         <div className="px-6 py-2.5 flex items-center gap-3"
