@@ -66,6 +66,8 @@ function CardView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
                 src={src} muted autoPlay={inView} loop playsInline
                 disablePictureInPicture disableRemotePlayback
                 onCanPlay={() => setLoaded(true)}
+                onLoadedData={() => setLoaded(true)}
+                onLoadedMetadata={() => setLoaded(true)}
                 onContextMenu={(e) => e.preventDefault()}
                 controlsList="nodownload nofullscreen"
                 className={`w-full h-full transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
@@ -226,6 +228,8 @@ function ListView({ media, eventId, watermarkSrc, onClick, showFavourite, showTe
             <video src={src} muted autoPlay={inView} loop playsInline
               disablePictureInPicture disableRemotePlayback
               onCanPlay={() => setLoaded(true)}
+              onLoadedData={() => setLoaded(true)}
+              onLoadedMetadata={() => setLoaded(true)}
               onContextMenu={(e) => e.preventDefault()}
               controlsList="nodownload nofullscreen"
               className={`w-full h-full object-cover transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
