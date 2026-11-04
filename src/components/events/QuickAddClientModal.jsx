@@ -164,7 +164,7 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
           <p className="text-sm leading-relaxed mb-6" style={{ color: 'var(--text-secondary)' }}>
             To create or add a client, you need to create an event first. Clients are added to a specific event so they can access its gallery.
           </p>
-          <div className="flex gap-3">
+          <div className="flex flex-col-reverse sm:flex-row gap-3">
             <GoldButton
               icon={<CalendarPlus size={14} />}
               onClick={() => { handleClose(); navigate('/studio/events') }}
@@ -172,7 +172,7 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
             >
               Create an Event
             </GoldButton>
-            <GoldButton variant="ghost" onClick={handleClose}>Cancel</GoldButton>
+            <GoldButton variant="ghost" onClick={handleClose} className="w-full sm:w-auto justify-center">Cancel</GoldButton>
           </div>
         </div>
       ) : !presetEventId && (
@@ -280,11 +280,11 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
                 </div>
               )}
 
-              <div className="flex gap-3">
-                <GoldButton onClick={handleAssignExisting} loading={assigning} disabled={!selected} className="flex-1">
+              <div className="flex flex-col-reverse sm:flex-row gap-3">
+                <GoldButton onClick={handleAssignExisting} loading={assigning} disabled={!selected} className="w-full sm:flex-1 justify-center">
                   {selected ? `Assign ${selected.user_name}` : 'Select a client above'}
                 </GoldButton>
-                <GoldButton variant="ghost" onClick={handleClose}>Cancel</GoldButton>
+                <GoldButton variant="ghost" onClick={handleClose} className="w-full sm:w-auto justify-center">Cancel</GoldButton>
               </div>
             </div>
           )}
@@ -337,21 +337,21 @@ export default function QuickAddClientModal({ open, onClose, presetEventId, onCr
                       </div>
                     ))}
                   </div>
-                  <div className="flex gap-3">
-                    <GoldButton type="submit" variant="outline" loading={creating} className="flex-1 justify-center">
+                  <div className="flex flex-col-reverse sm:flex-row gap-3">
+                    <GoldButton type="submit" variant="outline" loading={creating} className="w-full sm:flex-1 justify-center">
                       Create new client anyway
                     </GoldButton>
-                    <GoldButton type="button" variant="ghost" onClick={handleClose}>Cancel</GoldButton>
+                    <GoldButton type="button" variant="ghost" onClick={handleClose} className="w-full sm:w-auto justify-center">Cancel</GoldButton>
                   </div>
                 </div>
               )}
 
               {(!duplicates || duplicates.length === 0) && (
-                <div className="flex gap-3 pt-1">
-                  <GoldButton type="submit" loading={creating || checkingDuplicates} className="flex-1">
+                <div className="flex flex-col-reverse sm:flex-row gap-3 pt-1">
+                  <GoldButton type="submit" loading={creating || checkingDuplicates} className="w-full sm:flex-1 justify-center">
                     Create &amp; Add to Event
                   </GoldButton>
-                  <GoldButton type="button" variant="ghost" onClick={handleClose}>Cancel</GoldButton>
+                  <GoldButton type="button" variant="ghost" onClick={handleClose} className="w-full sm:w-auto justify-center">Cancel</GoldButton>
                 </div>
               )}
             </form>

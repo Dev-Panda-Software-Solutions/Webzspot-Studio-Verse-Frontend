@@ -68,7 +68,7 @@ function ClientAccessCard({ mapping, onUpdate }) {
         <Avatar name={user.user_name || 'Client'} size="sm" />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+           <p className="min-w-0 text-sm font-semibold break-words" style={{ color: 'var(--text-primary)' }}>
               {user.user_name || 'Unnamed client'}
             </p>
             <Badge variant={state.variant}>{state.label}</Badge>
@@ -79,8 +79,8 @@ function ClientAccessCard({ mapping, onUpdate }) {
         </div>
       </div>
 
-      <div className="mt-3 flex items-end gap-2">
-        <div className="flex-1">
+      <div className="mt-3 flex flex-wrap items-end gap-2">
+         <div className="min-w-[9rem] flex-1">
           <label className="text-[10px] block mb-1" style={{ color: 'var(--text-tertiary)' }}>
             Expiry
           </label>
@@ -154,12 +154,12 @@ function UnassignedClient({ user, eventId, onAssigned }) {
           <p className="text-xs truncate" style={{ color: 'var(--text-tertiary)' }}>{user.user_email_id || user.user_phone_number || 'No contact saved'}</p>
         </div>
       </div>
-      <div className="mt-3 flex items-end gap-2">
-        <input
+      <div className="mt-3 flex flex-wrap items-end gap-2">
+         <input
           type="date"
           value={expiry}
           onChange={e => setExpiry(e.target.value)}
-          className="min-w-0 flex-1 rounded-lg px-2.5 py-2 text-xs outline-none"
+           className="min-w-[9rem] flex-1 rounded-lg px-2.5 py-2 text-xs outline-none"
           style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
         />
         <button
@@ -358,7 +358,7 @@ export default function AccessBoard() {
     <AppLayout
       title="Client Access Board"
       subtitle="Map clients to events and control gallery access from one place"
-      actions={<GoldButton icon={<LayoutGrid size={14} />} loading={refreshing} onClick={() => refreshBoard({ notify: true })}>Refresh</GoldButton>}
+       actions={<GoldButton size="sm" className="w-full sm:w-auto justify-center" icon={<LayoutGrid size={14} />} loading={refreshing} onClick={() => refreshBoard({ notify: true })}>Refresh</GoldButton>}
     >
       <div className="space-y-6">
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
