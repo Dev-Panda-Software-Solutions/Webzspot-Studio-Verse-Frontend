@@ -53,39 +53,41 @@ function MappingRow({ mapping, onChanged }) {
   }
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
+    <div className="flex flex-col gap-3 px-4 py-3 border-b last:border-b-0 sm:flex-row sm:items-center" style={{ borderColor: 'var(--border-subtle)' }}>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{mapping.event?.event_name || 'Untitled event'}</p>
+        <p className="text-sm font-medium break-words" style={{ color: 'var(--text-primary)' }}>{mapping.event?.event_name || 'Untitled event'}</p>
         <p className="text-xs mt-0.5" style={{ color: 'var(--text-tertiary)' }}>
           <Badge variant={mapping.isactive ? 'success' : 'error'}>{mapping.isactive ? 'Active' : 'Revoked'}</Badge>
         </p>
       </div>
-      <input
-        type="date"
-        value={expiry}
-        disabled={saving}
-        onChange={e => setExpiry(e.target.value)}
-        className="text-xs rounded-lg px-2 py-1.5 outline-none"
-        style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
-      />
-      <button
-        type="button" disabled={saving} onClick={saveExpiry}
-        className="text-xs font-semibold rounded-lg px-2.5 py-1.5 disabled:opacity-50"
-        style={{ background: 'var(--accent-muted)', color: '#F59E0B' }}
-      >
-        Save
-      </button>
-      <button
-        type="button" disabled={saving} onClick={toggleAccess}
-        title={mapping.isactive ? 'Revoke access to this event' : 'Restore access to this event'}
-        className="p-2 rounded-lg disabled:opacity-50"
-        style={{
-          background: mapping.isactive ? 'rgba(248,113,113,0.12)' : 'rgba(52,211,153,0.12)',
-          color: mapping.isactive ? '#F87171' : '#34D399',
-        }}
-      >
-        {mapping.isactive ? <Ban size={14} /> : <CheckCircle2 size={14} />}
-      </button>
+      <div className="flex items-center gap-2 w-full sm:w-auto sm:flex-1 sm:max-w-xs">
+        <input
+          type="date"
+          value={expiry}
+          disabled={saving}
+          onChange={e => setExpiry(e.target.value)}
+          className="min-w-0 flex-1 text-xs rounded-lg px-2 py-1.5 outline-none"
+          style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
+        />
+        <button
+          type="button" disabled={saving} onClick={saveExpiry}
+          className="text-xs font-semibold rounded-lg px-2.5 py-1.5 disabled:opacity-50"
+          style={{ background: 'var(--accent-muted)', color: '#F59E0B' }}
+        >
+          Save
+        </button>
+        <button
+          type="button" disabled={saving} onClick={toggleAccess}
+          title={mapping.isactive ? 'Revoke access to this event' : 'Restore access to this event'}
+          className="p-2 rounded-lg disabled:opacity-50"
+          style={{
+            background: mapping.isactive ? 'rgba(248,113,113,0.12)' : 'rgba(52,211,153,0.12)',
+            color: mapping.isactive ? '#F87171' : '#34D399',
+          }}
+        >
+          {mapping.isactive ? <Ban size={14} /> : <CheckCircle2 size={14} />}
+        </button>
+      </div>
     </div>
   )
 }
@@ -173,9 +175,9 @@ function EditClientModal({ client, onClose }) {
             style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }}
           />
         </div>
-        <div className="flex gap-3 pt-2">
-          <GoldButton type="submit" loading={saving} className="flex-1">Save Changes</GoldButton>
-          <GoldButton type="button" variant="ghost" onClick={onClose}>Cancel</GoldButton>
+        <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
+          <GoldButton type="submit" loading={saving} className="w-full sm:flex-1 justify-center">Save Changes</GoldButton>
+          <GoldButton type="button" variant="ghost" onClick={onClose} className="w-full sm:w-auto justify-center">Cancel</GoldButton>
         </div>
       </form>
     </Modal>
@@ -247,9 +249,9 @@ export default function Clients() {
     <AppLayout
       title="Clients"
       subtitle={`${total} clients - manage accounts and their event access in one place`}
-      actions={<GoldButton onClick={() => setAddOpen(true)} icon={<UserPlus size={14} />}>Add Client</GoldButton>}
+      actions={<GoldButton size="sm" className="w-full sm:w-auto justify-center" onClick={() => setAddOpen(true)} icon={<UserPlus size={14} />}>Add Client</GoldButton>}
     >
-      <div className="flex gap-1 p-1 rounded-xl mb-4 w-fit" style={{ background: 'var(--bg-elevated)' }}>
+      <div className="flex w-full sm:w-fit gap-1 p-1 rounded-xl mb-4" style={{ background: 'var(--bg-elevated)' }}>
         {[
           { key: 'active', label: 'Active' },
           { key: 'archived', label: 'Archived' },
@@ -258,7 +260,7 @@ export default function Clients() {
           <button
             key={key}
             onClick={() => { setStatus(key); setPage(1) }}
-            className="px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
+            className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 rounded-lg text-sm font-medium transition-all"
             style={{
               background: status === key ? 'var(--bg-surface)' : 'transparent',
               color: status === key ? '#F59E0B' : 'var(--text-secondary)',
@@ -453,7 +455,7 @@ export default function Clients() {
         </div>
 
         {pages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t" style={{ borderColor: 'var(--border-default)' }}>
+          <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-4 border-t" style={{ borderColor: 'var(--border-default)' }}>
             <p className="text-xs text-[var(--text-tertiary)]">Page {page} of {pages}</p>
             <div className="flex gap-2">
               <GoldButton size="sm" variant="outline" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>←</GoldButton>
