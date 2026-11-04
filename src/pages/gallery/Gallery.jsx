@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Heart, Camera, Clock, Lock, CheckCircle2, Send } from 'lucide-react'
+import { Heart, Camera, Clock, Lock, ArrowLeft, CheckCircle2, Send } from 'lucide-react'
 import AppLayout from '../../components/layout/AppLayout'
 import PhotoGrid from '../../components/gallery/PhotoGrid'
 import EventFolderGrid from '../../components/gallery/EventFolderGrid'
@@ -180,6 +180,17 @@ export default function Gallery() {
       subtitle={showFolderGrid ? 'Select an event to view photos' : 'Your event gallery'}
       actions={(
         <div className="flex items-center gap-1.5 flex-shrink-0">
+          {!showFolderGrid && activeEventId && hasMultiple && (
+            <button
+              type="button"
+              onClick={() => navigate('/gallery')}
+              className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium"
+              style={{ color: 'var(--text-secondary)', background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}
+            >
+              <ArrowLeft size={13} />
+              <span className="hidden sm:inline">Events</span>
+            </button>
+          )}
           {!showFolderGrid && favouriteLimit != null && (
             <span className="hidden sm:inline text-xs font-medium whitespace-nowrap" style={{ color: 'var(--text-tertiary)' }}>
               {getFavouritedMediaIds().size} / {favouriteLimit} selected
