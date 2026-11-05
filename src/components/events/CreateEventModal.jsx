@@ -292,8 +292,8 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
         </div>
 
         {/* Two-column grid for fields */}
-        <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-x-6">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 gap-y-0">
+          <div className="col-span-1">
             <GoldInput label="Event Name *" name="event_name" required value={form.event_name}
               onChange={e => update('event_name', e.target.value)} />
           </div>
@@ -308,18 +308,18 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
             onKeyDown={handleOrganizerPhoneKeyDown}
             onBlur={() => setPhoneTouched(true)}
             onChange={e => update('event_organizer_phone_number', sanitizeOrganizerPhone(e.target.value))} />
-          <div className="col-span-2 sm:col-span-1">
+          <div className="col-span-1">
             <GoldInput label="Organizer Email *" name="event_organizer_email_id" type="email" required
               value={form.event_organizer_email_id}
               onChange={e => update('event_organizer_email_id', e.target.value)} />
           </div>
-          <div className="col-span-2">
+          <div className="col-span-1">
             <GoldInput label="Description (optional)" name="event_description" value={form.event_description}
               onChange={e => update('event_description', e.target.value)} />
           </div>
 
           {/* Allow downloads toggle */}
-          <div className="col-span-2 flex items-center justify-between gap-4 p-4 rounded-xl"
+          <div className="col-span-1 flex items-center justify-between gap-4 p-4 rounded-xl"
             style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}>
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
