@@ -308,9 +308,11 @@ export default function CreateEventModal({ open, onClose, onCreated, event: edit
             onKeyDown={handleOrganizerPhoneKeyDown}
             onBlur={() => setPhoneTouched(true)}
             onChange={e => update('event_organizer_phone_number', sanitizeOrganizerPhone(e.target.value))} />
-          <GoldInput label="Organizer Email *" name="event_organizer_email_id" type="email" required
-            value={form.event_organizer_email_id}
-            onChange={e => update('event_organizer_email_id', e.target.value)} />
+          <div className="col-span-2 sm:col-span-1">
+            <GoldInput label="Organizer Email *" name="event_organizer_email_id" type="email" required
+              value={form.event_organizer_email_id}
+              onChange={e => update('event_organizer_email_id', e.target.value)} />
+          </div>
           <div className="col-span-2">
             <GoldInput label="Description (optional)" name="event_description" value={form.event_description}
               onChange={e => update('event_description', e.target.value)} />
