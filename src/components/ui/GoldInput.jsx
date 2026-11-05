@@ -15,7 +15,7 @@ export default function GoldInput({
   const shouldFloat = forceFloat || !!value
 
   return (
-    <div className={`relative mb-6 ${className}`}>
+    <div className={`relative min-w-0 mb-6 ${className}`}>
       <input
         id={name}
         name={name}
@@ -25,7 +25,7 @@ export default function GoldInput({
         placeholder={placeholder}
         {...rest}
         className={`
-          w-full bg-transparent border-b-2 pt-5 pb-2 pr-10 text-sm
+          w-full min-w-0 bg-transparent border-b-2 pt-5 pb-2 ${isPassword ? 'pr-10' : 'pr-2'} text-sm
           text-[var(--text-primary)] placeholder-transparent
           focus:outline-none transition-colors duration-200
           ${error
