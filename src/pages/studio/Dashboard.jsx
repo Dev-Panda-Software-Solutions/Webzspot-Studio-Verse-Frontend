@@ -251,6 +251,7 @@ export default function StudioDashboard() {
     <AppLayout
       title={`${greetingTime()}, ${user?.tenant_studio_name || user?.user_name || 'Studio'}`}
       subtitle={new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+      mobileHeaderNoWrap
       actions={trialExhausted
         ? upgradeAction
         : <GoldButton onClick={() => setCreateOpen(true)} icon={<Camera size={14} />}>New Event</GoldButton>}

@@ -170,6 +170,22 @@ body {
     max-width: 100%;
   }
 
+  .mobile-header-no-wrap {
+    flex-wrap: nowrap !important;
+  }
+
+  .mobile-header-no-wrap > div:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .mobile-header-no-wrap > div:last-child {
+    flex: 0 0 auto;
+    max-width: none;
+    overflow: visible;
+    flex-wrap: nowrap;
+  }
+
 }
 
 /* ─── Scrollbar Styling ──────────────────────────────────── */
