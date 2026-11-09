@@ -210,14 +210,19 @@ export default function BillingDashboard() {
       title="Billing & Invoicing"
       subtitle="Quotations, bills and payments for your studio"
       actions={
-        <div className="flex gap-2 flex-wrap justify-end max-w-full">
-          <GoldButton size="sm" className="w-full sm:w-auto justify-center" variant="outline" icon={<Landmark size={14} />} onClick={() => setGstOpen(true)}>
-            {settings.gstin_number ? 'Edit GST' : 'Add GST Number'}
+        <div className="flex flex-nowrap items-center gap-1.5 justify-end min-w-0 max-w-full">
+          <GoldButton size="sm" className="flex-shrink-0 whitespace-nowrap justify-center" variant="outline" icon={<Landmark size={14} />} onClick={() => setGstOpen(true)}>
+            <span className="sm:hidden">GST</span>
+            <span className="hidden sm:inline">{settings.gstin_number ? 'Edit GST' : 'Add GST Number'}</span>
           </GoldButton>
-          <GoldButton size="sm" className="w-full sm:w-auto justify-center" icon={<Plus size={14} />} onClick={() => setCreateOpen(true)}>Create Quotation</GoldButton>
+          <GoldButton size="sm" className="flex-shrink-0 whitespace-nowrap justify-center" icon={<Plus size={14} />} onClick={() => setCreateOpen(true)}>
+            <span className="sm:hidden">Create</span>
+            <span className="hidden sm:inline">Create Quotation</span>
+          </GoldButton>
         </div>
       }
     >
+      <div className="billing-dashboard w-full min-w-0">
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6 mt-4 md:mt-0">
         <StatCard icon={FileText} label="Total Quotations" value={quotations.length} />
         <StatCard icon={ReceiptIcon} label="Draft Quotations" value={draftCount} />
@@ -506,6 +511,7 @@ export default function BillingDashboard() {
 
       <GstModal open={gstOpen} onClose={() => setGstOpen(false)} settings={settings} onSave={handleSaveGst} saving={savingGst} />
       <CreateQuotationModal open={createOpen} onClose={() => setCreateOpen(false)} />
+      </div>
     </AppLayout>
   )
 }
